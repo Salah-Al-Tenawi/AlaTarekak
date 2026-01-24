@@ -1,0 +1,1 @@
+enum ProfileImagePicMode { user, car }

@@ -1,0 +1,1 @@
+enum TripDetailsMode { myView,  otherView }
