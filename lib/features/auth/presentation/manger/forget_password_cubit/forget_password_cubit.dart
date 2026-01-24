@@ -10,12 +10,12 @@ class ForgetPasswordCubit extends Cubit<ForgetPasswordState> {
   ForgetPasswordCubit(this.authRepoIm) : super(ForgetPasswordInitial());
 
   sendEmail(String email) async {
-    emit(ForgetPasswordLoading());
-    final response = await authRepoIm.forgetPassword(email);
-    response.fold((error) {
-      emit(ForgetPasswordErorr(message: error.message));
-    }, (dynamic) {
-      emit(ForgetPasswordSuccsess());
-    });
+    // emit(ForgetPasswordLoading());
+    // final response = await authRepoIm.forgetPassword(email);
+    // response.fold((error) {
+    //   emit(ForgetPasswordErorr(message: error.message));
+    // }, (dynamic) {
+    //   emit(ForgetPasswordSuccsess());
+    // });
   }
 }

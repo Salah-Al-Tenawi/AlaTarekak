@@ -1,74 +1,93 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 
+import 'package:alatarekak/core/api/api_consumer.dart';
 import 'package:alatarekak/core/api/api_end_points.dart';
-import 'package:alatarekak/core/api/dio_consumer.dart';
 import 'package:alatarekak/core/service/hive_services.dart';
 import 'package:alatarekak/core/utils/functions/get_token.dart';
 import 'package:alatarekak/features/auth/data/model/user_model.dart';
+import 'package:alatarekak/features/auth/domain/usecase/params/reset_password_params.dart';
+import 'package:alatarekak/features/auth/domain/usecase/params/sing_up_params.dart';
+import 'package:dartz/dartz.dart';
 
 abstract class AuthRemoteDataSource {
-  final DioConSumer api;
-  const AuthRemoteDataSource({
+  final ApiConSumer api;
+   AuthRemoteDataSource({
     required this.api,
   });
 
-  Future<UserModel> login(String email, String password);
-  Future<UserModel> singin(String firstName, String lastName, String gender,
-      String email, String address, String password, String verfiyPassword);
-  Future forgetPassword(String email);
-  Future logout();
-  // Future<UserModel> singInWithGoogle();
+  Future<UserModel> signInWithEmail(String email, String password);
+  Future<Unit> singIn(SignUpParams params);
+  Future<UserModel> singInWithGoogle();
+  Future<Unit> forgotPassword(String email);
+  Future<Unit>resetPassword(ResetPasswordParams params);
+  Future<UserModel>verifyEmail(String email , String otp);
+  Future<Unit> logout();
 }
 
 class AuthRemoteDataSourceIM extends AuthRemoteDataSource {
   AuthRemoteDataSourceIM({required super.api});
-
+  
   @override
-  Future<UserModel> login(String email, String password) async {
+  Future<Unit> forgotPassword(String email) async{
+        await api.post(ApiEndPoint.forgetPassword, data: {ApiKey.email: email});
+    return unit;
+  }
+  
+    @override
+  Future<Unit> logout() async {
+     await api.post(ApiEndPoint.logout,
+        header: {ApiKey.authorization: "Bearer ${mytoken()}"});
+    return unit;
+  } 
+
+  
+  @override
+  Future<Unit> resetPassword(ResetPasswordParams params) {
+    // TODO: implement resetPassword
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<UserModel> signInWithEmail(String email, String password)async {
     final response = await api.post(ApiEndPoint.login,
         data: {ApiKey.email: email, ApiKey.password: password});
     final user = UserModel.fromjson(response);
     HiveBoxes.authBox.put(HiveKeys.user, user);
     return user;
   }
-
+  
   @override
-  Future<UserModel> singin(
-      String firstName,
-      String lastName,
-      String gender,
-      String email,
-      String address,
-      String password,
-      String verfiyPassword) async {
-    final response = await api.post(ApiEndPoint.singin, data: {
-      ApiKey.firstName: firstName,
-      ApiKey.lastName: lastName,
-      ApiKey.email: email,
-      ApiKey.password: password,
-      ApiKey.passwordConfirm: verfiyPassword,
-      ApiKey.gender: gender,
-      ApiKey.address: address,
+  Future<Unit> singIn(SignUpParams params)async {
+     await api.post(ApiEndPoint.singin, data: {
+      ApiKey.firstName:params.firstName,
+      ApiKey.lastName: params.lastName,
+      ApiKey.email:    params.email,
+      ApiKey.password: params.password,
+      ApiKey.passwordConfirm: params.confirmPassword,
+      ApiKey.gender: params.gender,
+      ApiKey.address:params.address,
+    });
+    return unit;
+  }
+  
+  @override
+  Future<UserModel> singInWithGoogle() {
+    // TODO: implement singInWithGoogle
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<UserModel> verifyEmail(String email, String otp)async {
+    final response =await api.post(ApiEndPoint.baserUrl ,data: { 
+     ApiKey.email :email ,
+      ApiKey.otpCode :otp
     });
     final user = UserModel.fromjson(response);
     HiveBoxes.authBox.put(HiveKeys.user, user);
     return user;
   }
 
-// to do
-  @override
-  Future<dynamic> logout() async {
-    final response = await api.post(ApiEndPoint.logout,
-        header: {ApiKey.authorization: "Bearer ${mytoken()}"});
-    return response;
-  }
 
-  @override
-  Future forgetPassword(String email) async {
-    final response =
-        await api.post(ApiEndPoint.forgetPassword, data: {ApiKey.email: email});
-    return response;
-  }
+
 
   // Future<UserModel> singInWithGoogle() async {
     // // 1. افتح صفحة تسجيل الدخول

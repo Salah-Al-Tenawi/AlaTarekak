@@ -13,14 +13,14 @@ class SinginCubit extends Cubit<SinginState> {
 
   Future singin(String firstName, String lastName, String gender, String email,
       String address, String password, String verifyPassword) async {
-    emit(SinginLoading());
-    final response = await authRepoIm.singin(
-        firstName, lastName, gender, email, address, password, verifyPassword);
-    response.fold((filuar) {
-      emit(SinginErorre(filuar.message));
-    }, (userModel) {
-      emit(SinginSuccess(user: userModel));
-    });
+    // emit(SinginLoading());
+    // final response = await authRepoIm.singin(
+    //     firstName, lastName, gender, email, address, password, verifyPassword);
+    // response.fold((filuar) {
+    //   emit(SinginErorre(filuar.message));
+    // }, (userModel) {
+    //   emit(SinginSuccess(user: userModel));
+    // });
   }
 
   void emitChangeGender(String gender) {
