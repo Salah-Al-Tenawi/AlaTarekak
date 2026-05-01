@@ -27,7 +27,7 @@ class ProfileSaveButton extends StatelessWidget {
             style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.normal,
-                color: MyColors.greyTextField),
+                color: MyColors.textSecondary),
           )),
     );
   }

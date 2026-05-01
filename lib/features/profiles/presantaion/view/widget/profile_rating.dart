@@ -39,11 +39,11 @@ class ProfileRating extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           "($totalRating) التقييمات",
-          style: font10NormalGrey,
+          style: AppTextStyles.bodySmall,
         ),
         Text(
           "($tripsCount) الرحلات",
-          style: font10NormalGrey,
+          style: AppTextStyles.bodySmall,
         ),
       ],
     );

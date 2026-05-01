@@ -30,7 +30,7 @@ class Policy extends StatelessWidget {
               "النص كامل يسيمنتب  ",
               style: TextStyle(
                 fontSize: 16,
-                color: MyColors.primaryText,
+                color: MyColors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
@@ -69,7 +69,7 @@ class Policy extends StatelessWidget {
               text,
               style: const TextStyle(
                 fontSize: 14,
-                color: MyColors.primaryText,
+                color: MyColors.textPrimary,
               ),
             ),
           ),

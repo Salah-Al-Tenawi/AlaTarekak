@@ -31,7 +31,7 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyColors.primaryBackground,
+      backgroundColor: MyColors.background,
       appBar: AppBar(
         backgroundColor: MyColors.primary,
         title: const Text("الحجوزات", style: TextStyle(color: Colors.white)),
@@ -89,7 +89,7 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
       },
       child: CircleAvatar(
         radius: 28,
-        backgroundColor: MyColors.secondaryBackground,
+        backgroundColor: MyColors.background,
         backgroundImage: avatar != null ? NetworkImage(avatar) : null,
         child: avatar == null
             ? const Icon(Icons.person, size: 32, color: Colors.white)
@@ -118,7 +118,7 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: MyColors.primaryText,
+                color: MyColors.textPrimary,
               ),
             ),
             Container(
@@ -132,7 +132,7 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: MyColors.primaryBackground,
+                  color: MyColors.background,
                 ),
               ),
             ),
@@ -146,11 +146,11 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
   Widget buildSeatsAndPrice(int seats, int totalPrice) {
     return Row(
       children: [
-        const Icon(Icons.event_seat, size: 18, color: MyColors.secondary),
+        const Icon(Icons.event_seat, size: 18, color: MyColors.textSecondary),
         const SizedBox(width: 4),
         Text(
           "$seats مقاعد",
-          style: const TextStyle(fontSize: 14, color: MyColors.secondary),
+          style: const TextStyle(fontSize: 14, color: MyColors.textSecondary),
         ),
         const SizedBox(width: 12),
         const Icon(Icons.attach_money, size: 18, color: MyColors.accent),
@@ -171,11 +171,11 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
   Widget buildBookingDate(String date) {
     return Row(
       children: [
-        const Icon(Icons.calendar_today, size: 16, color: MyColors.secondary),
+        const Icon(Icons.calendar_today, size: 16, color: MyColors.textSecondary),
         const SizedBox(width: 4),
         Text(
           formatDate(date),
-          style: const TextStyle(fontSize: 13, color: MyColors.secondary),
+          style: const TextStyle(fontSize: 13, color: MyColors.textSecondary),
         ),
       ],
     );
@@ -226,11 +226,11 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
   Row buildCommincationNumber(BookingModel booking) {
     return Row(
       children: [
-        const Icon(Icons.phone, size: 16, color: MyColors.secondary),
+        const Icon(Icons.phone, size: 16, color: MyColors.textSecondary),
         const SizedBox(width: 4),
         Text(
           booking.numberPhone,
-          style: const TextStyle(fontSize: 13, color: MyColors.secondary),
+          style: const TextStyle(fontSize: 13, color: MyColors.textSecondary),
         ),
       ],
     );
@@ -315,7 +315,7 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
             return _statusChip("تم الحجز", Colors.blue);
 
           default:
-            return _statusChip("تمت المعالجة", MyColors.secondary);
+            return _statusChip("تمت المعالجة", MyColors.textSecondary);
         }
       },
     );

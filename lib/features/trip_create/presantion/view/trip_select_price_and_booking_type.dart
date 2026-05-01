@@ -60,7 +60,7 @@ class _TripSelectPriceAndBookingTypeState
               ),
               const Text(
                 " السعر للراكب الواحد بالليرة السورية",
-                style: font15BoldRamadi,
+                style: AppTextStyles.buttonLarge,
               ),
               SizedBox(
                 height: 20.h,
@@ -70,13 +70,13 @@ class _TripSelectPriceAndBookingTypeState
 
               const Text(
                 "اختر نوع الدفع ",
-                style: font15BoldRamadi,
+                style: AppTextStyles.accent,
               ),
               TripSelectCashType(
                 tripFrom: tripFrom,
               ),
               const Divider(
-                color: MyColors.primaryText,
+                color: MyColors.textPrimary,
                 endIndent: 100,
                 indent: 100,
                 thickness: 0.3,
@@ -86,7 +86,7 @@ class _TripSelectPriceAndBookingTypeState
               ),
               const Text(
                 "اختر نوع الحجز ",
-                style: font15BoldRamadi,
+                style: AppTextStyles.bodyMedium,
               ),
               TripSelectBookingType(tripFrom: tripFrom),
               const TripTextNote(),
@@ -97,14 +97,14 @@ class _TripSelectPriceAndBookingTypeState
                     Get.toNamed(RouteName.tripAddNumberPhone,
                         arguments: tripFrom);
                   },
-                  color: MyColors.primaryText,
+                  color: MyColors.textLight,
                   width: 130.w,
                   height: 50.h,
                   borderRadius: true,
                   splashcolor: MyColors.primary,
                   child: const Text(
                     "التالي",
-                    style: font13boldwhite,
+                    style: AppTextStyles.bodyLarge,
                   ),
                 ),
               )

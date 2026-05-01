@@ -12,7 +12,7 @@ class CarSmokingInfoTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomListTile(
       title: "التدخين",
-      titleTextStyle: font15BoldRamadi,
+      titleTextStyle: AppTextStyles.bodyMedium,
       iconleading: const Icon(Icons.smoking_rooms, size: 20, color: MyColors.primary),
       subtitle: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

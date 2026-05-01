@@ -12,7 +12,7 @@ class TripTextNote extends StatelessWidget {
       padding: EdgeInsets.only(bottom: 50.h),
       child: RichText(
         text: TextSpan(
-          style: font11NormalGrey,
+          style: AppTextStyles.bodySmall,
           children: [
             const TextSpan(
               text: "يُحدد هذا الخيار طريقة حجز المقاعد في رحلتك:\n\n",

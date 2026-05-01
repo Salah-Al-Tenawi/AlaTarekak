@@ -27,12 +27,13 @@ class MyApp extends StatelessWidget {
       minTextAdapt: true,
       child: GetMaterialApp(
         title: "state mangment with cubit and navigation by getx",
-        initialRoute: RouteName.splashView,
+        initialRoute: RouteName.login,
         getPages: appRoute,
         theme: ThemApp.lightThem,
+        
         debugShowCheckedModeBanner: false,
         textDirection: TextDirection.rtl,
       ),
-    );
+    );  
   }
 }

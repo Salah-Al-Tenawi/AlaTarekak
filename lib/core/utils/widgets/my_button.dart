@@ -29,7 +29,7 @@ class MyButton extends StatelessWidget {
           ? RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
           : null,
       onPressed: onPressed,
-      splashColor: splashcolor ?? MyColors.greyTextColor,
+      splashColor: splashcolor ?? MyColors.textHint,
       minWidth: width ?? 100.h,
       height: height ?? 40.h,
       color: color,

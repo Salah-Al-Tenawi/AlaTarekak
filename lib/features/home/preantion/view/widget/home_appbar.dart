@@ -27,7 +27,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           margin: EdgeInsets.only(right: 12.w, top: 8.h, bottom: 8.h),
           padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
           decoration: BoxDecoration(
-            color: MyColors.primaryBackground,
+            color: MyColors.background,
             borderRadius: BorderRadius.circular(20.r),
             boxShadow: [
               BoxShadow(
@@ -61,7 +61,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
       margin: EdgeInsets.only(right: 12.w, top: 8.h, bottom: 8.h),
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
       decoration: BoxDecoration(
-        color: MyColors.primaryBackground,
+        color: MyColors.background,
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
@@ -146,9 +146,9 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
-                    color: MyColors.greyTextField,
+                    color: MyColors.textHint,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: MyColors.greyTextField),
+                    border: Border.all(color: MyColors.textHint),
                   ),
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -181,9 +181,9 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
-                    color: MyColors.greyTextField,
+                    color: MyColors.textHint,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: MyColors.greyTextField),
+                    border: Border.all(color: MyColors.textHint),
                   ),
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -256,8 +256,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                 BoxShadow(
                     blurRadius: 5,
                     offset: Offset(5, 5),
-                    color: MyColors.blackColor)
-              ], shape: BoxShape.circle, color: MyColors.primaryBackground),
+                    color: MyColors.navy)
+              ], shape: BoxShape.circle, color: MyColors.background),
               child: const Icon(Icons.chat),
             ),
           ),
@@ -287,10 +287,10 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                   BoxShadow(
                       blurRadius: 5,
                       offset: Offset(5, 5),
-                      color: MyColors.blackColor)
+                      color: MyColors.textPrimary)
                 ],
                 borderRadius: BorderRadius.circular(30.sp),
-                color: MyColors.primaryBackground,
+                color: MyColors.background,
               ),
               child: const Icon(Icons.notifications),
             ),

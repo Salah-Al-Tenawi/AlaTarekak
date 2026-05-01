@@ -84,7 +84,7 @@ class _ItemSearchTripState extends State<ItemSearchTrip> {
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
-                              color: MyColors.primaryText,
+                              color: MyColors.textPrimary,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -271,7 +271,8 @@ class _LocationRowModern extends StatelessWidget {
               style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: MyColors.primaryText),
+                  color: MyColors.textPrimary
+                  ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis),
         ),

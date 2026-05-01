@@ -216,7 +216,7 @@ class _PushRideMapState extends State<PushRideMap> {
                   splashcolor: MyColors.primary,
                   child: const Text(
                     "التالي",
-                    style: font13boldwhite,
+                    style: AppTextStyles.bodyMedium,
                   ),
                 ),
               )

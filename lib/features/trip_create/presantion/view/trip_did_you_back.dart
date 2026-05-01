@@ -39,7 +39,7 @@ class _TripDidYouBackState extends State<TripDidYouBack> {
               children: [
                 const Text(
                   "تم إنشاء الرحلة بنجاح ",
-                  style: font18boldramdi,
+                  style: AppTextStyles.titleMedium,
                 ),
                 Padding(
                   padding: EdgeInsets.only(top: 30.h, bottom: 100.h),
@@ -56,7 +56,7 @@ class _TripDidYouBackState extends State<TripDidYouBack> {
                           Get.offAllNamed(RouteName.home);
                         },
                         color: MyColors.primary,
-                        splashcolor: MyColors.primaryText,
+                        splashcolor: MyColors.textPrimary,
                         width: 260.w,
                         height: 60,
                         borderRadius: true,

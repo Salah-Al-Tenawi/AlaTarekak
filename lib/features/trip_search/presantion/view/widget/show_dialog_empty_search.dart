@@ -31,7 +31,7 @@ Future<void> showNoTripsDialog(BuildContext context) async {
           Text(
             'حاول تغيير التاريخ أو الموقع للعثور على رحلات أخرى.',
             style: TextStyle(
-              color: MyColors.secondary.withOpacity(0.7),
+              color: MyColors.textSecondary.withOpacity(0.7),
               fontSize: 14,
             ),
             textAlign: TextAlign.center,

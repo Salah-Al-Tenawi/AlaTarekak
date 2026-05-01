@@ -174,7 +174,7 @@ class _BookingItemState extends State<BookingItem> {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: MyColors.primaryText,
+                color: MyColors.textPrimary,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -220,7 +220,7 @@ class _BookingItemState extends State<BookingItem> {
                 "من: ${widget.booking.pickupAddress}",
                 style: const TextStyle(
                   fontSize: 14,
-                  color: MyColors.primaryText,
+                  color: MyColors.textPrimary,
                 ),
               ),
             ),
@@ -232,7 +232,7 @@ class _BookingItemState extends State<BookingItem> {
             child: FaIcon(
               FontAwesomeIcons.route,
               size: 25.w,
-              color: MyColors.secondary,
+              color: MyColors.textSecondary,
             ),
           ),
         ),
@@ -247,7 +247,7 @@ class _BookingItemState extends State<BookingItem> {
                 "إلى: ${widget.booking.destinationAddress}",
                 style: const TextStyle(
                   fontSize: 14,
-                  color: MyColors.primaryText,
+                  color: MyColors.textPrimary,
                 ),
               ),
             ),
@@ -258,7 +258,7 @@ class _BookingItemState extends State<BookingItem> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.calendar_today,
-                size: 16, color: MyColors.secondary),
+                size: 16, color: MyColors.textSecondary),
             const SizedBox(width: 8),
             Text(
               _formatDate(widget.booking.bookingDate),
@@ -269,7 +269,7 @@ class _BookingItemState extends State<BookingItem> {
               ),
             ),
             const SizedBox(width: 16),
-            const Icon(Icons.access_time, size: 16, color: MyColors.secondary),
+            const Icon(Icons.access_time, size: 16, color: MyColors.textSecondary),
             const SizedBox(width: 8),
             Text(
               _formatTime(widget.booking.departureTime),
@@ -284,7 +284,7 @@ class _BookingItemState extends State<BookingItem> {
         Center(
           child: Card(
             margin: const EdgeInsets.all(10),
-            color: MyColors.greyTextField,
+            color: MyColors.textHint,
             child: Padding(
               padding: const EdgeInsetsGeometry.all(8),
               child: Text(
@@ -292,7 +292,7 @@ class _BookingItemState extends State<BookingItem> {
                 style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
-                    color: MyColors.secondary),
+                    color: MyColors.textHint),
               ),
             ),
           ),
@@ -324,7 +324,7 @@ class _BookingItemState extends State<BookingItem> {
           title,
           style: const TextStyle(
             fontSize: 12,
-            color: MyColors.secondary,
+            color: MyColors.textHint,
           ),
         ),
         const SizedBox(height: 2),
@@ -333,7 +333,7 @@ class _BookingItemState extends State<BookingItem> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: MyColors.primaryText,
+            color: MyColors.textPrimary,
           ),
         ),
       ],
@@ -357,13 +357,13 @@ class _BookingItemState extends State<BookingItem> {
   Widget _buildAdditionalInfoItem(String title, String value, IconData icon) {
     return Column(
       children: [
-        Icon(icon, size: 16, color: MyColors.secondary),
+        Icon(icon, size: 16, color: MyColors.textLight),
         const SizedBox(height: 4),
         Text(
           title,
           style: const TextStyle(
             fontSize: 11,
-            color: MyColors.secondary,
+            color: MyColors.textLight,
           ),
         ),
         const SizedBox(height: 2),
@@ -372,7 +372,7 @@ class _BookingItemState extends State<BookingItem> {
           style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: MyColors.primaryText,
+            color: MyColors.textLight,
           ),
         ),
       ],
@@ -691,7 +691,7 @@ class _BookingItemState extends State<BookingItem> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.close,
-                                color: MyColors.secondary),
+                                color: MyColors.textLight),
                             onPressed: () => Navigator.of(context).pop(),
                           ),
                         ],
@@ -701,7 +701,7 @@ class _BookingItemState extends State<BookingItem> {
                         "حدد عدد المقاعد التي تريد إلغاء حجزها",
                         style: TextStyle(
                           fontSize: 14,
-                          color: MyColors.secondary,
+                          color: MyColors.textHint,
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -766,7 +766,7 @@ class _BookingItemState extends State<BookingItem> {
                         "الحد الأقصى للإلغاء: $maxSeats مقاعد",
                         style: const TextStyle(
                           fontSize: 12,
-                          color: MyColors.secondary,
+                          color: MyColors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -858,7 +858,7 @@ class _BookingItemState extends State<BookingItem> {
             child: ElevatedButton(
               onPressed: () => Navigator.of(context).pop(false),
               style: ElevatedButton.styleFrom(
-                backgroundColor: MyColors.secondary,
+                backgroundColor: MyColors.textPrimary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

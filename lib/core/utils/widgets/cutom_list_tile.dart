@@ -46,7 +46,7 @@ class CustomListTile extends StatelessWidget {
       color: color,
       margin: margin,
       child: ListTile(
-        iconColor: MyColors.blueColor,
+        iconColor: MyColors.blue,
         isThreeLine: isThreeLine ?? false,
         trailing: trailing,
         leading: iconleading,

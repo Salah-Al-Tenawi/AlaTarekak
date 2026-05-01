@@ -19,15 +19,15 @@ class TripDateShow extends StatelessWidget {
     return Container(
       margin: EdgeInsets.only(top: 30.h, bottom: 40.h),
       decoration: BoxDecoration(
-          color: MyColors.primaryBackground,
+          color: MyColors.background,
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: MyColors.primaryText, width: 0.2),
+          border: Border.all(color: MyColors.textPrimary, width: 0.2),
           boxShadow: const [
             BoxShadow(
                 spreadRadius: 1,
                 blurRadius: 1,
                 offset: Offset(7, 7),
-                color: MyColors.primaryText)
+                color: MyColors.textPrimary)
           ]),
       height: 100,
       child: Column(
@@ -36,7 +36,7 @@ class TripDateShow extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(day ?? "2025 - x - xx", style: font14boldblueblack),
+              Text(day ?? "2025 - x - xx", style: AppTextStyles.bodyMedium),
               SizedBox(
                 width: 37.w,
               ),
@@ -47,7 +47,7 @@ class TripDateShow extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(hour ?? "xx : xx xm", style: font14boldblueblack),
+              Text(hour ?? "xx : xx xm", style: AppTextStyles.bodyMedium),
               SizedBox(
                 width: 50.w,
               ),

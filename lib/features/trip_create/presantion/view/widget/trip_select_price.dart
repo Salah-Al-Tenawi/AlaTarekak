@@ -70,19 +70,19 @@ class _TripSelectPriceState extends State<TripSelectPrice> {
             icon: const FaIcon(
               FontAwesomeIcons.plus,
               size: 40,
-              color: MyColors.primaryText,
+              color: MyColors.textPrimary,
             ),
           ),
           Text(
             "${widget.tripFrom.price}",
-            style: font20normalaccent,
+            style: AppTextStyles.displayMedium,
           ),
           IconButton(
             onPressed: () {
               decremant(widget.tripFrom.price);
             },
             icon: const FaIcon(FontAwesomeIcons.minus,
-                size: 40, color: MyColors.primaryText),
+                size: 40, color: MyColors.textPrimary),
           ),
         ],
       ),

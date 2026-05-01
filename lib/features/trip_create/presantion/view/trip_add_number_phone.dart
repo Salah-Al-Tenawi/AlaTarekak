@@ -85,11 +85,11 @@ class _TripAddNumberPhoneState extends State<TripAddNumberPhone> {
                       color: MyColors.accent,
                     ),
                     SizedBox(height: 50.h),
-                    const Text("رقم الهاتف للتواصل", style: font18boldramdi),
+                    const Text("رقم الهاتف للتواصل", style: AppTextStyles.bodyLarge),
                     const SizedBox(height: 20),
                     const Text(
                       "سيستخدم هذا الرقم للتواصل مع الزبائن حول تفاصيل الرحلة",
-                      style: font13normaldgrey,
+                      style: AppTextStyles.bodySmall,
                     ),
                     const SizedBox(height: 20),
                     BlocBuilder<PushRideCubit, PushRideState>(
@@ -106,7 +106,7 @@ class _TripAddNumberPhoneState extends State<TripAddNumberPhone> {
                             suffixIcon: Icon(
                               Icons.check_circle,
                               color: isValid
-                                  ? MyColors.primaryText
+                                  ? MyColors.textPrimary
                                   : MyColors.accent,
                             ),
                             prefixIcon:

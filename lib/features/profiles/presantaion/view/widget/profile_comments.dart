@@ -27,7 +27,7 @@ class ProfileComments extends StatelessWidget {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10.h),
       decoration: BoxDecoration(
-        border: Border.all(width: 0.3, color: MyColors.primaryBackground),
+        border: Border.all(width: 0.3, color: MyColors.background),
         borderRadius: BorderRadius.circular(10),
       ),
       child: ListView.builder(
@@ -52,7 +52,7 @@ class Comment extends StatelessWidget {
       margin: EdgeInsets.symmetric(vertical: 5.h, horizontal: 10.w),
       padding: EdgeInsets.all(10.w),
       decoration: BoxDecoration(
-        border: Border.all(width: 0.3, color: MyColors.primaryBackground),
+        border: Border.all(width: 0.3, color: MyColors.background),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -64,12 +64,12 @@ class Comment extends StatelessWidget {
               children: [
                 Text(
                   commentEntity.authorName,
-                  style: font12boldRamadi,
+                  style: AppTextStyles.bodySmall,
                 ),
                 const SizedBox(height: 5),
                 Text(
                   commentEntity.text,
-                  style: font10boldRamadi,
+                  style: AppTextStyles.bodySmall,
                   textDirection: TextDirection.rtl,
                 ),
                 Align(
@@ -79,7 +79,7 @@ class Comment extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 6.2,
                       fontWeight: FontWeight.bold,
-                      color: MyColors.greyTextColor,
+                      color: MyColors.textHint,
                     ),
                   ),
                 ),

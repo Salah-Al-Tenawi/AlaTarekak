@@ -12,7 +12,6 @@ import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/widgets/custom_text_form.dart';
 import 'package:alatarekak/core/utils/widgets/my_button.dart';
 import 'package:alatarekak/features/auth/presentation/manger/forget_password_cubit/forget_password_cubit.dart';
-
 class ForgetPassword extends StatefulWidget {
   const ForgetPassword({super.key});
 
@@ -22,69 +21,117 @@ class ForgetPassword extends StatefulWidget {
 
 class _ForgetPasswordState extends State<ForgetPassword> {
   final TextEditingController email = TextEditingController();
-  final GlobalKey<FormState> fomrKey = GlobalKey();
+  final GlobalKey<FormState> formKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Form(
-          key: fomrKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 300.h,
-                ),
-                CustomTextformfild(
-                  title: "البريد الإلكتروني",
-                  controller: email,
-                  keyboardType: TextInputType.emailAddress,
-                  icon: const Icon(Icons.email_outlined),
-                  validator: (val) => inputvaild(val!, "email", 40, 6),
-                ),
-                SizedBox(
-                  height: 50.h,
-                ),
-                BlocConsumer<ForgetPasswordCubit, ForgetPasswordState>(
-                  listener: (context, state) {
-                    if (state is ForgetPasswordSuccsess) {
-                      Get.offAllNamed(RouteName.login);
-                      showMySnackBar(context,
-                          "تحقق من الرسائل الواردة على بريدك الإلكتروني");
-                    }
-                    if (state is ForgetPasswordErorr) {
-                      showMySnackBar(context, state.message);
-                    }
-                  },
-                  builder: (context, state) {
-                    return state is ForgetPasswordLoading
-                        ? LottieBuilder.asset(
-                            ImagesUrl.loadinglottie,
-                            height: 60,
-                            width: 60,
-                          )
-                        : MyButton(
-                            onPressed: () {
-                              if (fomrKey.currentState!.validate()) {
-                                context
-                                    .read<ForgetPasswordCubit>()
-                                    .sendEmail(email.text.trim());
-                              }
-                            },
-                            borderRadius: true,
-                            color: MyColors.primaryText,
-                            splashcolor: MyColors.primary,
-                            width: 140.w,
-                            child: const Text(
-                              "تأكيد",
-                              style: TextStyle(color: MyColors.greyTextColor),
-                            ),
-                          );
-                  },
-                ),
-              ],
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.w),
+          child: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(height: 120.h),
+
+                  /// العنوان
+                  Center(
+                    child: Text(
+                      "استعادة كلمة المرور",
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: MyColors.primary,
+                          ),
+                    ),
+                  ),
+
+                  SizedBox(height: 10.h),
+
+                  Text(
+                    "أدخل بريدك الإلكتروني لإرسال رابط إعادة التعيين",
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: MyColors.textHint,
+                        ),
+                  ),
+
+                  SizedBox(height: 40.h),
+
+                  /// Email Field
+                  TextFormField(
+                    controller: email,
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (val) =>
+                        inputvaild(val!, "email", 40, 6),
+                    decoration: InputDecoration(
+                      hintText: "البريد الإلكتروني",
+                      prefixIcon: const Icon(Icons.email_outlined),
+                    ),
+                  ),
+
+                  SizedBox(height: 40.h),
+
+                  /// Button
+                  BlocConsumer<ForgetPasswordCubit, ForgetPasswordState>(
+                    listener: (context, state) {
+                      if (state is ForgetPasswordSuccsess) {
+                        Get.offAllNamed(RouteName.login);
+                        showMySnackBar(
+                          context,
+                          "تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني",
+                        );
+                      }
+
+                      if (state is ForgetPasswordErorr) {
+                        showMySnackBar(context, state.message);
+                      }
+                    },
+                    builder: (context, state) {
+                      return SizedBox(
+                        width: double.infinity,
+                        height: 52.h,
+                        child: ElevatedButton.icon(
+                          onPressed: state is ForgetPasswordLoading
+                              ? null
+                              : () {
+                                  if (formKey.currentState!.validate()) {
+                                    context
+                                        .read<ForgetPasswordCubit>()
+                                        .sendEmail(email.text.trim());
+                                  }
+                                },
+
+                          icon: state is ForgetPasswordLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.arrow_back,
+                                  color: Colors.white,
+                                ),
+
+                          label: const Text("إرسال الرابط"),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-          )),
+          ),
+        ),
+      ),
     );
   }
 }

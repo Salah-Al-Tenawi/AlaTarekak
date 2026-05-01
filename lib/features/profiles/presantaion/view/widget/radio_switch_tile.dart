@@ -13,7 +13,7 @@ class RadioSwitchTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomListTile(
       title: "الراديو",
-      titleTextStyle: font15BoldRamadi,
+      titleTextStyle: AppTextStyles.bodyMedium,
       iconleading: const Icon(Icons.radio, size: 20, color: MyColors.primary),
       subtitle: Row(
         mainAxisAlignment: MainAxisAlignment.start,

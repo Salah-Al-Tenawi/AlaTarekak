@@ -1,6 +1,5 @@
 import 'package:hive_flutter/adapters.dart';
 import 'package:alatarekak/features/auth/data/model/user_model.dart';
-import 'package:alatarekak/features/profiles/domain/entity/profile_entity.dart';
 
 class HiveService {
   static Future<void> init() async {

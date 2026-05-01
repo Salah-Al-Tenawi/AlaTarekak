@@ -44,7 +44,7 @@ class _TripSelectSourceAndDestOnMapState
               style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w400,
-                  color: MyColors.primaryText),
+                  color: MyColors.textPrimary),
             ),
             SizedBox(
               height: 30.h,

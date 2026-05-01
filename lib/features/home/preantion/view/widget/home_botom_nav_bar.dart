@@ -10,26 +10,27 @@ class ModernBottomNavBar extends StatelessWidget {
   const ModernBottomNavBar({super.key, required this.pageController});
 
   final List<IconData> _navIcons = const [
-    Icons.directions_car,
-    Icons.search_rounded,
-    Icons.list_alt_rounded,
-    Icons.event_note
+  Icons.home,            // الرئيسية
+  Icons.directions_car,  // رحلاتي
+  Icons.credit_card,     // حجوزاتي / المحفظة
+  Icons.chat_bubble,     // الدردشة / بحث (حسب استخدامك)
+  Icons.person,          // حسابي
+];
 
-  ];
-
-  final List<String> _titles = const [
-    "الرحلات",
-    "بحث",
-    "رحلاتي", 
-    "حجوزاتي"
-  ];
+final List<String> _titles = const [
+  "الرئيسية",
+  "رحلاتي",
+  "حجوزاتي",
+  "الدردشة",
+  "حسابي",
+];
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HomeNavCubit, int>(
       builder: (context, currentIndex) {
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding:  EdgeInsets.only(top: 0 ,bottom: 12.h ,right: 20.w,left: 20.w),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(30),
             child: BackdropFilter(
@@ -47,57 +48,59 @@ class ModernBottomNavBar extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: _navIcons.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final icon = entry.value;
-                    final isSelected = index == currentIndex;
+                child:  Row(
+  children: _navIcons.asMap().entries.map((entry) {
+    final index = entry.key;
+    final icon = entry.value;
+    final isSelected = index == currentIndex;
 
-                    return GestureDetector(
-                      onTap: () {
-                        context.read<HomeNavCubit>().changePage(index);
-                        pageController.jumpToPage(index);
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isSelected ? 16 : 0,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? MyColors.accent.withOpacity(0.15)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              icon,
-                              size: isSelected ? 28 : 24,
-                              color: isSelected
-                                  ? MyColors.accent
-                                  : Colors.white.withOpacity(0.7),
-                            ),
-                            if (isSelected) ...[
-                              const SizedBox(width: 8),
-                              Text(
-                                _titles[index],
-                                style: TextStyle(
-                                  color: MyColors.accent,
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ]
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          context.read<HomeNavCubit>().changePage(index);
+          pageController.jumpToPage(index);
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedScale(
+                scale: isSelected ? 1.2 : 1.0,
+                duration: const Duration(milliseconds: 250),
+                child: Icon(
+                  icon,
+                  size: 24,
+                  color: isSelected
+                      ? MyColors.accent
+                      : Colors.white.withOpacity(0.6),
                 ),
+              ),
+              const SizedBox(height: 4),
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 250),
+                opacity: isSelected ? 1 : 0.7,
+                child: Text(
+                  _titles[index],
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    color: isSelected
+                        ? MyColors.accent
+                        : Colors.white.withOpacity(0.7),
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }).toList(),
+),
               ),
             ),
           ),

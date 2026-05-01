@@ -44,7 +44,7 @@ class _TripDidYouBackTextAndButtonsState
     return Column(children: [
       const Text(
         " هل ترغب بإنشاء رحلة للعودة  ",
-        style: font14boldblueblack,
+        style: AppTextStyles.bodyMedium,
       ),
       SizedBox(
         height: 60.h,
@@ -64,7 +64,7 @@ class _TripDidYouBackTextAndButtonsState
             borderRadius: true,
             child: const Text(
               "نعم ",
-              style: font12boldgray,
+              style: AppTextStyles.bodySmall,
             ),
           ),
           MyButton(
@@ -77,7 +77,7 @@ class _TripDidYouBackTextAndButtonsState
             borderRadius: true,
             child: const Text(
               "لا شكراً ",
-              style: font12boldsky,
+              style: AppTextStyles.bodyMedium,
             ),
           ),
         ],

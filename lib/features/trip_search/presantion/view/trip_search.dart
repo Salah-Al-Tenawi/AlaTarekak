@@ -53,21 +53,34 @@ class _TripSearchState extends State<TripSearch> {
             }
           }
         },
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 150.h),
-              _modernLocationPicker(),
-              SizedBox(height: 30.h),
-              _modernDateTimeCard(),
-              SizedBox(height: 40.h),
-              _searchButtonWithState(),
-              SizedBox(height: 30.h),
-            ],
+        child: Padding(
+          padding: EdgeInsetsGeometry.symmetric(horizontal: 10.w),
+          child: Center(
+            child: Card(
+              shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(16.r),
+    side: BorderSide(color: Colors.grey.shade200, width: 1),
+  ),
+  elevation: 6,
+  color: Colors.white,
+  
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 16.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+            _modernLocationPicker(),
+            SizedBox(height: 30.h),
+            _modernDateTimeCard(),
+            SizedBox(height: 40.h),
+            _searchButtonWithState(),
+            SizedBox(height: 30.h),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
+        )
       ),
     );
   }
@@ -90,8 +103,8 @@ class _TripSearchState extends State<TripSearch> {
           // Source
           ListTile(
             leading: Container(
-              width: 40.w,
-              height: 40.h,
+              width: 50.w,
+              height: 50.h,
               decoration: BoxDecoration(
                 color: MyColors.primary.withOpacity(0.1),
                 shape: BoxShape.circle,
@@ -107,8 +120,8 @@ class _TripSearchState extends State<TripSearch> {
               style: TextStyle(
                 fontSize: 16.sp,
                 color: sourceAddress != null
-                    ? MyColors.primaryText
-                    : MyColors.secondaryText,
+                    ? MyColors.textPrimary
+                    : MyColors.textSecondary,
                 fontWeight:
                     sourceAddress != null ? FontWeight.w600 : FontWeight.normal,
               ),
@@ -116,7 +129,7 @@ class _TripSearchState extends State<TripSearch> {
             trailing: Icon(
               Icons.arrow_forward_ios,
               size: 18.sp,
-              color: MyColors.secondaryText,
+              color: MyColors.textSecondary,
             ),
             onTap: () async {
               final result =
@@ -136,13 +149,13 @@ class _TripSearchState extends State<TripSearch> {
             height: 1.h,
             indent: 70.w,
             endIndent: 16.w,
-            color: MyColors.secondaryBackground,
+            color: MyColors.background,
           ),
           // Destination
           ListTile(
             leading: Container(
-              width: 40.w,
-              height: 40.h,
+              width: 50.w,
+              height: 50.h,
               decoration: BoxDecoration(
                 color: MyColors.accent.withOpacity(0.1),
                 shape: BoxShape.circle,
@@ -158,8 +171,8 @@ class _TripSearchState extends State<TripSearch> {
               style: TextStyle(
                 fontSize: 16.sp,
                 color: destinationAddress != null
-                    ? MyColors.primaryText
-                    : MyColors.secondaryText,
+                    ? MyColors.textPrimary
+                    : MyColors.textSecondary,
                 fontWeight: destinationAddress != null
                     ? FontWeight.w600
                     : FontWeight.normal,
@@ -168,7 +181,7 @@ class _TripSearchState extends State<TripSearch> {
             trailing: Icon(
               Icons.arrow_forward_ios,
               size: 18.sp,
-              color: MyColors.secondaryText,
+              color: MyColors.textSecondary,
             ),
             onTap: () async {
               final result =
@@ -209,7 +222,7 @@ class _TripSearchState extends State<TripSearch> {
               }
             },
             child: Container(
-              height: 60.h,
+              height: 80.h,
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -235,8 +248,8 @@ class _TripSearchState extends State<TripSearch> {
                       selectedDate ?? "اختر التاريخ",
                       style: TextStyle(
                         color: selectedDate != null
-                            ? MyColors.primaryText
-                            : MyColors.secondaryText,
+                            ? MyColors.textPrimary
+                            : MyColors.textSecondary,
                         fontSize: 14.sp,
                         fontWeight: selectedDate != null
                             ? FontWeight.w600
@@ -252,10 +265,11 @@ class _TripSearchState extends State<TripSearch> {
         SizedBox(width: 16.w),
         Expanded(
           child: Container(
-            height: 60.h,
+            height: 80.h,
             padding: EdgeInsets.symmetric(horizontal: 16.w),
             decoration: BoxDecoration(
               color: Colors.white,
+              
               borderRadius: BorderRadius.circular(16.r),
               boxShadow: [
                 BoxShadow(
@@ -281,12 +295,12 @@ class _TripSearchState extends State<TripSearch> {
                       border: InputBorder.none,
                       hintText: "عدد المقاعد",
                       hintStyle: TextStyle(
-                        color: MyColors.secondaryText,
+                        color: MyColors.textSecondary,
                         fontSize: 14.sp,
                       ),
                     ),
                     style: TextStyle(
-                      color: MyColors.primaryText,
+                      color: MyColors.textPrimary,
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
                     ),
@@ -316,27 +330,27 @@ class _TripSearchState extends State<TripSearch> {
   Widget _modernSearchButton() {
     return Center(
       child: SizedBox(
-        height: 44.h,
-        width: 180.w, // عرض أقل من كامل الصفحة
+        height: 75.h,
+        width: 300.w, 
         child: ElevatedButton.icon(
           onPressed: _validateAndSearch,
           icon: const Icon(
             Icons.search,
             color: Colors.white,
-            size: 20,
+            size: 25,
           ),
           label: Text(
             "ابحث عن رحلة",
             style: TextStyle(
-              fontSize: 16.sp,
+              fontSize: 18.sp,
               fontWeight: FontWeight.w600,
               color: Colors.white,
             ),
           ),
           style: ElevatedButton.styleFrom(
-            backgroundColor: MyColors.primary,
+            backgroundColor: MyColors.accent,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(40.r),
             ),
             elevation: 0, // تصميم هادئ
             padding: EdgeInsets.symmetric(horizontal: 12.w),

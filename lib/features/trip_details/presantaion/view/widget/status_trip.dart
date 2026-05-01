@@ -22,17 +22,17 @@ StatusInfo getStatusInfo(String? status) {
     case 'cancelled':
       return StatusInfo('ملغي', Colors.red);
     case 'no_show':
-      return StatusInfo('لم يحضر', MyColors.secondary);
+      return StatusInfo('لم يحضر', MyColors.textSecondary);
     case 'completed':
       return StatusInfo('تم', Colors.blue.shade200);
     case 'full':
-      return StatusInfo('ممتلئة', MyColors.secondary);
+      return StatusInfo('ممتلئة', MyColors.textSecondary);
     case 'active':
       return StatusInfo('متاح', const Color(0xFF28A745));
     case 'finished':
       return StatusInfo('انتهت الرحلة', Colors.blue.shade200);
 
     default:
-      return StatusInfo('غير معروف', MyColors.primaryText);
+      return StatusInfo('غير معروف', MyColors.textPrimary);
   }
 }

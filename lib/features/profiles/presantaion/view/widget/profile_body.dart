@@ -95,7 +95,7 @@ class _ProfileBodyState extends State<ProfileBody> {
                           tripsCount: profile.numberOfides,
                         ),
                         Text("العنوان  :${profile.address}",
-                            style: font13boldNewRamadi ,),
+                            style: AppTextStyles.bodyMedium ,),
                         const ProfileContactMe(),
                       ],
                     ),
@@ -132,7 +132,7 @@ class _ProfileBodyState extends State<ProfileBody> {
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           Icon(Icons.comment_outlined),
-                          Text("آراء الناس بي", style: font15BoldRamadi),
+                          Text("آراء الناس بي", style: AppTextStyles.bodyMedium),
                         ],
                       ),
                     ),

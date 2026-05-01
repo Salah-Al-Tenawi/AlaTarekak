@@ -44,12 +44,12 @@ class CustomBadge extends StatelessWidget {
       badgeStyle: badges.BadgeStyle(
         shape: badges.BadgeShape.square,
        
-        badgeColor: badgeColor == null ? MyColors.greyTextColor : badgeColor!,
+        badgeColor: badgeColor == null ? MyColors.textHint : badgeColor!,
         padding: const EdgeInsets.all(5),
         borderRadius: BorderRadius.circular(4),
         borderSide: border == true
             ? BorderSide(
-                color: bordercolor == null ? MyColors.blueColor : bordercolor!,
+                color: bordercolor == null ? MyColors.blue : bordercolor!,
                 width: 1)
             : const BorderSide(width: 0),
         elevation: 0,

@@ -209,14 +209,14 @@ class _SearchRideMapState extends State<SearchRideMap> {
                           arguments: tripFrom);
                     }
                   },
-                  color: MyColors.primaryText,
+                  color: MyColors.textPrimary,
                   width: 130.w,
                   height: 50.h,
                   borderRadius: true,
                   splashcolor: MyColors.primary,
                   child: const Text(
                     "التالي",
-                    style: font13boldwhite,
+                    style: AppTextStyles.bodyMedium,
                   ),
                 ),
               )

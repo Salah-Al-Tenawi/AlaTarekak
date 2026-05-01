@@ -14,7 +14,7 @@ class CarNameInputTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomListTile(
       title: "نوع السيارة",
-      titleTextStyle: font15BoldRamadi,
+      titleTextStyle: AppTextStyles.bodyMedium,
       iconleading:
           const Icon(Icons.directions_car, size: 20, color: MyColors.primary),
       subtitle: TextFormField(

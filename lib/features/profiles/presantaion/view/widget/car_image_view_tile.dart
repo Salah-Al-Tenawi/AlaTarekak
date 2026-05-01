@@ -35,7 +35,7 @@ class CarImageViewerTile extends StatelessWidget {
         const SizedBox(width: 10),
         Text(
           car.type!,
-          style: font12boldRamadi,
+          style: AppTextStyles.bodySmall,
         ),
       ],
     );

@@ -46,10 +46,10 @@ class ProfileHintline extends StatelessWidget {
       title: "نبذة عني",
       margin: EdgeInsets.symmetric(vertical: 20.h),
       isThreeLine: true,
-      titleTextStyle: font15BoldRamadi,
+      titleTextStyle: AppTextStyles.bodyLarge,
       subtitle: Text(
         hintLine.isEmpty ? "لا يوجد نبذة بعد" : hintLine,
-        style: const TextStyle(color: MyColors.greyTextColor),
+        style: const TextStyle(color: MyColors.textHint),
       ),
     );
   }

@@ -67,7 +67,7 @@ Future<bool?> myConfirmDilaogWithPolicy(
               onCancel?.call();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: MyColors.secondary,
+              backgroundColor: MyColors.blue,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),

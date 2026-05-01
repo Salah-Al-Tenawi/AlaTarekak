@@ -19,7 +19,7 @@ class HomeDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: MyColors.primaryBackground,
+      backgroundColor: MyColors.background,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -178,7 +178,7 @@ class HomeDrawer extends StatelessWidget {
                 MyButton(
                   color: MyColors.accent,
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: const Text("لا", style: font13NormalGrayText),
+                  child: const Text("لا", style: AppTextStyles.bodyMedium),
                 ),
                 MyButton(
                   color: MyColors.primary,
@@ -188,7 +188,7 @@ class HomeDrawer extends StatelessWidget {
                         .read<HomeNavCubit>()
                         .logout(scaffoldContext);
                   },
-                  child: const Text("نعم", style: font13NormalGrayText),
+                  child: const Text("نعم", style: AppTextStyles.bodyMedium),
                 ),
               ],
             );
@@ -205,7 +205,7 @@ class HomeDrawer extends StatelessWidget {
 
   Widget _buildDivider() {
     return Divider(
-      color: MyColors.greyTextfildColor,
+      color: MyColors.textHint,
       endIndent: 70,
       indent: 70,
     );

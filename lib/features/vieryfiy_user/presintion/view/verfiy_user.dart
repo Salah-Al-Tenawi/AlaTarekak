@@ -40,7 +40,7 @@ class _VerfiyUserState extends State<VerfiyUser> {
       appBar: AppBar(
         title: const Text(
           'التحقق من الهوية',
-          style: font16boldsky,
+          style: AppTextStyles.titleMedium,
         ),
         backgroundColor: MyColors.primary,
       ),
@@ -131,7 +131,7 @@ class _VerfiyUserState extends State<VerfiyUser> {
                       color: MyColors.primary,
                       height: 50.h,
                       width: 100.w,
-                      child: const Text("موافق", style: font13NormalGrayText),
+                      child: const Text("موافق", style: AppTextStyles.bodyLarge),
                     )
                   ],
                 ),

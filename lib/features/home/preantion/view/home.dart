@@ -1,3 +1,6 @@
+import 'package:alatarekak/core/route/route_name.dart';
+import 'package:alatarekak/features/profiles/presantaion/view/profile.dart';
+import 'package:alatarekak/features/trip_create/data/model/trip_from.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -25,7 +28,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool isNew = false;
-  final _pageController = PageController(initialPage: 1);
+  final _pageController = PageController(initialPage: 0);
   final EPayRepoIm _epy =
       EPayRepoIm(remoteDataSource: EPayRemoteDataSource(api: DioConSumer()));
   String balance = "";
@@ -76,50 +79,43 @@ class _HomeState extends State<Home> {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
+        
+         floatingActionButtonLocation: FloatingActionButtonLocation.startFloat, // 👈 أضف هذا السطر
+  floatingActionButton: FloatingActionButton(
+    backgroundColor: MyColors.accent,
+    onPressed: () {
+     Get.toNamed(RouteName.pushRideMap, arguments: TripFrom());
+    },
+    child: Icon(Icons.add ,color: MyColors.primary,),
+  ),
         drawer: Drawer(child: HomeDrawer(scaffoldContext: context)),
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: FutureBuilder(
-            key: _refreshKey, // إضافة المفتاح للتحديث
-            future: _epy.getBalance(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return HomeAppBar(
-                  balance: "Loading...",
-                  onRefresh: _refreshBalance, // تمرير دالة التحديث
-                );
-              } else if (snapshot.hasData) {
-                return snapshot.data!.fold(
-                  (error) {
-                    return HomeAppBar(
-                      balance: error.message,
-                      onRefresh: _refreshBalance, // تمرير دالة التحديث
-                    );
-                  },
-                  (balanceModel) {
-                    return HomeAppBar(
-                      balance: balanceModel.balance,
-                      onRefresh: _refreshBalance, // تمرير دالة التحديث
-                    );
-                  },
-                );
-              } else {
-                return HomeAppBar(
-                  balance: "خطأ",
-                  onRefresh: _refreshBalance, // تمرير دالة التحديث
-                );
-              }
-            },
-          ),
-        ),
-        body: PageView(
+        appBar: AppBar(
+          backgroundColor: MyColors.primary,
+  leading: IconButton(
+    icon: Icon(Icons.settings,color:Colors.white),
+    onPressed: () {
+      // define action for settings
+    },
+  ),
+  title: Center(child: Text('عطريقك',style: TextStyle(color:Colors.white),)),
+  actions: [
+    IconButton(
+      icon: Icon(Icons.notifications,color: Colors.white,),
+      onPressed: () {
+        // define action for notifications
+      },
+    ),
+  ],
+),body: PageView(
           controller: _pageController,
           physics: const NeverScrollableScrollPhysics(),
           children: const [
-            TripSelectSourceAndDistOnMap(),
             TripSearch(),
             TripMeList(),
-            BookingMeList()
+            BookingMeList(),
+            BookingMeList(),
+            
+            Profile()
           ],
         ),
         bottomNavigationBar:

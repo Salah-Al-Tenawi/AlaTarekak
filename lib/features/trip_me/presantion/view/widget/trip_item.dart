@@ -47,13 +47,13 @@ class ItemTrip extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 18,
-                        backgroundColor: MyColors.secondary,
+                        backgroundColor: MyColors.textSecondary,
                         backgroundImage: trip.driver.avatar != null
                             ? NetworkImage(trip.driver.avatar!)
                             : null,
                         child: trip.driver.avatar == null
                             ? const Icon(Icons.person,
-                                color: MyColors.primaryBackground)
+                                color: MyColors.background)
                             : null,
                       ),
                       const SizedBox(width: 8),
@@ -62,7 +62,7 @@ class ItemTrip extends StatelessWidget {
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
-                          color: MyColors.primaryText,
+                          color: MyColors.textPrimary,
                         ),
                       ),
                     ],
@@ -135,7 +135,7 @@ class ItemTrip extends StatelessWidget {
                   _InfoChip(
                       icon: Icons.calendar_today,
                       label: DateTimeUtils.formatDate(trip.departure),
-                      color: MyColors.secondary),
+                      color: MyColors.textSecondary),
                   _InfoChip(
                       icon: Icons.access_time,
                       label: DateTimeUtils.formatTime(trip.departure),
@@ -157,7 +157,7 @@ class ItemTrip extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    color: MyColors.secondaryBackground,
+                    color: MyColors.background,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 8),
@@ -285,7 +285,7 @@ void showEndTripDialog(BuildContext context) {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20.r),
         ),
-        backgroundColor: MyColors.primaryBackground,
+        backgroundColor: MyColors.background,
         title: Row(
           children: [
             const Icon(Icons.warning_amber_rounded,
@@ -375,7 +375,12 @@ class _LocationRowModern extends StatelessWidget {
               style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: MyColors.primaryText),
+                  color: MyColors.textPrimary
+                  
+                  
+                  
+                  
+                  ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis),
         ),

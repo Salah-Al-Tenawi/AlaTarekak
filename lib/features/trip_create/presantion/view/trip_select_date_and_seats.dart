@@ -55,7 +55,7 @@ class TripSelectAndSeatsState extends State<TripSelectDateAndSeats> {
           children: [
             const Text(
               "حدد موعد الرحلة",
-              style: font15BoldRamadi,
+              style: AppTextStyles.bodyLarge,
             ),
             SizedBox(
               height: 20.h,
@@ -72,14 +72,14 @@ class TripSelectAndSeatsState extends State<TripSelectDateAndSeats> {
             ),
             TripDateShow(day: formattedDate, hour: formattedTime),
             const Divider(
-              color: MyColors.primaryText,
+              color: MyColors.textPrimary,
               endIndent: 50,
               indent: 50,
               thickness: 0.3,
             ),
             const Text(
               "حدد عدد الكراسي المتاحة",
-              style: font15BoldRamadi,
+              style: AppTextStyles.buttonLarge,
             ),
             TripSelectSeats(
               tripFrom: tripFrom,
@@ -98,7 +98,7 @@ class TripSelectAndSeatsState extends State<TripSelectDateAndSeats> {
                 splashcolor: MyColors.primary,
                 child: const Text(
                   "التالي",
-                  style: font13boldwhite,
+                  style: AppTextStyles.bodySmall,
                 ),
               ),
             )

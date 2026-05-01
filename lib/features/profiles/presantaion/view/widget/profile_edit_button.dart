@@ -15,13 +15,13 @@ class ProfileEditButton extends StatelessWidget {
     return Align(
       alignment: Alignment.topRight,
       child: MyButton(
-          color: MyColors.greyTextField,
+          color: MyColors.textHint,
           borderRadius: true,
           width: 80.w,
           onPressed: () {
             context.read<ProfileCubit>().emiteditMyProfile();
           },
-          child: const Text("تعديل", style: font13Normalaccent)),
+          child: const Text("تعديل", style: AppTextStyles.bodySmall)),
     );
   }
 }

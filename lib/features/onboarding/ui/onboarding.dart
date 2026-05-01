@@ -70,11 +70,11 @@ class OnboardingScreen extends StatelessWidget {
                       },
                       child: const Text(
                         "تخطي",
-                        style: TextStyle(color: MyColors.greyTextField),
+                        style: TextStyle(color: MyColors.textLight),
                       ),
                     ),
                     MaterialButton(
-                      color: MyColors.greyTextField,
+                      color: MyColors.textHint,
                       onPressed: () {
                         if (cubit.currentPage == pages.length - 1) {
                           cubit.finishOnboarding();

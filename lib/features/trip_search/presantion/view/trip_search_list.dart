@@ -31,7 +31,7 @@ class _TripSearchListState extends State<TripSearchList> {
       appBar: AppBar(
         title: const Text(
           "الرحلات المتاحة",
-          style: font20boldgray,
+          style: AppTextStyles.titleLarge,
         ),
         backgroundColor: MyColors.primary,
         centerTitle: true,
@@ -72,7 +72,7 @@ class _TripSearchListState extends State<TripSearchList> {
                     Text(
                       'حاول تغيير التاريخ أو الموقع للعثور على رحلات أخرى.',
                       style: TextStyle(
-                        color: MyColors.secondary.withOpacity(0.7),
+                        color: MyColors.textSecondary.withOpacity(0.7),
                         fontSize: 14,
                       ),
                       textAlign: TextAlign.center,

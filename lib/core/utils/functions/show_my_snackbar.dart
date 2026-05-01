@@ -4,7 +4,7 @@ import 'package:alatarekak/core/them/my_colors.dart';
 void showMySnackBar(
   BuildContext context,
   String message, {
-  Color backgroundColor = MyColors.primaryText,
+  Color backgroundColor = MyColors.textPrimary,
   Duration duration = const Duration(seconds: 2),
 })
  {

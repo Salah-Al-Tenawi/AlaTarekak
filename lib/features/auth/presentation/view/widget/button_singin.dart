@@ -45,42 +45,52 @@ class ButtonSingin extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        return state is SinginLoading
-            ? LottieBuilder.asset(
-                ImagesUrl.loadinglottie,
-                height: 80,
-              )
-            : MyButton(
-                onPressed: () {
-                  final fname = firstname.text.trim();
-                  final lname = lastname.text.trim();
-                  final mail = email.text.trim();
-                  final pass = password.text.trim();
-                  final confirm = passwordConfirm.text.trim();
-                  final gender = cubit.gender;
-                  final address = cubit.address;
-                  if (formKey.currentState!.validate()) {
-                    context.read<SinginCubit>().singin(
-                          fname,
-                          lname,
-                          gender,
-                          mail,
-                          address ?? "دمشق",
-                          pass,
-                          confirm,
-                        );
-                  }
-                },
-                borderRadius: true,
-                color: MyColors.primary,
-                height: 50.h,
-                width: 170.w,
-                child: const Text(
-                  "إنشاء حساب",
-                  style: TextStyle(color: MyColors.greyTextField),
-                ),
-              );
-      },
+  return SizedBox(
+    width: double.infinity,
+    height: 52.h,
+    child: ElevatedButton.icon(
+      onPressed: state is SinginLoading
+          ? null
+          : () {
+              final fname = firstname.text.trim();
+              final lname = lastname.text.trim();
+              final mail = email.text.trim();
+              final pass = password.text.trim();
+              final confirm = passwordConfirm.text.trim();
+              final gender = cubit.gender;
+              final address = cubit.address;
+
+              if (formKey.currentState!.validate()) {
+                context.read<SinginCubit>().singin(
+                      fname,
+                      lname,
+                      gender,
+                      mail,
+                      address ?? "دمشق",
+                      pass,
+                      confirm,
+                    );
+              }
+            },
+
+      icon: state is SinginLoading
+          ? SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2,
+              ),
+            )
+          : const Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+            ),
+
+      label: const Text("إنشاء حساب"),
+    ),
+  );
+},
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:alatarekak/core/them/app_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
@@ -27,47 +28,43 @@ class _SinginState extends State<Singin> {
       body: SingleChildScrollView(
         child: Form(
           key: formKey,
-          child: Column(
-            children: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  CricularDecoration(
-                    heghit: 100,
-                    width: 120,
-                    color: MyColors.primary,
-                  ),
-                  Positioned(
-                    top: 40.h, 
-                    child: Image.asset(
-                      "assets/images/iconpng.png", 
-                      height: 100.h,
-                      width: 100.w,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ],
-              ),
-              TextFieldsSingin(
-                firstname: firstname,
-                lastname: lastname,
-                email: email,
-                password: password,
-                passwordConfirm: passwordConfirm,
-              ),
-              const DropDownAndGenderSing(),
-              SizedBox(
-                height: 50.h,
-              ),
-              ButtonSingin(
-                firstname: firstname,
-                lastname: lastname,
-                email: email,
-                formKey: formKey,
-                password: password,
-                passwordConfirm: passwordConfirm,
-              )
-            ],
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.w ,vertical: 70.h),
+            child: Column(
+              children: [
+              AppSpacing.h32,
+Center(
+  child: Text(
+    "أنشأ حسابك وابدأ مع طريقك",
+    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+      fontWeight: FontWeight.bold,
+      color: MyColors.primary,
+    ),
+  ),
+),
+                AppSpacing.h32,
+                TextFieldsSingin(
+                  firstname: firstname,
+                  lastname: lastname,
+                  email: email,
+                  password: password,
+                  passwordConfirm: passwordConfirm,
+                ),
+                AppSpacing.h12,
+                const DropDownAndGenderSing(),
+                SizedBox(
+                  height: 50.h,
+                ),
+                ButtonSingin(
+                  firstname: firstname,
+                  lastname: lastname,
+                  email: email,
+                  formKey: formKey,
+                  password: password,
+                  passwordConfirm: passwordConfirm,
+                )
+              ],
+            ),
           ),
         ),
       ),

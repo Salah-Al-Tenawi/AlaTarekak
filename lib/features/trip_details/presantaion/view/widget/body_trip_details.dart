@@ -236,7 +236,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.my_location, color: MyColors.secondary, size: 24.w),
+            Icon(Icons.my_location, color: MyColors.textSecondary, size: 24.w),
             SizedBox(width: 10.w),
             Expanded(
               child: Column(
@@ -273,7 +273,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.location_on, color: MyColors.secondary, size: 24.w),
+            Icon(Icons.location_on, color: MyColors.textSecondary, size: 24.w),
             SizedBox(width: 10.w),
             Expanded(
               child: Column(
@@ -384,7 +384,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
               Text(
                 "$dateFormatted  |  $timeFormatted",
                 style: TextStyle(
-                  color: MyColors.secondary,
+                  color: MyColors.textLight,
                   fontWeight: FontWeight.bold,
                   fontSize: 14.sp,
                 ),
@@ -393,7 +393,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
               Text(
                 timeLeft,
                 style: TextStyle(
-                  color: MyColors.greyTextColor,
+                  color: MyColors.textHint,
                   fontSize: 12.sp,
                   fontWeight: FontWeight.w600,
                 ),
@@ -435,13 +435,13 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
             Icon(
               Icons.access_time,
               size: 16.sp,
-              color: MyColors.primaryText,
+              color: MyColors.textPrimary,
             ),
             SizedBox(width: 6.w),
             Text(
               timeAgo(widget.trip.createdAt),
               style: TextStyle(
-                  color: MyColors.primaryBackground,
+                  color: MyColors.background,
                   fontSize: 12.sp,
                   fontWeight: FontWeight.bold),
             ),
@@ -510,7 +510,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
               Text(
                 label,
                 style: TextStyle(
-                  color: MyColors.primaryText,
+                  color: MyColors.textPrimary,
                   fontSize: 12.sp,
                 ),
               ),
@@ -531,7 +531,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
-        color: MyColors.secondary.withOpacity(0.1),
+        color: MyColors.textSecondary.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12.r),
       ),
       child: Row(
@@ -542,7 +542,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
           Text(
             "نوع الدفع: ",
             style: TextStyle(
-              color: MyColors.secondary,
+              color: MyColors.textPrimary,
               fontSize: 14.sp,
             ),
           ),
@@ -570,7 +570,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
-        color: MyColors.secondary.withOpacity(0.1),
+        color: MyColors.textSecondary.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12.r),
       ),
       child: Row(
@@ -581,7 +581,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
           Text(
             "نوع الحجز: ",
             style: TextStyle(
-              color: MyColors.secondary,
+              color: MyColors.textSecondary,
               fontSize: 14.sp,
             ),
           ),
@@ -613,12 +613,12 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.place, color: MyColors.secondary, size: 20.sp),
+          Icon(Icons.place, color: MyColors.textSecondary, size: 20.sp),
           SizedBox(width: 8.w),
           Text(
             "المسافة: ",
             style: TextStyle(
-              color: MyColors.secondary,
+              color: MyColors.textSecondary,
               fontSize: 14.sp,
             ),
           ),
@@ -647,12 +647,12 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.access_time_filled,
-              color: MyColors.secondary, size: 20.sp),
+              color: MyColors.textSecondary, size: 20.sp),
           SizedBox(width: 8.w),
           Text(
             " المدة المتوقعة: ",
             style: TextStyle(
-              color: MyColors.secondary,
+              color: MyColors.textSecondary,
               fontSize: 14.sp,
             ),
           ),
@@ -693,14 +693,14 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
             Text(
               "تواصل: ",
               style: TextStyle(
-                color: MyColors.secondary,
+                color: MyColors.textSecondary,
                 fontSize: 14.sp,
               ),
             ),
             Text(
               widget.trip.communicationNumber,
               style: TextStyle(
-                color: MyColors.primaryText,
+                color: MyColors.textSecondary,
                 fontWeight: FontWeight.bold,
                 fontSize: 14.sp,
               ),
@@ -926,7 +926,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
         title: const Text("عذراً"),
         content: Text(
           "لا يوجد مقاعد فارغة في هذه الرحلة.",
-          style: TextStyle(fontSize: 14.sp, color: MyColors.secondary),
+          style: TextStyle(fontSize: 14.sp, color: MyColors.textSecondary),
         ),
         actions: [
           TextButton(
@@ -948,14 +948,14 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: MyColors.primaryBackground,
+        backgroundColor: MyColors.background,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.r),
         ),
         title: Text(
           "حجز في الرحلة",
           style: TextStyle(
-            color: MyColors.primaryText,
+            color: MyColors.textPrimary,
             fontWeight: FontWeight.bold,
             fontSize: 18.sp,
           ),
@@ -968,7 +968,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
               Text(
                 "العدد يجب أن يكون أكبر من 0 وأقل أو يساوي $maxSeats",
                 style: TextStyle(
-                  color: MyColors.primaryBackground,
+                  color: MyColors.background,
                   fontSize: 14.sp,
                 ),
               ),
@@ -1069,7 +1069,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
             },
             child: const Text(
               "موافق",
-              style: font13NormalGrayText,
+              style: AppTextStyles.buttonLarge,
             ),
           ),
         ],

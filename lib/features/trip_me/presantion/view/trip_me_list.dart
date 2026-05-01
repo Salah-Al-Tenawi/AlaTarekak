@@ -114,7 +114,8 @@ class TripMeList extends StatelessWidget {
                                     onPressed: () => Navigator.pop(ctx, false),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor:
-                                          MyColors.secondaryBackground,
+                                          MyColors.background
+                                          ,
                                       foregroundColor: Colors
                                           .white, 
                                       shape: RoundedRectangleBorder(

@@ -14,7 +14,7 @@ class CarSeatsInputTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomListTile(
       title: "عدد الكراسي",
-      titleTextStyle: font15BoldRamadi,
+      titleTextStyle: AppTextStyles.bodyMedium,
       iconleading: const Icon(Icons.chair, size: 20, color: MyColors.primary),
       subtitle: TextFormField(
         controller: controller,

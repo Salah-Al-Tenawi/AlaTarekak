@@ -29,6 +29,7 @@ dependencies:
   geocoding: any
   get: any
   get_it: any
+  google_fonts: ^8.0.2
   hive: any
   hive_flutter: any
   http: any
