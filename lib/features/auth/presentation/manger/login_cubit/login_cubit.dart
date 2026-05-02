@@ -9,13 +9,13 @@ class LoginCubit extends Cubit<LoginState> {
   LoginCubit(this.authRepoIm) : super(LoginInitial());
 
   login(String email, String password) async {
-    // emit(LoginLoading());
-    // final response = await authRepoIm.login(email, password);
-    // response.fold((error) {
-    //   emit(LoginError(error.message));
-    // }, (user) {
-    //   emit(LoginSuccess());
-    // });
+    emit(LoginLoading());
+    final response = await authRepoIm.signInWithEmail(email, password);
+    response.fold((error) {
+      emit(LoginError(error.message));
+    }, (user) {
+      emit(LoginSuccess());
+    });
   }
 
   // loginWithGoogle() async {

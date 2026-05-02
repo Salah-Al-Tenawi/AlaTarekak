@@ -1,3 +1,6 @@
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+// onboarding_state.dart
+// ━━━━━━━━━━━━━━━━━━━━━━━━
 part of 'onboarding_cubit.dart';
 
 abstract class OnboardingState {}

@@ -1,137 +1,141 @@
+import 'package:alatarekak/core/them/app_snack_bar.dart';
+import 'package:alatarekak/core/them/my_colors.dart';
+import 'package:alatarekak/features/auth/presentation/manger/forget_password_cubit/forget_password_cubit.dart';
+import 'package:alatarekak/features/auth/presentation/view/verfiy_otp_forget_password.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
-import 'package:lottie/lottie.dart';
-import 'package:alatarekak/core/constant/imagesUrl.dart';
-import 'package:alatarekak/core/route/route_name.dart';
-import 'package:alatarekak/core/them/my_colors.dart';
-import 'package:alatarekak/core/utils/functions/input_valid.dart';
-import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
-import 'package:alatarekak/core/utils/widgets/custom_text_form.dart';
-import 'package:alatarekak/core/utils/widgets/my_button.dart';
-import 'package:alatarekak/features/auth/presentation/manger/forget_password_cubit/forget_password_cubit.dart';
+
+
 class ForgetPassword extends StatefulWidget {
   const ForgetPassword({super.key});
 
   @override
-  State<ForgetPassword> createState() => _ForgetPasswordState();
+  State<ForgetPassword> createState() => _ForgetPasswordScreenState();
 }
 
-class _ForgetPasswordState extends State<ForgetPassword> {
-  final TextEditingController email = TextEditingController();
-  final GlobalKey<FormState> formKey = GlobalKey();
+class _ForgetPasswordScreenState extends State<ForgetPassword> {
+  final TextEditingController _email = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey();
+
+  @override
+  void dispose() {
+    _email.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
-          child: Form(
-            key: formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(height: 120.h),
+    return BlocConsumer<ForgetPasswordCubit, ForgetPasswordState>(
+      listener: (context, state) {
+        if (state is ForgetPasswordGoToOtp) {
+          Get.to(
+            () => BlocProvider.value(
+              value: context.read<ForgetPasswordCubit>()..startOtpTimer(),
+              child: VerifyOtpForgetPassword(email: state.email),
+            ),
+          );
+        }
+        if (state is ForgetPasswordErorr) {
+          AppSnackBar.error(state.message);
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is ForgetPasswordLoading;
 
-                  /// العنوان
-                  Center(
-                    child: Text(
-                      "استعادة كلمة المرور",
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineMedium
-                          ?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: MyColors.primary,
-                          ),
+        return Scaffold(
+          
+          body: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // ━━ أيقونة ━━
+                  Container(
+                    width: 72.w,
+                    height: 72.w,
+                    decoration: const BoxDecoration(
+                      color: MyColors.accentLight,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.lock_reset_rounded,
+                      color: MyColors.accent,
+                      size: 32,
                     ),
                   ),
 
-                  SizedBox(height: 10.h),
+                  SizedBox(height: 20.h),
 
                   Text(
-                    "أدخل بريدك الإلكتروني لإرسال رابط إعادة التعيين",
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: MyColors.textHint,
+                    "نسيت كلمة المرور؟",
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
                   ),
 
-                  SizedBox(height: 40.h),
+                  SizedBox(height: 8.h),
 
-                  /// Email Field
+                  Text(
+                    "أدخل بريدك الإلكتروني وسنرسل لك رمز التحقق",
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: MyColors.textSecondary,
+                        ),
+                  ),
+
+                  SizedBox(height: 32.h),
+
+                  // ━━ حقل الإيميل ━━
                   TextFormField(
-                    controller: email,
+                    controller: _email,
                     keyboardType: TextInputType.emailAddress,
                     validator: (val) =>
-                        inputvaild(val!, "email", 40, 6),
-                    decoration: InputDecoration(
+                        val == null || val.isEmpty ? "أدخل البريد الإلكتروني" : null,
+                    decoration: const InputDecoration(
                       hintText: "البريد الإلكتروني",
-                      prefixIcon: const Icon(Icons.email_outlined),
+                      prefixIcon: Icon(Icons.email_outlined),
                     ),
                   ),
 
-                  SizedBox(height: 40.h),
+                  SizedBox(height: 24.h),
 
-                  /// Button
-                  BlocConsumer<ForgetPasswordCubit, ForgetPasswordState>(
-                    listener: (context, state) {
-                      if (state is ForgetPasswordSuccsess) {
-                        Get.offAllNamed(RouteName.login);
-                        showMySnackBar(
-                          context,
-                          "تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني",
-                        );
-                      }
-
-                      if (state is ForgetPasswordErorr) {
-                        showMySnackBar(context, state.message);
-                      }
-                    },
-                    builder: (context, state) {
-                      return SizedBox(
-                        width: double.infinity,
-                        height: 52.h,
-                        child: ElevatedButton.icon(
-                          onPressed: state is ForgetPasswordLoading
-                              ? null
-                              : () {
-                                  if (formKey.currentState!.validate()) {
-                                    context
-                                        .read<ForgetPasswordCubit>()
-                                        .sendEmail(email.text.trim());
-                                  }
-                                },
-
-                          icon: state is ForgetPasswordLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(
-                                  Icons.arrow_back,
-                                  color: Colors.white,
-                                ),
-
-                          label: const Text("إرسال الرابط"),
-                        ),
-                      );
-                    },
+                  // ━━ زر الإرسال ━━
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52.h,
+                    child: ElevatedButton(
+                      onPressed: isLoading
+                          ? null
+                          : () {
+                              if (_formKey.currentState!.validate()) {
+                                context
+                                    .read<ForgetPasswordCubit>()
+                                    .sendEmail(_email.text.trim());
+                              }
+                            },
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text("إرسال رمز التحقق"),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

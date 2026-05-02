@@ -1,9 +1,7 @@
 import 'package:alatarekak/core/them/app_spacing.dart';
-import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
-import 'package:alatarekak/core/utils/widgets/cricular_decoration.dart';
 import 'package:alatarekak/features/auth/presentation/view/widget/buttons_login.dart';
 import 'package:alatarekak/features/auth/presentation/view/widget/text_fileds_login.dart';
 class Login extends StatefulWidget {
@@ -13,7 +11,7 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  final TextEditingController phone = TextEditingController();
+  final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey();
 
@@ -50,10 +48,10 @@ class _LoginState extends State<Login> {
                   ),
                 ),
                 SizedBox(height: 32.h),
-                TextFiledsLogin(phone: phone, password: password),
+                TextFiledsLogin(email: email, password: password),
                 SizedBox(height: 20.h),
                 ColumnButtonsLogin(
-                  phone: phone,
+                  phone: email,
                   password: password,
                   formKey: formKey,
                 ),

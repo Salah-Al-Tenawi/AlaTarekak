@@ -1,3 +1,5 @@
+import 'package:alatarekak/features/auth/presentation/view/reset_password.dart';
+import 'package:alatarekak/features/auth/presentation/view/verfiy_email_Singin.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
@@ -97,7 +99,6 @@ List<GetPage<dynamic>> appRoute = [
       child: OnboardingScreen(),
     ),
   ),
-
   GetPage(
       name: RouteName.pickLocation,
       page: () => BlocProvider(

@@ -1,4 +1,5 @@
 import 'package:alatarekak/core/route/route_name.dart';
+import 'package:alatarekak/core/utils/functions/get_token.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/profile.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_from.dart';
 import 'package:flutter/material.dart';
@@ -9,13 +10,11 @@ import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/features/e_pay/data/data_source/e_pay_remote_data_source.dart';
 import 'package:alatarekak/features/e_pay/data/repo/e_pay_repo_im.dart';
 import 'package:alatarekak/features/home/preantion/manger/cubit/home_nav_cubit_cubit.dart';
-import 'package:alatarekak/features/home/preantion/view/widget/home_appbar.dart';
 import 'package:alatarekak/features/home/preantion/view/widget/home_botom_nav_bar.dart';
 import 'package:alatarekak/features/home/preantion/view/widget/home_drawer.dart';
 import 'package:alatarekak/features/policy/policy_dilaog.dart';
 import 'package:alatarekak/features/policy/text/pollicy_text.dart';
 import 'package:alatarekak/features/trip_booking/presantion/view/booking_me_list.dart';
-import 'package:alatarekak/features/trip_create/presantion/view/trip_select_source_and_dist_on_map.dart';
 import 'package:alatarekak/features/trip_me/presantion/view/trip_me_list.dart';
 import 'package:alatarekak/features/trip_search/presantion/view/trip_search.dart';
 
@@ -43,11 +42,12 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
+   print("${mytoken()}" );
     super.initState();
     try {
       isNew = Get.arguments as bool;
     } catch (e) {}
-    super.initState();
+    
     try {
       if (isNew) {
         WidgetsBinding.instance.addPostFrameCallback((_) {

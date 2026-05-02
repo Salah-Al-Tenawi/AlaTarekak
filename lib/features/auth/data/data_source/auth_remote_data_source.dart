@@ -3,6 +3,7 @@ import 'package:alatarekak/core/api/api_consumer.dart';
 import 'package:alatarekak/core/api/api_end_points.dart';
 import 'package:alatarekak/core/service/hive_services.dart';
 import 'package:alatarekak/core/utils/functions/get_token.dart';
+import 'package:alatarekak/features/auth/data/model/token_model.dart';
 import 'package:alatarekak/features/auth/data/model/user_model.dart';
 import 'package:alatarekak/features/auth/domain/usecase/params/reset_password_params.dart';
 import 'package:alatarekak/features/auth/domain/usecase/params/sing_up_params.dart';
@@ -19,7 +20,10 @@ abstract class AuthRemoteDataSource {
   Future<UserModel> singInWithGoogle();
   Future<Unit> forgotPassword(String email);
   Future<Unit>resetPassword(ResetPasswordParams params);
-  Future<UserModel>verifyEmail(String email , String otp);
+  Future<UserModel>verifySinginOtp(String email , String otp);
+  Future<UserModel>verifyResetPasswordOtp(String email , String otp);
+  
+  Future<Unit> refreshToken(String token);
   Future<Unit> logout();
 }
 
@@ -50,7 +54,9 @@ class AuthRemoteDataSourceIM extends AuthRemoteDataSource {
   Future<UserModel> signInWithEmail(String email, String password)async {
     final response = await api.post(ApiEndPoint.login,
         data: {ApiKey.email: email, ApiKey.password: password});
-    final user = UserModel.fromjson(response);
+
+  final user = UserModel.fromjson(response);
+    
     HiveBoxes.authBox.put(HiveKeys.user, user);
     return user;
   }
@@ -76,17 +82,48 @@ class AuthRemoteDataSourceIM extends AuthRemoteDataSource {
   }
   
   @override
-  Future<UserModel> verifyEmail(String email, String otp)async {
-    final response =await api.post(ApiEndPoint.baserUrl ,data: { 
+  Future<UserModel> verifySinginOtp(String email, String otp)async {
+    final response =await api.post(ApiEndPoint.emailVerfivaction ,data: { 
      ApiKey.email :email ,
       ApiKey.otpCode :otp
     });
-    final user = UserModel.fromjson(response);
+   
+  final user = UserModel.fromjson(response);
+    
     HiveBoxes.authBox.put(HiveKeys.user, user);
     return user;
   }
+  
+@override
+Future<Unit> refreshToken(String token) async {
+  final response = await api.post(
+    ApiEndPoint.refreshToken,
+    data: {
+      ApiKey.refreshToken: token,
+    },
+  );
 
+  final tokens = TokenModel.fromJson(response);
 
+  final oldUser = HiveBoxes.authBox.get(HiveKeys.user);
+
+  if (oldUser != null) {
+    final updatedUser = oldUser.copyWith(
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    );
+
+    await HiveBoxes.authBox.put(HiveKeys.user, updatedUser);
+  }
+
+  return unit;
+}
+
+  @override
+  Future<UserModel> verifyResetPasswordOtp(String email, String otp) {
+    // TODO: implement verifyResetPasswordOtp
+    throw UnimplementedError();
+  }
 
 
   // Future<UserModel> singInWithGoogle() async {

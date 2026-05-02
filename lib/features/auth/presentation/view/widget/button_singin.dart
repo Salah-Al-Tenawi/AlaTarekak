@@ -1,14 +1,11 @@
+import 'package:alatarekak/features/auth/presentation/view/verfiy_email_Singin.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:alatarekak/core/constant/imagesUrl.dart';
 import 'package:alatarekak/core/route/route_name.dart';
-import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
-import 'package:alatarekak/core/utils/widgets/my_button.dart';
 import 'package:alatarekak/features/auth/presentation/manger/singin_cubit/singin_cubit.dart';
-import 'package:lottie/lottie.dart';
 
 class ButtonSingin extends StatelessWidget {
   const ButtonSingin({
@@ -35,11 +32,16 @@ class ButtonSingin extends StatelessWidget {
     return BlocConsumer<SinginCubit, SinginState>(
       listener: (context, state) {
         if (state is SingInGotoVerfiyOtp) {
-          Get.toNamed(RouteName.verfiyEmailSingin,
-              arguments: state.numberPhone);
+         Get.to(
+    () => BlocProvider.value(
+      value: context.read<SinginCubit>(), // ✅ نفس الـ Cubit
+      child: VerfiyEmailSingin(),
+    ),
+    arguments: state.email, // أو email
+  );
         }
         if (state is SinginSuccess) {
-          Get.offAllNamed(RouteName.home ,arguments: true);
+          Get.offAllNamed(RouteName.verfiyEmailSingin ,arguments: email.text);
         } else if (state is SinginErorre) {
           showMySnackBar(context, state.message);
         }
@@ -61,7 +63,7 @@ class ButtonSingin extends StatelessWidget {
               final address = cubit.address;
 
               if (formKey.currentState!.validate()) {
-                context.read<SinginCubit>().singin(
+                context.read<SinginCubit>().signIn(
                       fname,
                       lname,
                       gender,

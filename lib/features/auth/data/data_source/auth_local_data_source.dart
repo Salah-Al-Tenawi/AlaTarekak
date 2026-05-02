@@ -2,28 +2,33 @@ import 'package:alatarekak/core/service/hive_services.dart';
 import 'package:alatarekak/features/auth/data/model/user_model.dart';
 
 abstract class AuthLocalDataSource {
-  UserModel? featchUser();
-  String? featchToken();
-  Future clearUser();
+  UserModel? fetchUser();
+  String? fetchAccessToken();
+  String? fetchRefreshToken();
+  Future<void> clearAll();
 }
 
 class AuthLocalDataSourceIm extends AuthLocalDataSource {
   @override
-  UserModel? featchUser() {
-    final user = HiveBoxes.authBox.get(HiveKeys.user) as UserModel?;
+  UserModel? fetchUser() {
+    final user = HiveBoxes.authBox.get(HiveKeys.user);
     return user;
   }
 
   @override
-  String? featchToken() {
-    final user = HiveBoxes.authBox.get(HiveKeys.user) as UserModel?;
-    return user?.token;
+  String? fetchAccessToken() {
+    final user = HiveBoxes.authBox.get(HiveKeys.user);
+    return user?.accessToken;
   }
 
-  
+  @override
+  String? fetchRefreshToken() {
+    final user = HiveBoxes.authBox.get(HiveKeys.user);
+    return user?.refreshToken;
+  }
 
   @override
-  Future clearUser() async {
-    await HiveBoxes.authBox.delete(HiveKeys.user);
+  Future<void> clearAll() async {
+    await HiveBoxes.authBox.clear();
   }
 }

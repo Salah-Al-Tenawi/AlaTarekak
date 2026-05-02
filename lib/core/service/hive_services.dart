@@ -1,20 +1,25 @@
-import 'package:hive_flutter/adapters.dart';
+import 'package:alatarekak/features/profiles/data/model/profile_model.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:alatarekak/features/auth/data/model/user_model.dart';
 
 class HiveService {
   static Future<void> init() async {
-    await Hive.initFlutter(); 
-  
+    await Hive.initFlutter();
+
+    // 🧠 Register adapters
     Hive.registerAdapter(UserModelAdapter());
- await Future.wait([
-    Hive.openBox(HiveBoxes.authBoxName),
-    Hive.openBox(HiveBoxes.profileBoxName),
-    Hive.openBox(HiveBoxes.tripBoxName),
-  ]);
+    // Hive.registerAdapter(AuthModelAdapter());
+
+    // 📦 Open boxes
+    await Future.wait([
+      Hive.openBox<ProfileModel>(HiveBoxes.profileBoxName),
+      Hive.openBox<UserModel>(HiveBoxes.authBoxName),
+      Hive.openBox(HiveBoxes.tripBoxName),
+    ]);
   }
 
-  static Future<Box<E>> openBox<E>(String boxName) async {
-    return await Hive.openBox<E>(boxName);
+  static Future<Box<T>> openBox<T>(String boxName) async {
+    return await Hive.openBox<T>(boxName);
   }
 
   static Future<void> closeBox(String boxName) async {
@@ -32,19 +37,24 @@ class HiveService {
 
 class HiveKeys {
   static const String user = "user";
+
   static const String profile = "profile";
   static const String trip = "trip";
 }
-
 class HiveBoxes {
-  // صندوق بيانات تسجيل الدخول (مثل UserModel, token)
+ 
   static const String authBoxName = 'authBox';
-  static Box get authBox => Hive.box(authBoxName);
+  static Box<UserModel> get authBox =>
+      Hive.box<UserModel>(authBoxName);
 
-  // صندوق بيانات الملف الشخصي (مثل صورة، معلومات إضافية)
+
+
   static const String profileBoxName = 'profileBox';
-  static Box get profileBox => Hive.box(profileBoxName);
+  static Box<ProfileModel> get profileBox =>
+      Hive.box<ProfileModel>(profileBoxName);
 
+  // 🚗 Trips
   static const String tripBoxName = 'tripBox';
-  static Box get tripBox => Hive.box(tripBoxName);
+  static Box get tripBox =>
+      Hive.box(tripBoxName);
 }

@@ -1,3 +1,4 @@
+import 'package:alatarekak/features/auth/data/model/token_model.dart';
 import 'package:alatarekak/features/auth/domain/usecase/params/reset_password_params.dart';
 import 'package:alatarekak/features/auth/domain/usecase/params/sing_up_params.dart';
 import 'package:dartz/dartz.dart';
@@ -17,15 +18,25 @@ class AuthRepoIm extends AuthRepo {
   });
 
   @override
-  Future<Either<Filuar, Unit>> forgotPassword(String email) {
-    // TODO: implement forgotPassword
-    throw UnimplementedError();
+  Future<Either<Filuar, Unit>> forgotPassword(String email)async {
+    try{
+      final response= await authRemoteDataSource.forgotPassword(email);
+      return right(response);
+    }
+    on ServerExpcptions catch(e){ 
+      return left(e.error);
+    }
   }
 
   @override
-  Future<Either<Filuar, Unit>> logout() {
-    // TODO: implement logout
-    throw UnimplementedError();
+  Future<Either<Filuar, Unit>> logout()async {
+   try {
+      final response = await authRemoteDataSource.logout();
+      authLocalDataSourceIm.clearAll();
+      return right(response);
+    } on ServerExpcptions catch (e) {
+      return left(e.error);
+    }
   }
 
   @override
@@ -35,15 +46,24 @@ class AuthRepoIm extends AuthRepo {
   }
 
   @override
-  Future<Either<Filuar, Unit>> signIn(SignUpParams params) {
-    // TODO: implement signIn
-    throw UnimplementedError();
+  Future<Either<Filuar, Unit>> signIn(SignUpParams params) async{
+   try {
+      final user = await authRemoteDataSource.singIn(params);
+      
+      return right(user);
+    } on ServerExpcptions catch (e) {
+      return left(e.error);
+    }
   }
 
   @override
-  Future<Either<Filuar, UserModel>> signInWithEmail(String email, String password) {
-    // TODO: implement signInWithEmail
-    throw UnimplementedError();
+  Future<Either<Filuar, UserModel>> signInWithEmail(String email, String password)async {
+     try {
+      final user = await authRemoteDataSource.signInWithEmail(email, password);
+      return right(user);
+    } on ServerExpcptions catch (e) {
+      return left(e.error);
+    }
   }
 
   @override
@@ -53,12 +73,33 @@ class AuthRepoIm extends AuthRepo {
   }
 
   @override
-  Future<Either<Filuar, UserModel>> verifyEmail(String email, String otp) {
-    // TODO: implement verifyEmail
-    throw UnimplementedError();
+  Future<Either<Filuar, UserModel>> verifySinginOtp(String email, String otp)async {
+   try{ 
+    final user =await authRemoteDataSource.verifySinginOtp(email, otp);
+    return right(user);
+   }
+   on ServerExpcptions catch(e){ 
+    return left(e.error);
+   }
+
+
   }
 
+Future<Either<Filuar,Unit>> refreshToken(String token)async{ 
+  try{ 
+ await authRemoteDataSource.refreshToken(token);
+return right(unit);
+  }
+  on ServerExpcptions catch(e){
+     return left(e.error);
+  }
+}
 
+  @override
+  Future<Either<Filuar, Unit>> verifyForgetPasswordOtp(String email, String otp) {
+    // TODO: implement verifyForgetPasswordOtp
+    throw UnimplementedError();
+  }
 
 
   // @override

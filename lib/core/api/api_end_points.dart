@@ -1,5 +1,5 @@
 class ApiEndPoint {
-  static const baserUrl = "http://192.168.43.81:8000/api";
+  static const baserUrl = "http://192.168.0.104:8000/api";
   static const baseUrlGoogle ="http://192.168.43.81:8000";
 
   static const mapsOpenRouteServices =
@@ -7,9 +7,10 @@ class ApiEndPoint {
   static const mapsGraphHopper = "https://graphhopper.com/api/1/route";
 
   // auth
-  static const login = "$baserUrl/login";
-  static const singin = "$baserUrl/signup";
-  static const logout = "$baserUrl/logout";
+
+  static const login = "$baserUrl/auth/login";
+  static const singin = "$baserUrl/auth/signup";
+  static const logout = "$baserUrl/auth/logout";
   static const forgetPassword = "$baserUrl/forgot-password";
   static const resetPassword = "$baserUrl/reset-password";
   static const profile = "$baserUrl/profile";
@@ -17,6 +18,9 @@ class ApiEndPoint {
   static const verifypassenger = "$profile/verify/passenger";
   static const verifydriver = "$profile/verify/driver";
   static const rateUser = "$profile/rate";
+  static const emailVerfivaction = "$baserUrl/email-verification/verify";
+  // token 
+  static const refreshToken = "$baserUrl/auth/refresh";
 
 //  trips endpoint
   static const rides = "$baserUrl/rides";
@@ -56,6 +60,8 @@ class ApiKey {
   static const error = "error";
   static const token = "access_token";
   static const contentType = "Content-Type";
+  // token 
+  static const refreshToken="refresh_token";
 
   // User Info
   static const userId = "user_id";
@@ -79,6 +85,7 @@ class ApiKey {
   static const averageRating = "average_rating";
   static const phoneNumber = "phone_number";
   static const otpCode = "otp_code";
+  
 
   // Car Info
   static const typeOfCar = "type_of_car";

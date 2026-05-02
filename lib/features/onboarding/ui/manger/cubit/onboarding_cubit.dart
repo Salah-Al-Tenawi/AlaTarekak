@@ -1,5 +1,7 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+// onboarding_cubit.dart — لا تغيير كبير
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+import 'package:bloc/bloc.dart';
 part 'onboarding_state.dart';
 
 class OnboardingCubit extends Cubit<OnboardingState> {

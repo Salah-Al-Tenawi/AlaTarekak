@@ -1,39 +1,45 @@
-import 'package:flutter/material.dart';
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+// onboarding_page_widget.dart
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/features/onboarding/data/onboarding_data.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:alatarekak/core/them/my_colors.dart';
 
 class OnboardingPageWidget extends StatelessWidget {
   final OnboardingPage page;
-
   const OnboardingPageWidget({super.key, required this.page});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: EdgeInsets.symmetric(horizontal: 32.w),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset(
-            page.imagePath,
-            height: 250,
-          ),
-          const SizedBox(height: 40),
+
+         Image.asset(
+              page.imagePath,
+              fit: BoxFit.contain,
+            ),
+
+          SizedBox(height: 48.h),
+
+          // ━━ العنوان ━━
           Text(
             page.title,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
             textAlign: TextAlign.center,
+            style: AppTextStyles.displayMedium
           ),
-          const SizedBox(height: 20),
+
+          SizedBox(height: 16.h),
+
+          // ━━ الوصف ━━
           Text(
             page.description,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
             textAlign: TextAlign.center,
+            style: AppTextStyles.bodyLarge
           ),
         ],
       ),

@@ -1,4 +1,6 @@
 
+import 'package:alatarekak/features/auth/domain/usecase/params/reset_password_params.dart';
+
 class RouteName {
   //  onboarding
 
@@ -15,6 +17,10 @@ class RouteName {
   static const verfiyUser = "/verfiyUser";
 
   static const verfiyEmailSingin = "/VerfiyEmailSingin";
+  static const verifyOtpForgetPassword = "/VerifyOtpForgetPassword";
+  static const resetPassword = "/ResetPassword";
+  
+  
 
 // map
   static const pushRideMap = "/pushRideMap";
