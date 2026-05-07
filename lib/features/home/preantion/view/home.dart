@@ -40,25 +40,22 @@ class _HomeState extends State<Home> {
     });
   }
 
-  @override
-  void initState() {
-   print("${mytoken()}" );
-    super.initState();
-    try {
-      isNew = Get.arguments as bool;
-    } catch (e) {}
-    
-    try {
-      if (isNew) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          Future.delayed(const Duration(seconds: 3), () {
-            _showPrivacy();
-          });
-        });
-      }
-    } catch (e) {}
-  }
+ @override
+void initState() {
+  super.initState();
 
+  print(mytoken());
+
+  isNew = Get.arguments as bool? ?? false;
+
+  if (isNew) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(seconds: 3), () {
+        _showPrivacy();
+      });
+    });
+  }
+}
   Future<void> _showPrivacy() async {
     final accepted = await showDialog<bool>(
       context: context,

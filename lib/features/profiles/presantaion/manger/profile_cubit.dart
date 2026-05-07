@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,23 +9,23 @@ import 'package:alatarekak/features/profiles/data/model/enum/profile_mode.dart';
 import 'package:alatarekak/features/profiles/data/repo/profile_repo_im.dart';
 import 'package:alatarekak/features/profiles/domain/entity/car_entity.dart';
 import 'package:alatarekak/features/profiles/domain/entity/profile_entity.dart';
+
 part 'profile_state.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
   final ProfileRepoIm profileRepoIm;
   XFile? userPhoto;
   XFile? carPhoto;
-  String? username;
 
   ProfileCubit(this.profileRepoIm) : super(const ProfileInitialState());
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━
+  // Load
+  // ━━━━━━━━━━━━━━━━━━━━━━━━
 
   Future<ProfileEntity> showOtherProfile(int userid) async {
     emit(const ProfileLoadingState());
     final response = await profileRepoIm.showProfile(userid);
-    print("response-=========================");
-    print(response);
-    print("response-=========================");
-
     return response.fold(
       (error) {
         emit(ProfileErrorState(message: error.message));
@@ -32,18 +33,18 @@ class ProfileCubit extends Cubit<ProfileState> {
       },
       (profileEntity) {
         emit(ProfileLoadedState(
-            mode: ProfileMode.otherView, profileEntity: profileEntity));
-
+          mode: ProfileMode.otherView,
+          profileEntity: profileEntity,
+        ));
         return profileEntity;
       },
     );
   }
 
   Future<ProfileEntity> showMyProfile() async {
-    int? myId = myid();
+    final myId = myid();
     emit(const ProfileLoadingState());
     final response = await profileRepoIm.showProfile(myId!);
-
     return response.fold(
       (error) {
         emit(ProfileErrorState(message: error.message));
@@ -51,67 +52,111 @@ class ProfileCubit extends Cubit<ProfileState> {
       },
       (myProfile) {
         emit(ProfileLoadedState(
-            mode: ProfileMode.myView, profileEntity: myProfile));
-
+          mode: ProfileMode.myView,
+          profileEntity: myProfile,
+        ));
         return myProfile;
       },
     );
   }
 
-  emiteditMyProfile() {
-    final current = state;
-    if (current is ProfileLoadedState) {
-      emit(ProfileLoadedState(
-          mode: ProfileMode.myEdit, profileEntity: current.profileEntity!));
-    }
-  }
+  // ━━━━━━━━━━━━━━━━━━━━━━━━
+  // Edit Mode
+  // ━━━━━━━━━━━━━━━━━━━━━━━━
 
-  void saveMyProfile(ProfileEntity? newProfile) async {
+  void enterEditMode() {
     final current = state;
     if (current is! ProfileLoadedState) return;
-    emit(const ProfileLoadingState());
-    ProfileEntity? profile = newProfile;
-    CarEntity? car = profile?.car;
-    final response = await profileRepoIm.updateProfile(
-        userPhoto,
-        profile?.description,
-        car?.color,
-        car?.seats,
-        carPhoto,
-        boolToInt(car?.hasRadio),
-        boolToInt(car?.allowsSmoking),
-        null,
-        null,
-        null,
-        null,
-        car?.type,
-        null,
-        profile?.address);
-    response.fold((erorr) {
-      emit(ProfileErrorState(message: erorr.message));
-    }, (profileEntity) {
-      emit(ProfileLoadedState(
-          mode: ProfileMode.myView, profileEntity: profileEntity));
-    });
+    emit(current.copyWith(
+      mode: ProfileMode.myEdit,
+      editProfile: current.profileEntity!.copyWith(),
+      editDescription: current.profileEntity!.description,
+    ));
   }
 
+  void exitEditMode() {
+    final current = state;
+    if (current is! ProfileLoadedState) return;
+    emit(current.copyWith(
+      mode: ProfileMode.myView,
+      editProfile: null,
+      editDescription: null,
+    ));
+  }
+
+  // ━━ تعديل الوصف ━━
+  void updateDescription(String value) {
+    final current = state;
+    if (current is! ProfileLoadedState) return;
+    emit(current.copyWith(
+      editDescription: value,
+      editProfile: current.editProfile?.copyWith(description: value),
+    ));
+  }
+
+  // ━━ تعديل السيارة ━━
+  void updateCar(CarEntity newCar) {
+    final current = state;
+    if (current is! ProfileLoadedState) return;
+    emit(current.copyWith(
+      editProfile: current.editProfile?.copyWith(car: newCar),
+    ));
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━
+  // Save
+  // ━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Future<void> saveMyProfile() async {
+    final current = state;
+    if (current is! ProfileLoadedState) return;
+
+    final profile = current.editProfile;
+    final car = profile?.car;
+
+    emit(ProfileLoadingState(profileEntity: current.profileEntity));
+
+    final response = await profileRepoIm.updateProfile(
+      userPhoto,
+      profile?.description,
+      car?.color,
+      car?.seats,
+      carPhoto,
+      boolToInt(car?.hasRadio),
+      boolToInt(car?.allowsSmoking),
+      null, null, null, null,
+      car?.type,
+      null,
+      profile?.address,
+    );
+
+    response.fold(
+      (error) => emit(ProfileErrorState(
+        message: error.message,
+        profileEntity: current.profileEntity,
+      )),
+      (updated) => emit(ProfileLoadedState(
+        mode: ProfileMode.myView,
+        profileEntity: updated,
+      )),
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━
+  // Image
+  // ━━━━━━━━━━━━━━━━━━━━━━━━
+
   void pickImage(XFile image, ProfileImagePicMode type) {
-    switch (type) {
-      case ProfileImagePicMode.user:
-        userPhoto = image;
-        break;
-      case ProfileImagePicMode.car:
-        carPhoto = image;
-        break;
+    final current = state;
+    if (current is! ProfileLoadedState) return;
+
+    if (type == ProfileImagePicMode.user) {
+      userPhoto = image;
+    } else {
+      carPhoto = image;
     }
 
-    final current = state;
-    if (current is ProfileLoadedState) {
-      emit(const ProfileLoadingState());
-      emit(ProfileLoadedState(
-        mode: current.mode,
-        profileEntity: current.profileEntity!,
-      ));
-    }
+    // ━━ re-emit لتحديث الصورة ━━
+    emit(current.copyWith());
   }
 }

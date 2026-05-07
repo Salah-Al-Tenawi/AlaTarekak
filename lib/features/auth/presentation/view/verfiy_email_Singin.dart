@@ -34,7 +34,8 @@ class _VerfiyEmailSinginState extends State<VerfiyEmailSingin> {
      listener: (context, state) {
   if (state is SinginSuccess) {
     AppSnackBar.success("تم انشاء الحساب");
-    Get.offAllNamed(RouteName.home);
+   final isnew= true ;
+    Get.offAllNamed(RouteName.home , arguments: isnew);
     
   }
   if (state is SinginErorre) {

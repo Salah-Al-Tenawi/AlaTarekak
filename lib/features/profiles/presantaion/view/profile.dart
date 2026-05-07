@@ -24,8 +24,8 @@ class _ProfileState extends State<Profile> {
   void initState() {
     super.initState();
     _profileCubit = context.read<ProfileCubit>();
-    userId = Get.arguments as int; 
-    
+    // userId = Get.arguments as int; 
+    userId = 1 ;
 
     // _loadProfileFuture = _fetchProfileData(userId);
   }
@@ -65,7 +65,7 @@ class _ProfileState extends State<Profile> {
               );
             }
 
-            return ProfileBody(profileEntity: snapshot.data!);
+            return ProfileBody();
           },
         ),
       ),

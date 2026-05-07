@@ -12,18 +12,27 @@ class ProfileModel extends ProfileEntity {
     required this.success,
     required this.data,
   }) : super(
-            fullname: data.fullName,
-            profilePhoto: data.profilePhoto,
-            totalRating: data.totalRating,
-            verification: data.verificationStatus,
-            address: data.address,
-            gender: data.gender,
-            description: data.description,
-            car: data.car,
-            comments: data.comments,
-            documents: data.documents,
-            averageRating: data.averageRating,
-            numberOfides: data.numberOfRides);
+          fullname: data.fullName,
+          profilePhoto: data.profilePhoto,
+          totalRating: data.totalRating,
+          verification: data.verificationStatus,
+          address: data.address,
+          gender: data.gender,
+          description: data.description,
+          car: data.car,
+          comments: data.comments,
+          documents: data.documents,
+          averageRating: data.averageRating,
+          numberOfides: data.numberOfRides,
+          // ✅ الحقول الجديدة
+          totalTrips: data.totalTrips,
+          successfulTrips: data.successfulTrips,
+          cancelledTrips: data.cancelledTrips,
+          noShowTrips: data.noShowTrips,
+          totalBookings: data.totalBookings,
+          successfulBookings: data.successfulBookings,
+          cancelledBookings: data.cancelledBookings,
+        );
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
     return ProfileModel(
@@ -38,9 +47,7 @@ class ProfileModel extends ProfileEntity {
       ApiKey.data: data.toJson(),
     };
   }
-}
-
-class ProfileData {
+}class ProfileData {
   final int userId;
   final String fullName;
   final String verificationStatus;
@@ -54,6 +61,15 @@ class ProfileData {
   final int numberOfRides;
   final DocumentsModel? documents;
   final List<CommentModel>? comments;
+
+  // ✅ الحقول الجديدة
+  final int totalTrips;
+  final int successfulTrips;
+  final int cancelledTrips;
+  final int noShowTrips;
+  final int totalBookings;
+  final int successfulBookings;
+  final int cancelledBookings;
 
   ProfileData({
     required this.averageRating,
@@ -69,10 +85,23 @@ class ProfileData {
     required this.numberOfRides,
     required this.documents,
     required this.comments,
+    // ✅ قيم افتراضية — لا تكسر الكود القديم
+    this.totalTrips = 0,
+    this.successfulTrips = 0,
+    this.cancelledTrips = 0,
+    this.noShowTrips = 0,
+    this.totalBookings = 0,
+    this.successfulBookings = 0,
+    this.cancelledBookings = 0,
   });
 
   factory ProfileData.fromJson(Map<String, dynamic> json) {
     final rating = json[ApiKey.rating] ?? {};
+
+    // ✅ استخرج الإحصائيات من الـ JSON
+    final trips = json['trips_stats'] ?? {};
+    final bookings = json['bookings_stats'] ?? {};
+
     return ProfileData(
       userId: json[ApiKey.userId],
       fullName: json[ApiKey.fullName] ?? '',
@@ -92,9 +121,24 @@ class ProfileData {
           ? DocumentsModel.fromJson(json[ApiKey.documents])
           : null,
       comments: (json[ApiKey.comments] as List<dynamic>?)
-              ?.map((comment) => CommentModel.fromJson(comment))
+              ?.map((c) => CommentModel.fromJson(c))
               .toList() ??
           [],
+
+      // ━━ الرحلات ━━
+      // لو الـ backend يرسلهم nested داخل trips_stats
+      totalTrips: trips['total'] ?? json['total_trips'] ?? 0,
+      successfulTrips: trips['successful'] ?? json['successful_trips'] ?? 0,
+      cancelledTrips: trips['cancelled'] ?? json['cancelled_trips'] ?? 0,
+      noShowTrips: trips['no_show'] ?? json['no_show_trips'] ?? 0,
+
+      // ━━ الحجوزات ━━
+      // لو الـ backend يرسلهم nested داخل bookings_stats
+      totalBookings: bookings['total'] ?? json['total_bookings'] ?? 0,
+      successfulBookings:
+          bookings['successful'] ?? json['successful_bookings'] ?? 0,
+      cancelledBookings:
+          bookings['cancelled'] ?? json['cancelled_bookings'] ?? 0,
     );
   }
 
@@ -110,7 +154,19 @@ class ProfileData {
       if (car != null) ...car!.toJson(),
       ApiKey.numberOfRides: numberOfRides,
       ApiKey.documents: documents?.toJson(),
-      ApiKey.comments: comments?.map((comment) => comment.toJson()).toList(),
+      ApiKey.comments: comments?.map((c) => c.toJson()).toList(),
+      // ✅ الحقول الجديدة
+      'trips_stats': {
+        'total': totalTrips,
+        'successful': successfulTrips,
+        'cancelled': cancelledTrips,
+        'no_show': noShowTrips,
+      },
+      'bookings_stats': {
+        'total': totalBookings,
+        'successful': successfulBookings,
+        'cancelled': cancelledBookings,
+      },
     };
   }
 }
