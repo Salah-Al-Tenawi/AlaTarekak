@@ -1,4 +1,3 @@
-import 'package:alatarekak/features/auth/data/model/token_model.dart';
 import 'package:alatarekak/features/auth/domain/usecase/params/reset_password_params.dart';
 import 'package:alatarekak/features/auth/domain/usecase/params/sing_up_params.dart';
 import 'package:dartz/dartz.dart';

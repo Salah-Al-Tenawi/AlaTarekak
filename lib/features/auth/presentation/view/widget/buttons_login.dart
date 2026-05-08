@@ -2,14 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:lottie/lottie.dart';
 import 'package:alatarekak/core/constant/imagesUrl.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
-import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
-import 'package:alatarekak/core/utils/widgets/my_button.dart';
 import 'package:alatarekak/features/auth/presentation/manger/login_cubit/login_cubit.dart';
 class ColumnButtonsLogin extends StatelessWidget {
   final TextEditingController phone;

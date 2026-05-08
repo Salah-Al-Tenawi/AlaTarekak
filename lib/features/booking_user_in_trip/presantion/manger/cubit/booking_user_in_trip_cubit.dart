@@ -1,6 +1,5 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:alatarekak/features/booking_user_in_trip/data/model/booking_user_modle.dart';
 import 'package:alatarekak/features/booking_user_in_trip/data/repo/booking_users_in_trip_repo_imp.dart';
 
 part 'booking_user_in_trip_state.dart';
