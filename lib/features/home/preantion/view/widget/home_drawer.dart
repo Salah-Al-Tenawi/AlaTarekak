@@ -14,7 +14,7 @@ class HomeDrawer extends StatelessWidget {
   final BuildContext scaffoldContext;
   const HomeDrawer({super.key, required this.scaffoldContext});
 
-  get font15ggreyw600 => null;
+  Null get font15ggreyw600 => null;
 
   @override
   Widget build(BuildContext context) {

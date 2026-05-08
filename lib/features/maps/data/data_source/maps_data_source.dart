@@ -4,6 +4,7 @@ import 'package:alatarekak/core/api/dio_consumer.dart';
 import 'package:alatarekak/core/errors/excptions.dart';
 import 'package:alatarekak/core/errors/filuar.dart';
 import 'package:alatarekak/features/maps/data/model/map_info_model.dart';
+import 'package:alatarekak/features/maps/data/model/place_suggestion.dart';
 
 abstract class MapsDataSource {
   final DioConSumer api;
@@ -14,6 +15,7 @@ abstract class MapsDataSource {
   Future<List<RouteModel>> fetchRouteBYgraphHopper(
       LatLng startLocation, LatLng endLocation);
   Future<String> getPlaceName(LatLng location);
+  Future<List<PlaceSuggestion>> searchPlaces(String query);
 }
 
 class MapsDataSourceIm extends MapsDataSource {
@@ -112,5 +114,24 @@ class MapsDataSourceIm extends MapsDataSource {
     } else {
       throw ServerExpcptions(error: Filuar(message: "لم يتم العثور على اسم المكان"));
     }
+  }
+
+  @override
+  Future<List<PlaceSuggestion>> searchPlaces(String query) async {
+    final response = await api.get(
+      'https://nominatim.openstreetmap.org/search',
+      header: {'User-Agent': 'alatarekak-flutter-app'},
+      queryParameters: {
+        'q': query,
+        'format': 'json',
+        'limit': '5',
+        'accept-language': 'ar',
+        'countrycodes': 'sy',
+      },
+    );
+    final results = response as List;
+    return results
+        .map((e) => PlaceSuggestion.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }

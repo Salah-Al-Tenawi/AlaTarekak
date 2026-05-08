@@ -1,20 +1,16 @@
 import 'package:alatarekak/core/route/route_name.dart';
-import 'package:alatarekak/core/utils/functions/get_token.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/profile.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_from.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
-import 'package:alatarekak/core/api/dio_consumer.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
-import 'package:alatarekak/features/e_pay/data/data_source/e_pay_remote_data_source.dart';
-import 'package:alatarekak/features/e_pay/data/repo/e_pay_repo_im.dart';
 import 'package:alatarekak/features/home/preantion/manger/cubit/home_nav_cubit_cubit.dart';
 import 'package:alatarekak/features/home/preantion/view/widget/home_botom_nav_bar.dart';
 import 'package:alatarekak/features/home/preantion/view/widget/home_drawer.dart';
 import 'package:alatarekak/features/policy/policy_dilaog.dart';
 import 'package:alatarekak/features/policy/text/pollicy_text.dart';
-import 'package:alatarekak/features/trip_booking/presantion/view/booking_me_list.dart';
+import 'package:alatarekak/features/booking_user_in_trip/presantion/view/booking_user_in_trip.dart';
 import 'package:alatarekak/features/trip_me/presantion/view/trip_me_list.dart';
 import 'package:alatarekak/features/trip_search/presantion/view/trip_search.dart';
 
@@ -28,23 +24,10 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   bool isNew = false;
   final _pageController = PageController(initialPage: 0);
-  final EPayRepoIm _epy =
-      EPayRepoIm(remoteDataSource: EPayRemoteDataSource(api: DioConSumer()));
-  String balance = "";
 
-  final GlobalKey _refreshKey = GlobalKey();
-
-  Future<void> _refreshBalance() async {
-    setState(() {
-      _refreshKey.currentState?.setState(() {});
-    });
-  }
-
- @override
-void initState() {
-  super.initState();
-
-  print(mytoken());
+  @override
+  void initState() {
+    super.initState();
 
   isNew = Get.arguments as bool? ?? false;
 
@@ -109,10 +92,9 @@ void initState() {
           children: const [
             TripSearch(),
             TripMeList(),
-            BookingMeList(),
-            BookingMeList(),
-            
-            Profile()
+            BookingUserINTrip(),
+            _ChatPlaceholder(),
+            Profile(),
           ],
         ),
         bottomNavigationBar:
@@ -154,5 +136,25 @@ void initState() {
       ),
     );
     return shouldExit ?? false;
+  }
+}
+
+class _ChatPlaceholder extends StatelessWidget {
+  const _ChatPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.chat_bubble_outline_rounded, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
+            Text("المحادثات قريباً", style: TextStyle(color: Colors.grey, fontSize: 16)),
+          ],
+        ),
+      ),
+    );
   }
 }

@@ -33,7 +33,7 @@ class MyDropdown extends StatelessWidget {
           labelText: title,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        value: options.contains(selectedValue) ? selectedValue : null,
+        initialValue: options.contains(selectedValue) ? selectedValue : null,
         items: options.map((item) {
           return DropdownMenuItem<String>(
             value: item,

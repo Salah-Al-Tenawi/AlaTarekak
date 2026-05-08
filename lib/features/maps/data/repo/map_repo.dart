@@ -4,6 +4,7 @@ import 'package:alatarekak/core/errors/excptions.dart';
 import 'package:alatarekak/core/errors/filuar.dart';
 import 'package:alatarekak/features/maps/data/data_source/maps_data_source.dart';
 import 'package:alatarekak/features/maps/data/model/map_info_model.dart';
+import 'package:alatarekak/features/maps/data/model/place_suggestion.dart';
 
 class MapRepoIm {
   final MapsDataSource mapsDataSource;
@@ -34,6 +35,15 @@ Future<Either<Filuar, List<RouteModel>>> fetchRouteBYgraphHopper(
     try {
       final name = await mapsDataSource.getPlaceName(location);
       return right(name);
+    } on ServerExpcptions catch (e) {
+      return left(e.error);
+    }
+  }
+
+  Future<Either<Filuar, List<PlaceSuggestion>>> searchPlaces(String query) async {
+    try {
+      final results = await mapsDataSource.searchPlaces(query);
+      return right(results);
     } on ServerExpcptions catch (e) {
       return left(e.error);
     }

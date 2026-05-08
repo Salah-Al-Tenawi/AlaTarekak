@@ -50,9 +50,9 @@ class DateTimeUtils {
     final minutes = difference.inMinutes.remainder(60);
     
     final parts = <String>[];
-    if (days > 0) parts.add('${days} يوم');
-    if (hours > 0) parts.add('${hours} ساعة');
-    if (minutes > 0 || parts.isEmpty) parts.add('${minutes} دقيقة');
+    if (days > 0) parts.add('$days يوم');
+    if (hours > 0) parts.add('$hours ساعة');
+    if (minutes > 0 || parts.isEmpty) parts.add('$minutes دقيقة');
     
     return parts.join(' و ');
   }

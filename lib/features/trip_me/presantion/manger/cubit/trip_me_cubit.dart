@@ -40,7 +40,7 @@ class TripMeCubit extends Cubit<TripMeState> {
     });
   }
 
-  refrch() {
+  void refrch() {
     emit(TripMeLoading());
   }
 

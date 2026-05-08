@@ -46,9 +46,13 @@ class SinginCubit extends Cubit<SinginState> {
     });
   }
 
-  void sendOtpAgain() {
-    startOtpTimer();
-    // todo: call API
+  Future<void> sendOtpAgain(String email) async {
+    emit(SinginResendOtpLoading());
+    final response = await authRepoIm.resendOtpSinging(email);
+    response.fold(
+      (e) => emit(SinginResendOtpError(e.message)),
+      (_) => startOtpTimer(),
+    );
   }
 
   Future<void> checkOtp(String email) async {

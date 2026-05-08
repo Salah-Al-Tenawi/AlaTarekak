@@ -14,7 +14,7 @@ class TripDetailsCubit extends Cubit<TripDetailsState> {
   TripDetailsCubit({required this.tripDetailsRepoIM})
       : super(TripDetailsInitial());
 
-  booking(int seats, int tripId, String communicationNumber) async {
+  Future<void> booking(int seats, int tripId, String communicationNumber) async {
     emit(TripDetailsLoading());
     final response =
         await tripDetailsRepoIM.booking(seats, tripId, communicationNumber);
@@ -25,7 +25,7 @@ class TripDetailsCubit extends Cubit<TripDetailsState> {
     });
   }
 
-  fetchTrip(int tripId) async {
+  Future<void> fetchTrip(int tripId) async {
     emit(TripDetailsLoading());
     final response = await tripDetailsRepoIM.featchTrip(tripId);
     response.fold((error) {
@@ -39,15 +39,15 @@ class TripDetailsCubit extends Cubit<TripDetailsState> {
     });
   }
 
-  fetchProfile(int userId) async {
+  Future<void> fetchProfile(int userId) async {
     emit(TripDetailsGoToProfile(userId: userId));
   }
 
-  gotoChatWithDriver(int userId) {
+  void gotoChatWithDriver(int userId) {
     emit(TripDetailsGoToChat(driverId: userId));
   }
 
-  finishRide(int tripId) async {
+  Future<void> finishRide(int tripId) async {
     emit(TripDetailsLoading());
     final response = await tripDetailsRepoIM.finishTrip(tripId);
     response.fold((erorr) {
@@ -57,7 +57,7 @@ class TripDetailsCubit extends Cubit<TripDetailsState> {
     });
   }
 
-  finishAndConfirmRide(int tripId) async {
+  Future<void> finishAndConfirmRide(int tripId) async {
     emit(TripDetailsLoading());
     final response = await tripDetailsRepoIM.finishTrip(tripId);
     response.fold((erorr) {

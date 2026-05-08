@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:get/route_manager.dart';
-import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
-import 'package:alatarekak/features/trip_me/presantion/view/widget/trip_item.dart';
 import 'package:alatarekak/features/trip_search/presantion/view/widget/item_search_trip.dart';
 
 class TripSearchList extends StatefulWidget {

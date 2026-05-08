@@ -17,4 +17,5 @@ abstract class AuthRepo {
   Future<Either<Filuar,Unit>> refreshToken(String token);
    Future<Either<Filuar, Unit>> verifyForgetPasswordOtp(String email ,String otp);
   Future<Either<Filuar, Unit>> resetPassword(ResetPasswordParams params);
+  Future<Either<Filuar, Unit>> resendOtpSinging(String email);
 }

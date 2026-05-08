@@ -22,7 +22,7 @@ class BookingMeCubit extends Cubit<BookingMeState> {
     );
   }
 
-  cancelBooking(int bookingId, int seats) async {
+  Future<void> cancelBooking(int bookingId, int seats) async {
     emit(BookingMeloading());
     final response = await _repo.cancelBooking(bookingId, seats);
     response.fold((erorr) {
@@ -32,7 +32,7 @@ class BookingMeCubit extends Cubit<BookingMeState> {
     });
   }
 
-  finishTrip(int bookingId) async {
+  Future<void> finishTrip(int bookingId) async {
     emit(BookingMeButtonloading());
     final response = await _repo.finshTrip(bookingId);
     response.fold((erorr) {
@@ -42,7 +42,7 @@ class BookingMeCubit extends Cubit<BookingMeState> {
     });
   }
 
-  reateUser(double rating, int userId) async {
+  Future<void> reateUser(double rating, int userId) async {
     emit(BookingMeButtonloading());
     final response = await _repo.rateUser(rating, userId);
 
@@ -53,7 +53,7 @@ class BookingMeCubit extends Cubit<BookingMeState> {
     });
   }
 
-  addComment(String comment, int userid) async {
+  Future<void> addComment(String comment, int userid) async {
     emit(BookingMeButtonloading());
     final response = await _repo.addcommit(comment, userid);
     response.fold((erorr) {

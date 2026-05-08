@@ -942,7 +942,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
     final seatsController = TextEditingController();
     final contactController = TextEditingController();
     final int maxSeats = widget.trip.seatsAvailable;
-    final GlobalKey<FormState> _formKey =
+    final GlobalKey<FormState> formKey =
         GlobalKey<FormState>(); // مفتاح للتحقق من صحة النموذج
 
     showDialog(
@@ -961,7 +961,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
           ),
         ),
         content: Form(
-          key: _formKey, // ربط النموذج بالمفتاح
+          key: formKey, // ربط النموذج بالمفتاح
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1037,7 +1037,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
             ),
             onPressed: () {
               // التحقق من صحة النموذج قبل المتابعة
-              if (_formKey.currentState!.validate()) {
+              if (formKey.currentState!.validate()) {
                 final int? seats = int.tryParse(seatsController.text);
                 final String contactNumber = contactController.text.trim();
 

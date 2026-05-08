@@ -23,7 +23,7 @@ class SmokingSwitchTile extends StatelessWidget {
             child: Switch(
               value: value,
               onChanged: onChanged,
-              activeColor: Colors.green,
+              activeThumbColor: Colors.green,
             ),
           ),
           const SizedBox(width: 4),

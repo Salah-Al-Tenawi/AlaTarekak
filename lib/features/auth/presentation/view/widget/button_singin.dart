@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/features/auth/presentation/manger/singin_cubit/singin_cubit.dart';
 
@@ -32,16 +31,13 @@ class ButtonSingin extends StatelessWidget {
     return BlocConsumer<SinginCubit, SinginState>(
       listener: (context, state) {
         if (state is SingInGotoVerfiyOtp) {
-         Get.to(
-    () => BlocProvider.value(
-      value: context.read<SinginCubit>(), // ✅ نفس الـ Cubit
-      child: VerfiyEmailSingin(),
-    ),
-    arguments: state.email, // أو email
-  );
-        }
-        if (state is SinginSuccess) {
-          Get.offAllNamed(RouteName.verfiyEmailSingin ,arguments: email.text);
+          Get.to(
+            () => BlocProvider.value(
+              value: context.read<SinginCubit>(),
+              child: const VerfiyEmailSingin(),
+            ),
+            arguments: state.email,
+          );
         } else if (state is SinginErorre) {
           showMySnackBar(context, state.message);
         }

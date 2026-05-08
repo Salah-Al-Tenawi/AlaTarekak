@@ -1,5 +1,5 @@
 class ApiEndPoint {
-  static const baserUrl = "http://192.168.1.111:8000/api";
+  static const baserUrl = "http://192.168.247.1:8000/api";
   static const baseUrlGoogle ="http://192.168.43.81:8000";
 
   static const mapsOpenRouteServices =
@@ -19,6 +19,8 @@ class ApiEndPoint {
   static const verifydriver = "$profile/verify/driver";
   static const rateUser = "$profile/rate";
   static const emailVerfivaction = "$baserUrl/email-verification/verify";
+  static const resendOtp = "$baserUrl/email-verification/resend";
+  
   // token 
   static const refreshToken = "$baserUrl/auth/refresh";
 

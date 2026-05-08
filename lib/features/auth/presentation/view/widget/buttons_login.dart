@@ -27,8 +27,9 @@ class ColumnButtonsLogin extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<LoginCubit, LoginState>(
       listener: (context, state) {
-        if (state is LoginSuccess) Get.offAllNamed(RouteName.home);
-       else if (state is LoginNavigateToSignup) {
+        if (state is LoginSuccess) {
+          Get.offAllNamed(RouteName.home);
+        } else if (state is LoginNavigateToSignup) {
           Get.toNamed(RouteName.singin);
         } else if (state is LoginNavigationToForgetPassword) {
           Get.toNamed(RouteName.forgetpassword);

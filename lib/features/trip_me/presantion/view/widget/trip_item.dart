@@ -205,9 +205,9 @@ class ItemTrip extends StatelessWidget {
                                 elevation: 4,
                               ).copyWith(
                                 backgroundColor:
-                                    MaterialStateProperty.resolveWith<Color>(
+                                    WidgetStateProperty.resolveWith<Color>(
                                   (states) =>
-                                      states.contains(MaterialState.pressed)
+                                      states.contains(WidgetState.pressed)
                                           ? Colors.red.shade700
                                           : Colors.red,
                                 ),
@@ -255,13 +255,13 @@ class ItemTrip extends StatelessWidget {
           elevation: 4,
           foregroundColor: Colors.white,
         ).copyWith(
-          backgroundColor: MaterialStateProperty.resolveWith<Color>(
-            (states) => states.contains(MaterialState.pressed)
+          backgroundColor: WidgetStateProperty.resolveWith<Color>(
+            (states) => states.contains(WidgetState.pressed)
                 ? MyColors.accent
                 : MyColors.accent,
           ),
           shadowColor:
-              MaterialStateProperty.all(MyColors.accent.withOpacity(0.4)),
+              WidgetStateProperty.all(MyColors.accent.withOpacity(0.4)),
         ),
         icon: const Icon(
           Icons.flag,

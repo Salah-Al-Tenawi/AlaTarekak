@@ -1,5 +1,4 @@
 
-import 'package:alatarekak/features/auth/domain/usecase/params/reset_password_params.dart';
 
 class RouteName {
   //  onboarding
@@ -57,4 +56,11 @@ class RouteName {
   
 static const chatListScreen = "/ChatListScreen";
 static const chatScreen = "/ChatScreen";
+
+  // profile sub-screens
+  static const profilePersonalInfo = "/profilePersonalInfo";
+  static const profileMyCars = "/profileMyCars";
+  static const profileDriverVerification = "/profileDriverVerification";
+  static const profileSettings = "/profileSettings";
+  static const profileSupport = "/profileSupport";
 }

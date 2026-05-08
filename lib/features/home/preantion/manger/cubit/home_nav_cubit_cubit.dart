@@ -6,7 +6,7 @@ import 'package:alatarekak/features/auth/data/repo/auth_repo_im.dart';
 
 class HomeNavCubit extends Cubit<int> {
   final AuthRepoIm _authRepoIm;
-  HomeNavCubit(this._authRepoIm) : super(1);
+  HomeNavCubit(this._authRepoIm) : super(0);
 
   void changePage(int index) => emit(index);
 

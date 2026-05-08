@@ -68,3 +68,12 @@ final class SinginOtpTimerTick extends SinginState {
   @override
   List<Object> get props => [secondsLeft, canResend];
 }
+
+final class SinginResendOtpLoading extends SinginState {}
+
+final class SinginResendOtpError extends SinginState {
+  final String message;
+  const SinginResendOtpError(this.message);
+  @override
+  List<Object> get props => [message];
+}

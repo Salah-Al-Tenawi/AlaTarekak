@@ -11,7 +11,7 @@ class PushRideCubit extends Cubit<PushRideState> {
   PushRideCubit(this.tripCreateRepoIm) : super(PushRideInitial());
   final TripCreateRepoIm tripCreateRepoIm;
 
-  pushRide(TripFrom trip) async {
+  Future<void> pushRide(TripFrom trip) async {
     String? startLat = trip.startLat;
     String? startLng = trip.startLng;
     String? endLat = trip.endLat;

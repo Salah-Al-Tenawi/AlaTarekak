@@ -8,7 +8,7 @@ class LoginCubit extends Cubit<LoginState> {
   final AuthRepoIm authRepoIm;
   LoginCubit(this.authRepoIm) : super(LoginInitial());
 
-  login(String email, String password) async {
+  Future<void> login(String email, String password) async {
     emit(LoginLoading());
     final response = await authRepoIm.signInWithEmail(email, password);
     response.fold((error) {
@@ -34,12 +34,12 @@ class LoginCubit extends Cubit<LoginState> {
   //   });
   // }
 
-  emitgotoSingin() {
+  void emitgotoSingin() {
     emit(LoginNavigateToSignup());
     emit(LoginInitial());
   }
 
-  emitGotoForgetPassword() {
+  void emitGotoForgetPassword() {
     emit(LoginNavigationToForgetPassword());
     emit(LoginInitial());
   }

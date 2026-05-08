@@ -1,4 +1,3 @@
-import 'package:alatarekak/features/trip_booking/data/model/cancel_booking_model.dart';
 
 class HandelErorrMessage {
   static String login(String message) {

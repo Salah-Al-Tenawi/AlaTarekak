@@ -1,17 +1,12 @@
-import 'dart:io';
-import 'package:alatarekak/core/them/app_snack_bar.dart';
-import 'package:alatarekak/features/profiles/presantaion/view/widget/profile_state_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:alatarekak/core/constant/imagesUrl.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
-import 'package:alatarekak/features/profiles/data/model/enum/image_mode.dart';
 import 'package:alatarekak/features/profiles/data/model/enum/profile_mode.dart';
 import 'package:alatarekak/features/profiles/domain/entity/profile_entity.dart';
 import 'package:alatarekak/features/profiles/presantaion/manger/profile_cubit.dart';
@@ -22,11 +17,7 @@ class ProfileBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<ProfileCubit, ProfileState>(
-      listener: (context, state) {
-        if (state is ProfileErrorState) {
-          AppSnackBar.error("context, state.message");
-        }
-      },
+      listener: (context, state) {},
       builder: (context, state) {
         if (state is! ProfileLoadedState) {
           return const Scaffold(
@@ -35,47 +26,32 @@ class ProfileBody extends StatelessWidget {
         }
 
         final profile = state.profileEntity!;
-        final mode = state.mode;
-        final isMyProfile = mode != ProfileMode.otherView;
+        final isMyProfile = state.mode != ProfileMode.otherView;
 
         return Scaffold(
           backgroundColor: MyColors.background,
-          appBar: _buildAppBar(context, state, isMyProfile),
+          appBar: _buildAppBar(isMyProfile, profile),
           body: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               children: [
-
-                // ━━ Header Card ━━
-                // ProfileHeaderCard(
-                //   profile: profile,
-                //   state: state,
-                //   isMyProfile: isMyProfile,
-                // ),
+                // ━━ Header: صورة + اسم + شارة التوثيق ━━
+                _ProfileHeader(profile: profile),
 
                 SizedBox(height: 16.h),
 
-                // ━━ Rating ━━
-                _RatingCard(profile: profile),
-
-                SizedBox(height: 16.h),
-
-                // ━━ إحصائيات الرحلات والحجوزات ━━
-                if (isMyProfile)
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
-                    child: ProfileStatsSection(profile: profile),
-                  ),
+                // ━━ بطاقة التقييم ━━
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  child: _RatingCard(profile: profile),
+                ),
 
                 SizedBox(height: 16.h),
 
                 // ━━ قائمة الخيارات ━━
-                if (isMyProfile)
-                  _MenuSection(mode: mode)
-                else
-                  // _OtherProfileSection(profile: profile),
+                if (isMyProfile) _MenuSection(profile: profile),
 
-                SizedBox(height: 24.h),
+                SizedBox(height: 32.h),
               ],
             ),
           ),
@@ -84,11 +60,7 @@ class ProfileBody extends StatelessWidget {
     );
   }
 
-  AppBar _buildAppBar(
-    BuildContext context,
-    ProfileLoadedState state,
-    bool isMyProfile,
-  ) {
+  AppBar _buildAppBar(bool isMyProfile, ProfileEntity profile) {
     return AppBar(
       backgroundColor: MyColors.surface,
       elevation: 0,
@@ -100,42 +72,106 @@ class ProfileBody extends StatelessWidget {
         ),
         onPressed: () => Get.back(),
       ),
-      title: Text(
-        "الملف الشخصي",
-        style: AppTextStyles.titleMedium,
-      ),
+      title: Text("الملف الشخصي", style: AppTextStyles.titleMedium),
       centerTitle: true,
       actions: [
         if (isMyProfile)
-          _EditSaveButton(state: state),
+          TextButton(
+            onPressed: () => Get.toNamed(RouteName.profilePersonalInfo, arguments: profile),
+            child: Text(
+              "عدّل بياناتك",
+              style: AppTextStyles.labelMedium.copyWith(color: MyColors.accent),
+            ),
+          ),
       ],
     );
   }
 }
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━
-// AppBar Edit/Save Button
+// Profile Header
 // ━━━━━━━━━━━━━━━━━━━━━━━━
-class _EditSaveButton extends StatelessWidget {
-  final ProfileLoadedState state;
-  const _EditSaveButton({required this.state});
+class _ProfileHeader extends StatelessWidget {
+  final ProfileEntity profile;
+  const _ProfileHeader({required this.profile});
 
   @override
   Widget build(BuildContext context) {
-    if (state.mode == ProfileMode.myEdit) {
-      return TextButton(
-        onPressed: () => context.read<ProfileCubit>().saveMyProfile(),
-        child: Text(
-          "حفظ",
-          style: AppTextStyles.labelLarge.copyWith(color: MyColors.accent),
-        ),
-      );
-    }
-    return TextButton(
-      onPressed: () => context.read<ProfileCubit>().enterEditMode(),
-      child: Text("تعديل", style: AppTextStyles.labelLarge),
+    return Container(
+      width: double.infinity,
+      color: MyColors.surface,
+      padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 24.h),
+      child: Row(
+        children: [
+          // ━━ الاسم والعنوان ━━
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(profile.fullname, style: AppTextStyles.titleLarge),
+                SizedBox(height: 4.h),
+                if (profile.address.isNotEmpty)
+                  Text(
+                    profile.address,
+                    style: AppTextStyles.bodySmall
+                        .copyWith(color: MyColors.textSecondary),
+                  ),
+              ],
+            ),
+          ),
+
+          SizedBox(width: 16.w),
+
+          // ━━ الصورة مع شارة التوثيق ━━
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: MyColors.primary.withValues(alpha: 0.15),
+                    width: 3,
+                  ),
+                ),
+                child: CircleAvatar(
+                  radius: 38.r,
+                  backgroundColor: MyColors.background,
+                  backgroundImage: profile.profilePhoto != null
+                      ? NetworkImage(profile.profilePhoto!) as ImageProvider
+                      : const AssetImage(ImagesUrl.profileImage),
+                ),
+              ),
+              if (profile.verification == 'verified')
+                Positioned(
+                  bottom: 2,
+                  left: 0,
+                  child: Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                    decoration: BoxDecoration(
+                      color: MyColors.success,
+                      borderRadius: BorderRadius.circular(20),
+                      border:
+                          Border.all(color: MyColors.surface, width: 1.5),
+                    ),
+                    child: Text(
+                      "موثق",
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: Colors.white,
+                        fontSize: 9.sp,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 // Rating Card
 // ━━━━━━━━━━━━━━━━━━━━━━━━
@@ -146,7 +182,6 @@ class _RatingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.w),
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: MyColors.surface,
@@ -165,10 +200,7 @@ class _RatingCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "معدل المواطبة",
-                style: AppTextStyles.labelSmall,
-              ),
+              Text("معدل المواطبة", style: AppTextStyles.labelSmall),
               SizedBox(height: 4.h),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -182,10 +214,7 @@ class _RatingCard extends StatelessWidget {
                   ),
                   Padding(
                     padding: EdgeInsets.only(bottom: 6.h, right: 4.w),
-                    child: Text(
-                      "/ 5",
-                      style: AppTextStyles.bodySmall,
-                    ),
+                    child: Text("/ 5", style: AppTextStyles.bodySmall),
                   ),
                 ],
               ),
@@ -195,10 +224,7 @@ class _RatingCard extends StatelessWidget {
           const Spacer(),
 
           // ━━ Bar Chart ━━
-          _MiniBarChart(
-            totalRating: profile.totalRating,
-            average: profile.averageRating,
-          ),
+          _MiniBarChart(average: profile.averageRating),
         ],
       ),
     );
@@ -209,16 +235,12 @@ class _RatingCard extends StatelessWidget {
 // Mini Bar Chart
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 class _MiniBarChart extends StatelessWidget {
-  final int totalRating;
   final double average;
-
-  const _MiniBarChart({required this.totalRating, required this.average});
+  const _MiniBarChart({required this.average});
 
   @override
   Widget build(BuildContext context) {
-    // 5 أعمدة تمثل التقييمات 1-5
-    final bars = [0.3, 0.5, 0.4, 0.7, average / 5];
-
+    final bars = [0.3, 0.5, 0.4, 0.7, (average / 5).clamp(0.1, 1.0)];
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: List.generate(bars.length, (i) {
@@ -235,21 +257,24 @@ class _MiniBarChart extends StatelessWidget {
       }),
     );
   }
-}// ━━━━━━━━━━━━━━━━━━━━━━━━
-// Menu Section (myProfile)
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+// Menu Section
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 class _MenuSection extends StatelessWidget {
-  final ProfileMode mode;
-  const _MenuSection({required this.mode});
+  final ProfileEntity profile;
+  const _MenuSection({required this.profile});
 
   @override
   Widget build(BuildContext context) {
+    final isVerified = profile.verification == 'verified';
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       child: Column(
         children: [
-
-          // ━━ قائمة الخيارات ━━
+          // ━━ بطاقة القائمة ━━
           Container(
             decoration: BoxDecoration(
               color: MyColors.surface,
@@ -267,32 +292,33 @@ class _MenuSection extends StatelessWidget {
                 _MenuItem(
                   icon: Icons.person_outline_rounded,
                   label: "المعلومات الشخصية",
-                  onTap: () => Get.toNamed(RouteName.login),
+                  onTap: () => Get.toNamed(RouteName.profilePersonalInfo, arguments: profile),
                 ),
                 _divider(),
                 _MenuItem(
                   icon: Icons.directions_car_outlined,
                   label: "مركباتي",
-                  onTap: () => Get.toNamed(RouteName.login),
+                  onTap: () => Get.toNamed(RouteName.profileMyCars),
                 ),
                 _divider(),
                 _MenuItem(
                   icon: Icons.verified_outlined,
                   label: "توثيق السائق",
-                  badge: "مكتمل",
-                  onTap: () => Get.toNamed(RouteName.login),
+                  badge: isVerified ? "مكتمل" : null,
+                  onTap: () =>
+                      Get.toNamed(RouteName.profileDriverVerification),
                 ),
                 _divider(),
                 _MenuItem(
                   icon: Icons.settings_outlined,
                   label: "الإعدادات",
-                  onTap: () => Get.toNamed(RouteName.login),
+                  onTap: () => Get.toNamed(RouteName.profileSettings),
                 ),
                 _divider(),
                 _MenuItem(
                   icon: Icons.support_agent_outlined,
                   label: "الدعم الفني",
-                  onTap: () => Get.toNamed(RouteName.login),
+                  onTap: () => Get.toNamed(RouteName.profileSupport),
                 ),
               ],
             ),
@@ -301,37 +327,7 @@ class _MenuSection extends StatelessWidget {
           SizedBox(height: 16.h),
 
           // ━━ زر تسجيل الخروج ━━
-          GestureDetector(
-            onTap: () {
-              // TODO: context.read<AuthCubit>().logout()
-            },
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(vertical: 14.h),
-              decoration: BoxDecoration(
-                color: MyColors.errorLight,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.logout_rounded,
-                    color: MyColors.error,
-                    size: 20,
-                  ),
-                  SizedBox(width: 8.w),
-                  Text(
-                    "تسجيل الخروج",
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: MyColors.error,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          _LogoutButton(),
         ],
       ),
     );
@@ -370,7 +366,6 @@ class _MenuItem extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
         child: Row(
           children: [
-
             // ━━ سهم ━━
             const Icon(
               Icons.arrow_back_ios_rounded,
@@ -383,19 +378,16 @@ class _MenuItem extends StatelessWidget {
             // ━━ badge ━━
             if (badge != null) ...[
               Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 8.w,
-                  vertical: 2.h,
-                ),
+                padding:
+                    EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
                 decoration: BoxDecoration(
                   color: MyColors.accentLight,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   badge!,
-                  style: AppTextStyles.labelSmall.copyWith(
-                    color: MyColors.accent,
-                  ),
+                  style: AppTextStyles.labelSmall
+                      .copyWith(color: MyColors.accent),
                 ),
               ),
               SizedBox(width: 8.w),
@@ -415,6 +407,46 @@ class _MenuItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icon, color: MyColors.primary, size: 20),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+// Logout Button
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+class _LogoutButton extends StatelessWidget {
+  const _LogoutButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        // TODO: clear session + navigate to login
+        // HiveService.clearAll();
+        // Get.offAllNamed(RouteName.login);
+      },
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: 14.h),
+        decoration: BoxDecoration(
+          color: MyColors.errorLight,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.logout_rounded, color: MyColors.error, size: 20),
+            SizedBox(width: 8.w),
+            Text(
+              "تسجيل الخروج",
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: MyColors.error,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),

@@ -7,6 +7,16 @@ abstract class PickLocationState extends Equatable {
   List<Object?> get props => [];
 }
 
+class PickLocationSearchLoading extends PickLocationState {}
+
+class PickLocationSearchResults extends PickLocationState {
+  final List<PlaceSuggestion> results;
+  const PickLocationSearchResults(this.results);
+
+  @override
+  List<Object?> get props => [results];
+}
+
 class PickLocationInitial extends PickLocationState {}
 
 class PickLocationLoading extends PickLocationState {

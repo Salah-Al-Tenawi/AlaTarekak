@@ -85,7 +85,8 @@ class AuthRepoIm extends AuthRepo {
 
   }
 
-Future<Either<Filuar,Unit>> refreshToken(String token)async{ 
+@override
+  Future<Either<Filuar,Unit>> refreshToken(String token)async{ 
   try{ 
  await authRemoteDataSource.refreshToken(token);
 return right(unit);
@@ -99,6 +100,16 @@ return right(unit);
   Future<Either<Filuar, Unit>> verifyForgetPasswordOtp(String email, String otp) {
     // TODO: implement verifyForgetPasswordOtp
     throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Filuar, Unit>> resendOtpSinging(String email) async {
+    try {
+      await authRemoteDataSource.resendOtpSinging(email);
+      return right(unit);
+    } on ServerExpcptions catch (e) {
+      return left(e.error);
+    }
   }
 
 

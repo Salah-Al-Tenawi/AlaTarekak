@@ -1,7 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:alatarekak/core/errors/excptions.dart';
 import 'package:alatarekak/core/errors/filuar.dart';
-import 'package:alatarekak/features/trip_booking/data/model/booking_me_model.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_search/data/data%20source/search_remote_data_source.dart';
 

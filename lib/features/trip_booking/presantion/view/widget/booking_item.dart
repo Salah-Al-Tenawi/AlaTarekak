@@ -423,8 +423,8 @@ class _BookingItemState extends State<BookingItem> {
                   ),
                   elevation: 4,
                 ).copyWith(
-                  backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                    (states) => states.contains(MaterialState.pressed)
+                  backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                    (states) => states.contains(WidgetState.pressed)
                         ? Colors.red
                         : Colors.red,
                   ),
@@ -461,8 +461,8 @@ class _BookingItemState extends State<BookingItem> {
                   ),
                   elevation: 4,
                 ).copyWith(
-                  backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                    (states) => states.contains(MaterialState.pressed)
+                  backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                    (states) => states.contains(WidgetState.pressed)
                         ? MyColors.accent.withOpacity(0.8)
                         : MyColors.accent,
                   ),
@@ -541,8 +541,8 @@ class _BookingItemState extends State<BookingItem> {
                           elevation: 4,
                         ).copyWith(
                           backgroundColor:
-                              MaterialStateProperty.resolveWith<Color>(
-                            (states) => states.contains(MaterialState.pressed)
+                              WidgetStateProperty.resolveWith<Color>(
+                            (states) => states.contains(WidgetState.pressed)
                                 ? MyColors.primary.withOpacity(0.8)
                                 : MyColors.primary,
                           ),
@@ -581,8 +581,8 @@ class _BookingItemState extends State<BookingItem> {
                       ),
                       elevation: 4,
                     ).copyWith(
-                      backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                        (states) => states.contains(MaterialState.pressed)
+                      backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                        (states) => states.contains(WidgetState.pressed)
                             ? MyColors.accent.withOpacity(0.8)
                             : MyColors.accent,
                       ),
@@ -916,7 +916,7 @@ class _BookingItemState extends State<BookingItem> {
       elevation: 0,
       shadowColor: Colors.transparent,
     ).copyWith(
-      overlayColor: MaterialStateProperty.all(Colors.amber.withOpacity(0.3)),
+      overlayColor: WidgetStateProperty.all(Colors.amber.withOpacity(0.3)),
     );
 
     return Padding(

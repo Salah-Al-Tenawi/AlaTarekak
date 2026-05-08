@@ -17,7 +17,7 @@ class DropDownAndGenderSing extends StatelessWidget {
           children: [
             /// المحافظة
             DropdownButtonFormField<String>(
-              value: (cubit.address == null || cubit.address!.isEmpty)
+              initialValue: (cubit.address == null || cubit.address!.isEmpty)
     ? null
     : cubit.address,
               decoration: InputDecoration(

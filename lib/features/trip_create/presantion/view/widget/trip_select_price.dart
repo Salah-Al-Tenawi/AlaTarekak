@@ -19,7 +19,7 @@ class TripSelectPrice extends StatefulWidget {
 }
 
 class _TripSelectPriceState extends State<TripSelectPrice> {
-  incremant(int priceRecomanded) {
+  void incremant(int priceRecomanded) {
     if (priceRecomanded > 40000) {
       if (priceRecomanded < 60000) {
         priceRecomanded += 5000;
@@ -36,7 +36,7 @@ class _TripSelectPriceState extends State<TripSelectPrice> {
     });
   }
 
-  decremant(int priceRecomanded) {
+  void decremant(int priceRecomanded) {
     int counter = 0;
     if (priceRecomanded > 40000 && counter < 3) {
       priceRecomanded -= 10000;

@@ -19,12 +19,17 @@ class BookingUserINTrip extends StatefulWidget {
 }
 
 class _BookingUserINTripState extends State<BookingUserINTrip> {
-  late List<BookingModel> usersBooking;
+  List<BookingModel> usersBooking = [];
 
   @override
   void initState() {
-    usersBooking = Get.arguments as List<BookingModel>;
     super.initState();
+    final args = Get.arguments;
+    if (args is List<BookingModel>) {
+      usersBooking = args;
+    }
+    // إذا لم تُمرَّر arguments (مثلاً عند فتحه من الـ home tab)
+    // يبقى usersBooking قائمة فارغة حتى تُربط بـ API لاحقاً
   }
 
   // 🔹 الصفحة الكاملة

@@ -1,9 +1,7 @@
-import 'dart:io';
 
 import 'package:dartz/dartz.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:alatarekak/core/errors/filuar.dart';
-import 'package:alatarekak/features/profiles/data/model/comment_model.dart';
 import 'package:alatarekak/features/profiles/data/model/rating_modle.dart';
 import 'package:alatarekak/features/profiles/domain/entity/comment_entity.dart';
 import 'package:alatarekak/features/profiles/domain/entity/profile_entity.dart';

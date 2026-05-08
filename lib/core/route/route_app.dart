@@ -1,7 +1,4 @@
-import 'package:alatarekak/features/auth/presentation/view/reset_password.dart';
-import 'package:alatarekak/features/auth/presentation/view/verfiy_email_Singin.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
 
 import 'package:alatarekak/core/api/dio_consumer.dart';
@@ -49,7 +46,13 @@ import 'package:alatarekak/features/home/preantion/view/home.dart';
 import 'package:alatarekak/features/maps/presantion/view/push_ride_map.dart';
 import 'package:alatarekak/features/profiles/data/repo/profile_repo_im.dart';
 import 'package:alatarekak/features/profiles/presantaion/manger/profile_cubit.dart';
+import 'package:alatarekak/features/profiles/presantaion/manger/my_cars_cubit/my_cars_cubit.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/profile.dart';
+import 'package:alatarekak/features/profiles/presantaion/view/profile_personal_info.dart';
+import 'package:alatarekak/features/profiles/presantaion/view/profile_my_cars.dart';
+import 'package:alatarekak/features/profiles/presantaion/view/profile_driver_verification.dart';
+import 'package:alatarekak/features/profiles/presantaion/view/profile_settings.dart';
+import 'package:alatarekak/features/profiles/presantaion/view/profile_support.dart';
 import 'package:alatarekak/features/splash_view/presentaion/view/splash_view.dart';
 import 'package:alatarekak/features/trip_booking/data/data%20source/booking_remote_data_source.dart';
 import 'package:alatarekak/features/trip_booking/data/repo/booking_me_repo.dart';
@@ -87,7 +90,7 @@ List<GetPage<dynamic>> appRoute = [
   GetPage(
     name: RouteName.splashView,
     page: () => BlocProvider(
-      create: (context) => SplashCubit(),
+      create: (context) => SplashCubit(getit.get<AuthRepoIm>()),
       child: const SplashScreen(),
     ),
   ),
@@ -287,13 +290,43 @@ List<GetPage<dynamic>> appRoute = [
                   TripMeRemoteDataSource(api: getit.get<DioConSumer>()))),
         ),
         BlocProvider(
-          create: (_) => BookingMeCubit(BookingMeRepo(
-              remoteDataSource:
-                  BookingRemoteDataSource(api: getit.get<DioConSumer>()))),
+          create: (_) => BookingUserInTripCubit(BookingUsersInTripRepoImp(
+              remoteData:
+                  BookingUserTripRemoteData(api: getit.get<DioConSumer>()))),
+        ),
+        BlocProvider(
+          create: (_) => ProfileCubit(ProfileRepoIm(
+              profileRemoteDateSourceIm:
+                  ProfileRemoteDateSourceIm(api: getit.get<DioConSumer>()))),
         ),
       ],
       child: const Home(),
     ),
+  ),
+
+  // profile sub-screens
+  GetPage(
+    name: RouteName.profilePersonalInfo,
+    page: () => const ProfilePersonalInfoScreen(),
+  ),
+  GetPage(
+    name: RouteName.profileMyCars,
+    page: () => BlocProvider(
+      create: (_) => MyCarsScreenCubit(),
+      child: const ProfileMyCarsScreen(),
+    ),
+  ),
+  GetPage(
+    name: RouteName.profileDriverVerification,
+    page: () => const ProfileDriverVerificationScreen(),
+  ),
+  GetPage(
+    name: RouteName.profileSettings,
+    page: () => const ProfileSettingsScreen(),
+  ),
+  GetPage(
+    name: RouteName.profileSupport,
+    page: () => const ProfileSupportScreen(),
   ),
 
   // policy

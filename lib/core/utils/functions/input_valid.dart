@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 
-inputvaild(String val, String? type, int? max, int? min) {
+String? inputvaild(String val, String? type, int? max, int? min) {
   if (val.isEmpty) {
     return "لا يمكن ترك الحقل فارغ";
   }

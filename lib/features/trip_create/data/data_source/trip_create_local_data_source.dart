@@ -1,3 +1,3 @@
 class TripCreateLocalDataSource { 
-featchMytrips(){}
+void featchMytrips(){}
 }

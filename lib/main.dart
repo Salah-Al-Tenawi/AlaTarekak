@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:alatarekak/core/route/route_app.dart';
@@ -27,13 +28,22 @@ class MyApp extends StatelessWidget {
       minTextAdapt: true,
       child: GetMaterialApp(
         title: "state mangment with cubit and navigation by getx",
-      initialRoute: RouteName.profile,
+      initialRoute: RouteName.splashView,
       
         getPages: appRoute,
         theme: ThemApp.lightThem,
-        
         debugShowCheckedModeBanner: false,
         textDirection: TextDirection.rtl,
+        locale: const Locale('ar'),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('ar'),
+          Locale('en'),
+        ],
       ),
     );  
   }

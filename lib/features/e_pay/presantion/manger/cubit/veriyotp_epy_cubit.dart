@@ -9,7 +9,7 @@ class VeriyotpEpyCubit extends Cubit<VeriyotpEpyState> {
   final EPayRepoIm _repo;
   VeriyotpEpyCubit(this._repo) : super(VeriyotpEpyInitial());
 
-  initialWallet(String numberPhone, String password) async {
+  Future<void> initialWallet(String numberPhone, String password) async {
     emit(VeriyotpEpyLoading());
     final response = await _repo.initWallet(numberPhone, password);
     response.fold((erorr) {
@@ -20,7 +20,7 @@ class VeriyotpEpyCubit extends Cubit<VeriyotpEpyState> {
   }
 
 
-  createWallet(String numberPhone, String otpCode)async{ 
+  Future<void> createWallet(String numberPhone, String otpCode)async{ 
     emit(VeriyotpEpyLoading());
     final response = await _repo.createWallet(numberPhone, otpCode);
     response.fold((erorr) {

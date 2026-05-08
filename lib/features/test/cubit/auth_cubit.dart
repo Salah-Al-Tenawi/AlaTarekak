@@ -6,7 +6,7 @@ part 'auth_state.dart';
 class AuthCubit extends Cubit<AuthState> {
   AuthCubit() : super(const AuthInitial(false));
 
-  click() {
+  void click() {
     emit(const LodaingState(true));
   }
 }

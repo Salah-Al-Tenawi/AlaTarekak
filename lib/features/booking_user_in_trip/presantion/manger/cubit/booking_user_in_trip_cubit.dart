@@ -10,7 +10,7 @@ class BookingUserInTripCubit extends Cubit<BookingUserInTripState> {
 
   BookingUserInTripCubit(this.repo) : super(BookingUserInTripInitial());
 
-  acceptPassanger(int bookingId) async {
+  Future<void> acceptPassanger(int bookingId) async {
     emit(BookingUserInTripLoading());
     await Future.delayed(const Duration(seconds: 2));
 
@@ -26,7 +26,7 @@ class BookingUserInTripCubit extends Cubit<BookingUserInTripState> {
     );
   }
 
-  rejectPassanger(int bookingId) async {
+  Future<void> rejectPassanger(int bookingId) async {
     emit(BookingUserInTripLoading());
     await Future.delayed(const Duration(seconds: 2));
 

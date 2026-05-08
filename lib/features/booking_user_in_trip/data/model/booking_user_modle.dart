@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:alatarekak/core/api/api_end_points.dart';
 
 class BookingUserModle {

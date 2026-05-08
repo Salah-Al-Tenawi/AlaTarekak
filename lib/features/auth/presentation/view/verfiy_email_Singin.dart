@@ -1,5 +1,6 @@
 
 import 'package:alatarekak/core/them/app_snack_bar.dart';
+import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -23,159 +24,265 @@ class _VerfiyEmailSinginState extends State<VerfiyEmailSingin> {
   void initState() {
     super.initState();
     email = Get.arguments as String;
-    
-    
     context.read<SinginCubit>().startOtpTimer();
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return BlocConsumer<SinginCubit, SinginState>(
-     listener: (context, state) {
-  if (state is SinginSuccess) {
-    AppSnackBar.success("تم انشاء الحساب");
-   final isnew= true ;
-    Get.offAllNamed(RouteName.home , arguments: isnew);
-    
-  }
-  if (state is SinginErorre) {
-    AppSnackBar.error("خطأ ");
-  }
-},
+      listener: (context, state) {
+        if (state is SinginSuccess) {
+          AppSnackBar.success("تم إنشاء الحساب بنجاح");
+          Get.offAllNamed(RouteName.home, arguments: true);
+        }
+        if (state is SinginErorre) {
+          AppSnackBar.error(state.message);
+        }
+        if (state is SinginResendOtpError) {
+          AppSnackBar.error(state.message);
+        }
+      },
       builder: (context, state) {
         final secondsLeft =
             state is SinginOtpTimerTick ? state.secondsLeft : 60;
         final canResend =
             state is SinginOtpTimerTick ? state.canResend : false;
         final isLoading = state is SinginLoading;
-        final otpComplete =
-            state is SinginOtpChanged ? state.otp.length == 6 : false;
+        final isResendLoading = state is SinginResendOtpLoading;
 
         return Scaffold(
-          
-          body: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.w),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // ━━ أيقونة البريد ━━
-                Container(
-                  width: 72.w,
-                  height: 72.w,
-                  decoration: const BoxDecoration(
-                    color: MyColors.accentLight,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.mark_email_unread_outlined,
-                    color: MyColors.accent,
-                    size: 32,
+          resizeToAvoidBottomInset: true,
+          body: Column(
+            children: [
+              // ━━ Header gradient ━━
+              Container(
+                height: screenHeight * 0.38,
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [MyColors.navy, MyColors.primary, MyColors.blue],
                   ),
                 ),
-
-                SizedBox(height: 20.h),
-
-                Text(
-                  "تحقق من بريدك",
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-
-                SizedBox(height: 8.h),
-
-                Text(
-                  "لقد أرسلنا رمز التحقق إلى",
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: MyColors.textSecondary,
-                      ),
-                ),
-
-                SizedBox(height: 4.h),
-
-                Text(
-                  email,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: MyColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-
-                SizedBox(height: 32.h),
-
-                // ━━ OTP ━━
-                OtpTextform(
-                  onCompleted: (otp) {
-                    context.read<SinginCubit>().onOtpChanged(otp);
-                  },
-                  onChanged: (otp) {
-                    context.read<SinginCubit>().onOtpChanged(otp);
-                  },
-                ),
-
-                SizedBox(height: 32.h),
-
-                // ━━ زر التحقق ━━
-                SizedBox(
-                  width: double.infinity,
-                  height: 52.h,
-                  child: ElevatedButton(
-                   onPressed: isLoading
-    ? null
-    : () => context.read<SinginCubit>().checkOtp(email),
-                    child: isLoading
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text("تحقق"),
-                  ),
-                ),
-
-                SizedBox(height: 20.h),
-
-                // ━━ إعادة الإرسال ━━
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "لم تستلم الرمز؟ ",
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: MyColors.textSecondary,
+                child: SafeArea(
+                  bottom: false,
+                  child: Column(
+                    children: [
+                      // ━━ زر الرجوع ━━
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 8.w, vertical: 4.h),
+                          child: IconButton(
+                            icon: const Icon(Icons.arrow_forward_ios_rounded,
+                                color: Colors.white, size: 20),
+                            onPressed: () => Get.back(),
                           ),
-                    ),
-                    GestureDetector(
-                      onTap: canResend
-                          ? () =>
-                              context.read<SinginCubit>().sendOtpAgain()
-                          : null,
-                      child: Text(
-                        "إعادة الإرسال",
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: canResend
-                                  ? MyColors.accent
-                                  : MyColors.textHint,
-                              fontWeight: FontWeight.w600,
-                            ),
+                        ),
                       ),
-                    ),
-                    if (!canResend) ...[
-                      SizedBox(width: 4.w),
+
+                      const Spacer(),
+
+                      Container(
+                        width: 68.w,
+                        height: 68.w,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(alpha: 0.15),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            width: 2,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.mark_email_unread_outlined,
+                          color: Colors.white,
+                          size: 30,
+                        ),
+                      ),
+
+                      SizedBox(height: 16.h),
+
                       Text(
-                        "${secondsLeft}s",
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: MyColors.textHint,
-                            ),
+                        'تحقق من بريدك',
+                        style: TextStyle(
+                          fontSize: 22.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+
+                      SizedBox(height: 6.h),
+
+                      Text(
+                        'أرسلنا رمز التحقق إلى',
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: Colors.white.withValues(alpha: 0.7),
+                        ),
+                      ),
+
+                      SizedBox(height: 4.h),
+
+                      Text(
+                        email,
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: MyColors.accent,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+
+                      SizedBox(height: 28.h),
+                    ],
+                  ),
+                ),
+              ),
+
+              // ━━ البطاقة البيضاء ━━
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: MyColors.surface,
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(32.r)),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 16,
+                        offset: Offset(0, -4),
                       ),
                     ],
-                  ],
+                  ),
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(
+                      24.w,
+                      32.h,
+                      24.w,
+                      MediaQuery.of(context).viewInsets.bottom + 24.h,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('رمز التحقق', style: AppTextStyles.titleLarge),
+                        SizedBox(height: 4.h),
+                        Text(
+                          'أدخل الرمز المكون من 6 أرقام',
+                          style: AppTextStyles.bodySmall
+                              .copyWith(color: MyColors.textSecondary),
+                        ),
+
+                        SizedBox(height: 28.h),
+
+                        // ━━ OTP ━━
+                        OtpTextform(
+                          onCompleted: (otp) =>
+                              context.read<SinginCubit>().onOtpChanged(otp),
+                          onChanged: (otp) =>
+                              context.read<SinginCubit>().onOtpChanged(otp),
+                        ),
+
+                        SizedBox(height: 28.h),
+
+                        // ━━ زر التحقق ━━
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52.h,
+                          child: ElevatedButton(
+                            onPressed: isLoading
+                                ? null
+                                : () =>
+                                    context.read<SinginCubit>().checkOtp(email),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: MyColors.accent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14.r),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: isLoading
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text('تحقق من الرمز',
+                                    style: AppTextStyles.buttonLarge),
+                          ),
+                        ),
+
+                        SizedBox(height: 20.h),
+
+                        // ━━ إعادة الإرسال ━━
+                        Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'لم تستلم الرمز؟ ',
+                                style: AppTextStyles.bodySmall
+                                    .copyWith(color: MyColors.textSecondary),
+                              ),
+                              if (isResendLoading)
+                                const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: MyColors.accent,
+                                  ),
+                                )
+                              else
+                                GestureDetector(
+                                  onTap: canResend
+                                      ? () => context
+                                          .read<SinginCubit>()
+                                          .sendOtpAgain(email)
+                                      : null,
+                                  child: Text(
+                                    'إعادة الإرسال',
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      color: canResend
+                                          ? MyColors.accent
+                                          : MyColors.textHint,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              if (!canResend && !isResendLoading) ...[
+                                SizedBox(width: 6.w),
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 8.w, vertical: 2.h),
+                                  decoration: BoxDecoration(
+                                    color: MyColors.background,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    '$secondsLeft ث',
+                                    style: AppTextStyles.labelSmall.copyWith(
+                                      color: MyColors.primary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },

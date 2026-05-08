@@ -21,6 +21,7 @@ abstract class AuthRemoteDataSource {
   Future<Unit> forgotPassword(String email);
   Future<Unit>resetPassword(ResetPasswordParams params);
   Future<UserModel>verifySinginOtp(String email , String otp);
+  Future<Unit> resendOtpSinging(String email);
   Future<UserModel>verifyResetPasswordOtp(String email , String otp);
   
   Future<Unit> refreshToken(String token);
@@ -123,6 +124,14 @@ Future<Unit> refreshToken(String token) async {
   Future<UserModel> verifyResetPasswordOtp(String email, String otp) {
     // TODO: implement verifyResetPasswordOtp
     throw UnimplementedError();
+  }
+  
+  @override
+  Future<Unit> resendOtpSinging(String email)async {
+    final response = await api.post(ApiEndPoint.resendOtp ,data: { 
+      ApiKey.email:email
+    });
+    return unit;
   }
 
 

@@ -9,7 +9,7 @@ class SearchCubit extends Cubit<SearchState> {
   final SearchRepoIm repoIm;
   SearchCubit(this.repoIm) : super(SearchInitial());
 
-  search(String sourcelat, String sourcelng, String destlat, String destlng,
+  Future<void> search(String sourcelat, String sourcelng, String destlat, String destlng,
       String departureDate, int seatsRequired) async {
     emit(SearchLoading());
     final response = await repoIm.search(

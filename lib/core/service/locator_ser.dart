@@ -9,7 +9,7 @@ import 'package:alatarekak/features/trip_me/presantion/manger/cubit/trip_me_cubi
 
 final getit = GetIt.instance;
 
-locatorService() {
+void locatorService() {
   getit.registerSingleton<DioConSumer>(DioConSumer());
   getit.registerSingleton<AuthRemoteDataSourceIM>(
       AuthRemoteDataSourceIM(api: getit.get<DioConSumer>()));

@@ -6,7 +6,6 @@ import 'package:alatarekak/features/profiles/data/model/enum/profile_mode.dart';
 import 'package:alatarekak/core/utils/functions/input_valid.dart';
 import 'package:alatarekak/core/utils/widgets/custom_text_form.dart';
 import 'package:alatarekak/core/utils/widgets/cutom_list_tile.dart';
-import 'package:alatarekak/features/profiles/domain/entity/profile_entity.dart';
 
 // ignore: must_be_immutable
 class ProfileHintline extends StatelessWidget {

@@ -1,11 +1,7 @@
-// ━━━━━━━━━━━━━━━━━━━━━━━━
-// onboarding_page_widget.dart
-// ━━━━━━━━━━━━━━━━━━━━━━━━
-import 'package:alatarekak/core/them/text_style_app.dart';
-import 'package:alatarekak/features/onboarding/data/onboarding_data.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:alatarekak/core/them/my_colors.dart';
+import 'package:alatarekak/features/onboarding/data/onboarding_data.dart';
 
 class OnboardingPageWidget extends StatelessWidget {
   final OnboardingPage page;
@@ -14,35 +10,19 @@ class OnboardingPageWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 32.w),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-
-         Image.asset(
-              page.imagePath,
-              fit: BoxFit.contain,
-            ),
-
-          SizedBox(height: 48.h),
-
-          // ━━ العنوان ━━
-          Text(
-            page.title,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.displayMedium
-          ),
-
-          SizedBox(height: 16.h),
-
-          // ━━ الوصف ━━
-          Text(
-            page.description,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.bodyLarge
-          ),
-        ],
+      padding: EdgeInsets.symmetric(horizontal: 24.w),
+      child: Image.asset(
+        page.imagePath,
+        fit: BoxFit.contain,
       ),
-    );
+    )
+        .animate()
+        .fadeIn(duration: 400.ms)
+        .scale(
+          begin: const Offset(0.88, 0.88),
+          end: const Offset(1, 1),
+          duration: 450.ms,
+          curve: Curves.easeOut,
+        );
   }
 }

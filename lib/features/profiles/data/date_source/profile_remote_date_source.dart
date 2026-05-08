@@ -1,7 +1,5 @@
-import 'dart:io';
 
 import 'package:image_picker/image_picker.dart';
-import 'package:alatarekak/core/api/api_consumer.dart';
 import 'package:alatarekak/core/api/api_end_points.dart';
 import 'package:alatarekak/core/api/dio_consumer.dart';
 import 'package:alatarekak/core/utils/functions/get_token.dart';
