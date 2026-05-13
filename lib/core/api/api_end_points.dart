@@ -1,5 +1,6 @@
 class ApiEndPoint {
-  static const baserUrl = "http://192.168.247.1:8000/api";
+  static const baserUrl = "http://192.168.1.111:8000/api";
+  static const broadcastAuth = "http://192.168.1.111:8000/broadcasting/auth";
   static const baseUrlGoogle ="http://192.168.43.81:8000";
 
   static const mapsOpenRouteServices =
@@ -10,9 +11,10 @@ class ApiEndPoint {
 
   static const login = "$baserUrl/auth/login";
   static const singin = "$baserUrl/auth/signup";
-  static const logout = "$baserUrl/auth/logout";
-  static const forgetPassword = "$baserUrl/forgot-password";
-  static const resetPassword = "$baserUrl/reset-password";
+  static const logout = "$baserUrl/logout";
+  static const forgetPassword = "$baserUrl/auth/password/forgot";
+  static const verfiyOtpforgetPassword = "$baserUrl/auth/password/verify-otp";
+  static const resetPassword = "$baserUrl/auth/password/reset";
   static const profile = "$baserUrl/profile";
 
   static const verifypassenger = "$profile/verify/passenger";
@@ -43,10 +45,12 @@ static const createwallet = "$baserUrl/wallet/verify-and-create";
 // chat 
 
    static const chat = "$baserUrl/chat";
-   static const startconversation = "$chat/conversations";
-    static const getallconversations = "$chat/conversations";
+   static const conversation = "$chat/conversations";
+
  static const message = "$chat/conversations";
  static const deletmessage = "$chat/messages";
+ static const markMessageRead = "$chat/messages"; // POST $markMessageRead/{id}/read
+ static const conversationUnreadCount = "$chat/conversations"; // GET $conversationUnreadCount/{id}/unread-count
 
 
 
@@ -58,6 +62,7 @@ class ApiKey {
   static const data = "data";
   static const success = "success";
   static const message = "message";
+  static const resetToken = "reset_token";
 
   static const error = "error";
   static const token = "access_token";

@@ -5,30 +5,35 @@ abstract class AuthLocalDataSource {
   UserModel? fetchUser();
   String? fetchAccessToken();
   String? fetchRefreshToken();
+  Future<void> saveUser(UserModel user);
+  Future<void> updateTokens(String accessToken, String refreshToken);
   Future<void> clearAll();
 }
 
 class AuthLocalDataSourceIm extends AuthLocalDataSource {
   @override
-  UserModel? fetchUser() {
-    final user = HiveBoxes.authBox.get(HiveKeys.user);
-    return user;
+  UserModel? fetchUser() => HiveBoxes.authBox.get(HiveKeys.user);
+
+  @override
+  String? fetchAccessToken() => fetchUser()?.accessToken;
+
+  @override
+  String? fetchRefreshToken() => fetchUser()?.refreshToken;
+
+  @override
+  Future<void> saveUser(UserModel user) =>
+      HiveBoxes.authBox.put(HiveKeys.user, user);
+
+  @override
+  Future<void> updateTokens(String accessToken, String refreshToken) async {
+    final user = fetchUser();
+    if (user == null) return;
+    await HiveBoxes.authBox.put(
+      HiveKeys.user,
+      user.copyWith(accessToken: accessToken, refreshToken: refreshToken),
+    );
   }
 
   @override
-  String? fetchAccessToken() {
-    final user = HiveBoxes.authBox.get(HiveKeys.user);
-    return user?.accessToken;
-  }
-
-  @override
-  String? fetchRefreshToken() {
-    final user = HiveBoxes.authBox.get(HiveKeys.user);
-    return user?.refreshToken;
-  }
-
-  @override
-  Future<void> clearAll() async {
-    await HiveBoxes.authBox.clear();
-  }
+  Future<void> clearAll() => HiveBoxes.authBox.clear();
 }

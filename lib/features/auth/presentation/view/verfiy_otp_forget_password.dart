@@ -20,12 +20,13 @@ class VerifyOtpForgetPassword extends StatelessWidget {
     return BlocConsumer<ForgetPasswordCubit, ForgetPasswordState>(
       listener: (context, state) {
         if (state is ForgetPasswordOtpVerified) {
-          Get.to(
-            () => BlocProvider.value(
-              value: context.read<ForgetPasswordCubit>(),
-              child: ResetPasswordScreen(
-                email: state.email,
-                otp: state.otp,
+          final cubit = context.read<ForgetPasswordCubit>();
+          final token = state.resetToken;
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => BlocProvider.value(
+                value: cubit,
+                child: ResetPasswordScreen(resetToken: token),
               ),
             ),
           );
@@ -42,9 +43,8 @@ class VerifyOtpForgetPassword extends StatelessWidget {
             ? state.canResend
             : false;
         final isLoading = state is ForgetPasswordLoading;
-        final otpComplete = state is ForgetPasswordOtpChanged
-            ? state.otp.length == 6
-            : false;
+        final otpComplete =
+            context.read<ForgetPasswordCubit>().isOtpComplete;
 
         return Scaffold(
           resizeToAvoidBottomInset: true,

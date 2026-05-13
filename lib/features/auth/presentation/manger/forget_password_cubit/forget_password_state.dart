@@ -49,10 +49,10 @@ final class ForgetPasswordOtpTimerTick extends ForgetPasswordState {
 
 final class ForgetPasswordOtpVerified extends ForgetPasswordState {
   final String email;
-  final String otp;
-  const ForgetPasswordOtpVerified({required this.email, required this.otp});
+  final String resetToken;
+  const ForgetPasswordOtpVerified({required this.email, required this.resetToken});
   @override
-  List<Object> get props => [email, otp];
+  List<Object> get props => [email, resetToken];
 }
 
 // ━━ إعادة تعيين كلمة المرور ━━

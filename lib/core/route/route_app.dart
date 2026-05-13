@@ -1,5 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get/get_navigation/get_navigation.dart';
+import 'package:get/get.dart';
+import 'package:alatarekak/features/chat/data/data_source/chat_remote_data_source.dart';
+import 'package:alatarekak/features/chat/data/repo/chat_repo_impl.dart';
+import 'package:alatarekak/features/chat/presentation/manager/conversation_cubit/conversation_cubit.dart';
+import 'package:alatarekak/features/chat/presentation/manager/message_cubit/message_cubit.dart';
+import 'package:alatarekak/features/chat/presentation/view/chat_api_test_screen.dart';
+import 'package:alatarekak/features/chat/presentation/view/chat_list_screen.dart';
+import 'package:alatarekak/features/chat/presentation/view/chat_screen.dart';
 
 import 'package:alatarekak/core/api/dio_consumer.dart';
 import 'package:alatarekak/core/route/route_name.dart';
@@ -299,6 +306,14 @@ List<GetPage<dynamic>> appRoute = [
               profileRemoteDateSourceIm:
                   ProfileRemoteDateSourceIm(api: getit.get<DioConSumer>()))),
         ),
+        BlocProvider(
+          create: (_) => ConversationCubit(
+            chatRepo: ChatRepoImpl(
+              remoteDataSource:
+                  ChatRemoteDataSourceImpl(api: getit.get<DioConSumer>()),
+            ),
+          )..loadConversations(),
+        ),
       ],
       child: const Home(),
     ),
@@ -341,26 +356,40 @@ List<GetPage<dynamic>> appRoute = [
             child: const VerifyOtpEPay(),
           )),
 
-  // GetPage(
-  //   name: RouteName.chatListScreen,
-  //   page: () => BlocProvider(
-  //     create: (context) => ConversationCubit(getit<ChatRepo>()),
-  //     child: ChatListScreen(),
-  //   ),
-  // ),
+  // chat
+  GetPage(
+    name: RouteName.chatListScreen,
+    page: () => BlocProvider(
+      create: (_) => ConversationCubit(
+        chatRepo: ChatRepoImpl(
+          remoteDataSource:
+              ChatRemoteDataSourceImpl(api: getit.get<DioConSumer>()),
+        ),
+      )..loadConversations(),
+      child: const ChatListScreen(),
+    ),
+  ),
 
-  // GetPage(
-  //   name: RouteName.chatScreen,
-  //   page: () {
-  //     final args = Get.arguments as Map<String, dynamic>;
+  GetPage(
+    name: RouteName.chatScreen,
+    page: () {
+      final args = Get.arguments as Map<String, dynamic>;
+      final conversationId = args['conversationId'] as int;
+      return BlocProvider(
+        create: (_) => MessageCubit(
+          chatRepo: ChatRepoImpl(
+            remoteDataSource:
+                ChatRemoteDataSourceImpl(api: getit.get<DioConSumer>()),
+          ),
+          conversationId: conversationId,
+        ),
+        child: const ChatScreen(),
+      );
+    },
+  ),
 
-  //     return BlocProvider(
-  //       create: (context) => MessageCubit(getit<ChatRepo>()),
-  //       child: ChatScreen(
-  //         conversationId: args['conversationId'],
-  //         sender: args['sender'],
-  //       ),
-  //     );
-  //   },
-  // ),
+  GetPage(
+    name: RouteName.chatApiTest,
+    page: () => const ChatApiTestScreen(),
+  ),
 ];

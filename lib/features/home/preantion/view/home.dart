@@ -1,4 +1,5 @@
 import 'package:alatarekak/core/route/route_name.dart';
+import 'package:alatarekak/features/chat/presentation/view/chat_list_screen.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/profile.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_from.dart';
 import 'package:flutter/material.dart';
@@ -93,7 +94,7 @@ class _HomeState extends State<Home> {
             TripSearch(),
             TripMeList(),
             BookingUserINTrip(),
-            _ChatPlaceholder(),
+            ChatListScreen(),
             Profile(),
           ],
         ),
@@ -139,22 +140,3 @@ class _HomeState extends State<Home> {
   }
 }
 
-class _ChatPlaceholder extends StatelessWidget {
-  const _ChatPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.chat_bubble_outline_rounded, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
-            Text("المحادثات قريباً", style: TextStyle(color: Colors.grey, fontSize: 16)),
-          ],
-        ),
-      ),
-    );
-  }
-}

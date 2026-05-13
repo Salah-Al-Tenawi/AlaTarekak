@@ -1,44 +1,34 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:alatarekak/features/auth/data/repo/auth_repo_im.dart';
-
-
+import 'package:alatarekak/features/auth/domain/usecase/params/reset_password_params.dart';
 import 'dart:async';
-part 'forget_password_state.dart';
 
+part 'forget_password_state.dart';
 
 class ForgetPasswordCubit extends Cubit<ForgetPasswordState> {
   final AuthRepoIm authRepoIm;
   ForgetPasswordCubit(this.authRepoIm) : super(ForgetPasswordInitial());
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━
-  // Internal State
-  // ━━━━━━━━━━━━━━━━━━━━━━━━
   String _currentOtp = '';
   int _secondsLeft = 60;
   Timer? _timer;
   bool _isNewVisible = false;
   bool _isConfirmVisible = false;
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━
-  // Step 1 — إرسال الإيميل
-  // ━━━━━━━━━━━━━━━━━━━━━━━━
+  bool get isOtpComplete => _currentOtp.length >= 6;
+
+  // ━━ Step 1 — إرسال الإيميل ━━
   Future<void> sendEmail(String email) async {
     emit(ForgetPasswordLoading());
-    // final response = await authRepoIm.forgetPassword(email);
-    // response.fold(
-    //   (error) => emit(ForgetPasswordErorr(message: error.message)),
-    //   (_) => emit(ForgetPasswordGoToOtp(email: email)),
-    // );
-
-    // TODO: احذف هذا عند ربط الـ API
-    await Future.delayed(const Duration(seconds: 1));
-    emit(ForgetPasswordGoToOtp(email: email));
+    final response = await authRepoIm.forgotPassword(email);
+    response.fold(
+      (error) => emit(ForgetPasswordErorr(message: error.message)),
+      (_) => emit(ForgetPasswordGoToOtp(email: email)),
+    );
   }
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━
-  // Step 2 — OTP
-  // ━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━ Step 2 — OTP ━━
   void onOtpChanged(String otp) {
     _currentOtp = otp;
     emit(ForgetPasswordOtpChanged(otp: otp));
@@ -50,10 +40,7 @@ class ForgetPasswordCubit extends Cubit<ForgetPasswordState> {
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (_secondsLeft == 0) {
         t.cancel();
-        emit(const ForgetPasswordOtpTimerTick(
-          secondsLeft: 0,
-          canResend: true,
-        ));
+        emit(const ForgetPasswordOtpTimerTick(secondsLeft: 0, canResend: true));
       } else {
         _secondsLeft--;
         emit(ForgetPasswordOtpTimerTick(
@@ -66,26 +53,25 @@ class ForgetPasswordCubit extends Cubit<ForgetPasswordState> {
 
   Future<void> resendOtp(String email) async {
     emit(ForgetPasswordLoading());
-    // await authRepoIm.forgetPassword(email);
-    await Future.delayed(const Duration(seconds: 1));
-    startOtpTimer();
+    final response = await authRepoIm.resendOtpForgetPassword(email);
+    response.fold(
+      (error) => emit(ForgetPasswordErorr(message: error.message)),
+      (_) => startOtpTimer(),
+    );
   }
 
   Future<void> verifyOtp(String email) async {
     if (_currentOtp.length < 6) return;
+    _timer?.cancel(); // stop countdown so it doesn't override the loading state
     emit(ForgetPasswordLoading());
-    // final response = await authRepoIm.verifyOtp(email, _currentOtp);
-    // response.fold(
-    //   (error) => emit(ForgetPasswordErorr(message: error.message)),
-    //   (_) => emit(ForgetPasswordOtpVerified(email: email, otp: _currentOtp)),
-    // );
-    await Future.delayed(const Duration(seconds: 1));
-    emit(ForgetPasswordOtpVerified(email: email, otp: _currentOtp));
+    final result = await authRepoIm.verifyOtpResetPassword(email, _currentOtp);
+    result.fold(
+      (error) => emit(ForgetPasswordErorr(message: error.message)),
+      (token) => emit(ForgetPasswordOtpVerified(email: email, resetToken: token)),
+    );
   }
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━
-  // Step 3 — إعادة تعيين
-  // ━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━ Step 3 — إعادة تعيين كلمة المرور ━━
   void toggleNewPassword() {
     _isNewVisible = !_isNewVisible;
     emit(ForgetPasswordPasswordVisible(
@@ -103,18 +89,21 @@ class ForgetPasswordCubit extends Cubit<ForgetPasswordState> {
   }
 
   Future<void> resetPassword({
-    required String email,
-    required String otp,
+    required String resetToken,
     required String newPassword,
   }) async {
     emit(ForgetPasswordLoading());
-    // final response = await authRepoIm.resetPassword(email, otp, newPassword);
-    // response.fold(
-    //   (error) => emit(ForgetPasswordErorr(message: error.message)),
-    //   (_) => emit(ForgetPasswordResetSuccess()),
-    // );
-    await Future.delayed(const Duration(seconds: 1));
-    emit(ForgetPasswordResetSuccess());
+    final response = await authRepoIm.resetPassword(
+      ResetPasswordParams(
+        resetToken: resetToken,
+        newPassword: newPassword,
+        confirmPassword: newPassword,
+      ),
+    );
+    response.fold(
+      (error) => emit(ForgetPasswordErorr(message: error.message)),
+      (_) => emit(ForgetPasswordResetSuccess()),
+    );
   }
 
   @override

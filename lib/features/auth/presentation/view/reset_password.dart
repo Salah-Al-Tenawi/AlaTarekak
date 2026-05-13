@@ -9,13 +9,11 @@ import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/features/auth/presentation/manger/forget_password_cubit/forget_password_cubit.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
-  final String email;
-  final String otp;
+  final String resetToken;
 
   const ResetPasswordScreen({
     super.key,
-    required this.email,
-    required this.otp,
+    required this.resetToken,
   });
 
   @override
@@ -253,8 +251,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                         context
                                             .read<ForgetPasswordCubit>()
                                             .resetPassword(
-                                              email: widget.email,
-                                              otp: widget.otp,
+                                              resetToken: widget.resetToken,
                                               newPassword: _newPassword.text,
                                             );
                                       }

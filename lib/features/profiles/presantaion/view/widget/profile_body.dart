@@ -4,9 +4,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:alatarekak/core/constant/imagesUrl.dart';
 import 'package:alatarekak/core/route/route_name.dart';
+import 'package:alatarekak/core/service/locator_ser.dart';
+import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
+import 'package:alatarekak/features/auth/data/repo/auth_repo_im.dart';
 import 'package:alatarekak/features/profiles/data/model/enum/profile_mode.dart';
 import 'package:alatarekak/features/profiles/domain/entity/profile_entity.dart';
 import 'package:alatarekak/features/profiles/presantaion/manger/profile_cubit.dart';
@@ -303,10 +306,9 @@ class _MenuSection extends StatelessWidget {
                 _divider(),
                 _MenuItem(
                   icon: Icons.verified_outlined,
-                  label: "توثيق السائق",
+                  label: "توثيق الهوية",
                   badge: isVerified ? "مكتمل" : null,
-                  onTap: () =>
-                      Get.toNamed(RouteName.profileDriverVerification),
+                  onTap: () => _showVerificationSheet(context),
                 ),
                 _divider(),
                 _MenuItem(
@@ -333,12 +335,134 @@ class _MenuSection extends StatelessWidget {
     );
   }
 
+  void _showVerificationSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+      ),
+      backgroundColor: MyColors.surface,
+      builder: (_) => Padding(
+        padding: EdgeInsets.fromLTRB(24.w, 20.h, 24.w, 32.h),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40.w,
+                height: 4.h,
+                decoration: BoxDecoration(
+                  color: MyColors.surfaceAlt,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            SizedBox(height: 20.h),
+            Text('نوع التوثيق', style: AppTextStyles.titleLarge),
+            SizedBox(height: 6.h),
+            Text(
+              'اختر نوع التوثيق الذي تريد إتمامه',
+              style: AppTextStyles.bodySmall
+                  .copyWith(color: MyColors.textSecondary),
+            ),
+            SizedBox(height: 24.h),
+            _VerifyOption(
+              icon: Icons.person_outline_rounded,
+              title: 'توثيق كمستخدم',
+              subtitle: 'صورة الهوية الشخصية فقط',
+              onTap: () {
+                Get.back();
+                Get.toNamed(RouteName.verfiyUser, arguments: 'passenger');
+              },
+            ),
+            SizedBox(height: 12.h),
+            _VerifyOption(
+              icon: Icons.drive_eta_outlined,
+              title: 'توثيق كسائق',
+              subtitle: 'الهوية + رخصة القيادة + فحص السيارة',
+              onTap: () {
+                Get.back();
+                Get.toNamed(RouteName.verfiyUser, arguments: 'driver');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _divider() => const Divider(
         height: 0,
         thickness: 0.5,
         indent: 16,
         endIndent: 16,
       );
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+// Verify Option (Bottom Sheet)
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+class _VerifyOption extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _VerifyOption({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14.r),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+        decoration: BoxDecoration(
+          color: MyColors.background,
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(
+            color: MyColors.primary.withValues(alpha: 0.12),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: MyColors.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: MyColors.primary, size: 22),
+            ),
+            SizedBox(width: 14.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: AppTextStyles.bodyMedium),
+                  SizedBox(height: 2.h),
+                  Text(
+                    subtitle,
+                    style: AppTextStyles.labelSmall
+                        .copyWith(color: MyColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_back_ios_rounded,
+                size: 14, color: MyColors.textHint),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━
@@ -421,14 +545,41 @@ class _MenuItem extends StatelessWidget {
 class _LogoutButton extends StatelessWidget {
   const _LogoutButton();
 
+  Future<void> _logout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('تسجيل الخروج', style: AppTextStyles.titleMedium),
+        content: Text('هل أنت متأكد أنك تريد تسجيل الخروج؟',
+            style: AppTextStyles.bodyMedium),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('إلغاء',
+                style: AppTextStyles.labelMedium
+                    .copyWith(color: MyColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('خروج',
+                style: AppTextStyles.labelMedium
+                    .copyWith(color: MyColors.error)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final result = await getit.get<AuthRepoIm>().logout();
+    result.fold(
+      (_) => AppSnackBar.error('فشل تسجيل الخروج، حاول مجدداً'),
+      (_) => Get.offAllNamed(RouteName.login),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        // TODO: clear session + navigate to login
-        // HiveService.clearAll();
-        // Get.offAllNamed(RouteName.login);
-      },
+      onTap: () => _logout(context),
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.symmetric(vertical: 14.h),

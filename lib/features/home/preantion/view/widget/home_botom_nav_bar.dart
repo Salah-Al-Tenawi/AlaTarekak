@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:alatarekak/core/service/chat_socket_service.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/features/home/preantion/manger/cubit/home_nav_cubit_cubit.dart';
 
@@ -71,13 +72,66 @@ class ModernBottomNavBar extends StatelessWidget {
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(14.r),
                           ),
-                          child: Icon(
-                            _navIcons[index],
-                            size: 22,
-                            color: isSelected
-                                ? MyColors.primary
-                                : MyColors.textHint,
-                          ),
+                          child: index == 3
+                              ? StreamBuilder<int>(
+                                  stream: ChatSocketService
+                                      .instance.unreadStream,
+                                  initialData: ChatSocketService
+                                      .instance.totalUnread,
+                                  builder: (context, snapshot) {
+                                    final unread = snapshot.data ?? 0;
+                                    return Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        Icon(
+                                          _navIcons[index],
+                                          size: 22,
+                                          color: isSelected
+                                              ? MyColors.primary
+                                              : MyColors.textHint,
+                                        ),
+                                        if (unread > 0)
+                                          Positioned(
+                                            top: -6,
+                                            right: -8,
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.all(3),
+                                              decoration: const BoxDecoration(
+                                                color: MyColors.error,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              constraints:
+                                                  const BoxConstraints(
+                                                minWidth: 16,
+                                                minHeight: 16,
+                                              ),
+                                              child: Text(
+                                                unread > 99
+                                                    ? '+99'
+                                                    : '$unread',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 9.sp,
+                                                  fontWeight:
+                                                      FontWeight.bold,
+                                                  height: 1,
+                                                ),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    );
+                                  },
+                                )
+                              : Icon(
+                                  _navIcons[index],
+                                  size: 22,
+                                  color: isSelected
+                                      ? MyColors.primary
+                                      : MyColors.textHint,
+                                ),
                         ),
                         SizedBox(height: 2.h),
                         Text(

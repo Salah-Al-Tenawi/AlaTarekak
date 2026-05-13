@@ -32,9 +32,10 @@ class _ForgetPasswordScreenState extends State<ForgetPassword> {
     return BlocConsumer<ForgetPasswordCubit, ForgetPasswordState>(
       listener: (context, state) {
         if (state is ForgetPasswordGoToOtp) {
+          final cubit = context.read<ForgetPasswordCubit>()..startOtpTimer();
           Get.to(
             () => BlocProvider.value(
-              value: context.read<ForgetPasswordCubit>()..startOtpTimer(),
+              value: cubit,
               child: VerifyOtpForgetPassword(email: state.email),
             ),
           );

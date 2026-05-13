@@ -56,6 +56,7 @@ class RouteName {
   
 static const chatListScreen = "/ChatListScreen";
 static const chatScreen = "/ChatScreen";
+static const chatApiTest = "/ChatApiTest";
 
   // profile sub-screens
   static const profilePersonalInfo = "/profilePersonalInfo";

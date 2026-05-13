@@ -42,6 +42,7 @@ dependencies:
   otp_text_field: any
   salomon_bottom_bar: any
   smooth_page_indicator: any
+  pusher_channels_flutter: any
   url_launcher: any
 
 flutter_launcher_icons:
