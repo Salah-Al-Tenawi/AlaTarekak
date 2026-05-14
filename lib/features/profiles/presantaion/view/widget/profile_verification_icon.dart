@@ -10,41 +10,35 @@ class ProfileVerificationIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<ProfileCubit, ProfileState, String>(
-      selector: (state) {
-        return state.profileEntity?.verification ?? 'none';
-      },
-      builder: (context, verificationStatus) {
-        switch (verificationStatus) {
-          case "verified":
+      selector: (state) => state.profileEntity?.verification ?? 'none',
+      builder: (context, status) {
+        switch (status) {
+          case 'approved':
             return const Tooltip(
-              message: "موثق",
-              child: FaIcon(
-                FontAwesomeIcons.circleCheck,
-                color: MyColors.accent,
-                size: 20,
-              ),
+              message: 'موثَّق',
+              child: FaIcon(FontAwesomeIcons.circleCheck,
+                  color: MyColors.success, size: 20),
             );
-          case "pending":
+          case 'pending':
             return const Tooltip(
-              message: "قيد التوثيق",
-              child: FaIcon(
-                FontAwesomeIcons.clock,
-                color: Colors.orange,
-                size: 20,
-              ),
+              message: 'قيد المراجعة',
+              child: FaIcon(FontAwesomeIcons.clock,
+                  color: MyColors.warning, size: 20),
             );
-          case "none":
+          case 'rejected':
+            return const Tooltip(
+              message: 'مرفوض',
+              child: FaIcon(FontAwesomeIcons.circleXmark,
+                  color: MyColors.error, size: 20),
+            );
           default:
             return const Tooltip(
-              message: "غير موثق",
-              child: FaIcon(
-                FontAwesomeIcons.circleExclamation,
-                color: Colors.grey,
-                size: 20,
-              ),
+              message: 'غير موثَّق',
+              child: FaIcon(FontAwesomeIcons.circleExclamation,
+                  color: MyColors.textHint, size: 20),
             );
         }
       },
     );
   }
-} 
+}

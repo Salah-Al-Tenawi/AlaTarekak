@@ -26,6 +26,13 @@ class ProfileEntity {
   final int totalBookings;
   final int successfulBookings;
   final int cancelledBookings;
+  final int noShowBookings;
+
+  // ━━ درجة النشاط ━━
+  final int scoreValue;
+  final String tier;
+  final bool canCreateRides;
+  final bool canBookRides;
 
   ProfileEntity({
     required this.fullname,
@@ -40,7 +47,6 @@ class ProfileEntity {
     required this.car,
     required this.comments,
     required this.documents,
-    // ✅ لها قيم افتراضية حتى لا تكسر الكود القديم
     this.totalTrips = 0,
     this.successfulTrips = 0,
     this.cancelledTrips = 0,
@@ -48,6 +54,11 @@ class ProfileEntity {
     this.totalBookings = 0,
     this.successfulBookings = 0,
     this.cancelledBookings = 0,
+    this.noShowBookings = 0,
+    this.scoreValue = 0,
+    this.tier = 'Restricted',
+    this.canCreateRides = false,
+    this.canBookRides = false,
   });
 
   ProfileEntity copyWith({
@@ -70,6 +81,11 @@ class ProfileEntity {
     int? totalBookings,
     int? successfulBookings,
     int? cancelledBookings,
+    int? noShowBookings,
+    int? scoreValue,
+    String? tier,
+    bool? canCreateRides,
+    bool? canBookRides,
   }) {
     return ProfileEntity(
       fullname: fullname ?? this.fullname,
@@ -91,6 +107,11 @@ class ProfileEntity {
       totalBookings: totalBookings ?? this.totalBookings,
       successfulBookings: successfulBookings ?? this.successfulBookings,
       cancelledBookings: cancelledBookings ?? this.cancelledBookings,
+      noShowBookings: noShowBookings ?? this.noShowBookings,
+      scoreValue: scoreValue ?? this.scoreValue,
+      tier: tier ?? this.tier,
+      canCreateRides: canCreateRides ?? this.canCreateRides,
+      canBookRides: canBookRides ?? this.canBookRides,
     );
   }
 }

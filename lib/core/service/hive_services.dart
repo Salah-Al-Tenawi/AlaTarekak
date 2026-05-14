@@ -1,4 +1,3 @@
-import 'package:alatarekak/features/profiles/data/model/profile_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:alatarekak/features/auth/data/model/user_model.dart';
 
@@ -6,13 +5,10 @@ class HiveService {
   static Future<void> init() async {
     await Hive.initFlutter();
 
-    // 🧠 Register adapters
     Hive.registerAdapter(UserModelAdapter());
-    // Hive.registerAdapter(AuthModelAdapter());
 
-    // 📦 Open boxes
     await Future.wait([
-      Hive.openBox<ProfileModel>(HiveBoxes.profileBoxName),
+      Hive.openBox<String>(HiveBoxes.profileBoxName),
       Hive.openBox<UserModel>(HiveBoxes.authBoxName),
       Hive.openBox(HiveBoxes.tripBoxName),
     ]);
@@ -50,8 +46,8 @@ class HiveBoxes {
 
 
   static const String profileBoxName = 'profileBox';
-  static Box<ProfileModel> get profileBox =>
-      Hive.box<ProfileModel>(profileBoxName);
+  static Box<String> get profileBox =>
+      Hive.box<String>(profileBoxName);
 
   // 🚗 Trips
   static const String tripBoxName = 'tripBox';

@@ -84,8 +84,15 @@ class ProfileStatsSection extends StatelessWidget {
               valueColor: MyColors.error,
               dotColor: MyColors.error,
             ),
+            _StatData(
+              label: "عدم حضور",
+              value: profile.noShowBookings,
+              bg: MyColors.warningLight,
+              valueColor: MyColors.warning,
+              dotColor: MyColors.warning,
+            ),
           ],
-          columns: 3,
+          columns: 2,
         ),
       ],
     );

@@ -69,25 +69,27 @@ class ProfileRemoteDateSourceIm extends ProfileRemoteDateSource {
       String? typeOfCar,
       String? gender,
       String? address) async {
+    final Map<String, dynamic> data = {
+      ApiKey.profilePhoto: await uploadFiletoApi(profilePhoto),
+      ApiKey.description: description,
+      ApiKey.colorOfCar: colorOfCar,
+      ApiKey.numberOfSeats: numberOfSeats,
+      ApiKey.carPic: await uploadFiletoApi(carPic),
+      ApiKey.radio: radio,
+      ApiKey.smoking: smoking,
+      ApiKey.faceIdPic: await uploadFiletoApi(faceIdPic),
+      ApiKey.backIdPic: await uploadFiletoApi(backIdPic),
+      ApiKey.drivingLicensePic: await uploadFiletoApi(drivingLicPic),
+      ApiKey.mechanicCardPic: await uploadFiletoApi(mechanieCardPic),
+      ApiKey.typeOfCar: typeOfCar,
+      ApiKey.gender: gender,
+      ApiKey.address: address,
+    }..removeWhere((_, v) => v == null);
+
     final response = await api.post(ApiEndPoint.profile,
         header: {ApiKey.authorization: "Bearer ${mytoken()}"},
         isFomrData: true,
-        data: {
-          ApiKey.profilePhoto: await uploadFiletoApi(profilePhoto),
-          ApiKey.description: description,
-          ApiKey.colorOfCar: colorOfCar,
-          ApiKey.numberOfSeats: numberOfSeats,
-          ApiKey.carPic: await uploadFiletoApi(carPic),
-          ApiKey.radio: radio,
-          ApiKey.smoking: smoking,
-          ApiKey.faceIdPic: await uploadFiletoApi(faceIdPic),
-          ApiKey.backIdPic: await uploadFiletoApi(backIdPic),
-          ApiKey.drivingLicensePic: await uploadFiletoApi(drivingLicPic),
-          ApiKey.mechanicCardPic: await uploadFiletoApi(mechanieCardPic),
-          ApiKey.typeOfCar: typeOfCar,
-          ApiKey.gender: gender,
-          ApiKey.address: address
-        });
+        data: data);
     return ProfileModel.fromJson(response);
   }
 
