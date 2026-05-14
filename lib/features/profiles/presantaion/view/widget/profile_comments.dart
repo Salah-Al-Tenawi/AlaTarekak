@@ -8,6 +8,7 @@ import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/widgets/my_button.dart';
 import 'package:alatarekak/features/profiles/domain/entity/comment_entity.dart';
+
 class ProfileComments extends StatelessWidget {
   final List<CommentEntity>? feadBack;
 
@@ -18,29 +19,32 @@ class ProfileComments extends StatelessWidget {
     final comments = feadBack ?? [];
 
     if (comments.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Text("لا توجد تعليقات بعد", textAlign: TextAlign.center),
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 20.h),
+        child: Center(
+          child: Text(
+            'لا توجد تعليقات بعد',
+            style: AppTextStyles.bodySmall.copyWith(color: MyColors.textHint),
+          ),
+        ),
       );
     }
 
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 10.h),
-      decoration: BoxDecoration(
-        border: Border.all(width: 0.3, color: MyColors.background),
-        borderRadius: BorderRadius.circular(10),
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: comments.length,
+      separatorBuilder: (_, _) => const Divider(
+        height: 0,
+        thickness: 0.5,
+        indent: 16,
+        endIndent: 16,
       ),
-      child: ListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: comments.length,
-        itemBuilder: (context, index) {
-          return Comment(commentEntity: comments[index]);
-        },
-      ),
+      itemBuilder: (context, index) => Comment(commentEntity: comments[index]),
     );
   }
 }
+
 class Comment extends StatelessWidget {
   final CommentEntity commentEntity;
 
@@ -48,55 +52,56 @@ class Comment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 5.h, horizontal: 10.w),
-      padding: EdgeInsets.all(10.w),
-      decoration: BoxDecoration(
-        border: Border.all(width: 0.3, color: MyColors.background),
-        borderRadius: BorderRadius.circular(10),
-      ),
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 14.w),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ━━ الصورة على اليمين (أول عنصر = يمين في RTL) ━━
+          MyButton(
+            onPressed: () {
+              Get.toNamed(RouteName.profile,
+                  arguments: commentEntity.iduser);
+            },
+            child: CircleAvatar(
+              radius: 22.r,
+              backgroundColor: MyColors.primary,
+              backgroundImage: commentEntity.authorPhoto != null
+                  ? NetworkImage(commentEntity.authorPhoto!) as ImageProvider
+                  : const AssetImage(ImagesUrl.profileImage),
+            ),
+          ),
+
+          SizedBox(width: 10.w),
+
+          // ━━ النص (اسم + تعليق + تاريخ) ━━
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // الاسم
                 Text(
                   commentEntity.authorName,
-                  style: AppTextStyles.bodySmall,
+                  style: AppTextStyles.labelLarge
+                      .copyWith(color: MyColors.textPrimary),
                 ),
-                const SizedBox(height: 5),
+                SizedBox(height: 4.h),
+                // التعليق
                 Text(
                   commentEntity.text,
-                  style: AppTextStyles.bodySmall,
-                  textDirection: TextDirection.rtl,
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: MyColors.textSecondary, height: 1.4),
                 ),
-                Align(
-                  alignment: Alignment.bottomLeft,
-                  child: Text(
-                    commentEntity.createdAt,
-                    style: const TextStyle(
-                      fontSize: 6.2,
-                      fontWeight: FontWeight.bold,
-                      color: MyColors.textHint,
-                    ),
+                SizedBox(height: 6.h),
+                // التاريخ
+                Text(
+                  commentEntity.createdAt,
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: MyColors.textHint,
+                    fontSize: 10.sp,
                   ),
                 ),
               ],
-            ),
-          ),
-          SizedBox(width: 10.w),
-          MyButton(
-            onPressed: () {
-              Get.toNamed(RouteName.profile, arguments: commentEntity.iduser);
-            },
-            child: CircleAvatar(
-              maxRadius: 25,
-              backgroundColor: MyColors.primary,
-              backgroundImage: commentEntity.authorPhoto != null
-                  ? NetworkImage(commentEntity.authorPhoto!)
-                  : const AssetImage(ImagesUrl.profileImage) as ImageProvider,
             ),
           ),
         ],

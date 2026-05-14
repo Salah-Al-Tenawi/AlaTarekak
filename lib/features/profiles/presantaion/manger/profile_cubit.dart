@@ -103,6 +103,83 @@ class ProfileCubit extends Cubit<ProfileState> {
     ));
   }
 
+  // ━━ تهيئة بوضع التعديل (شاشة تعديل المعلومات الشخصية) ━━
+  void initWithProfile(ProfileEntity profile) {
+    emit(ProfileLoadedState(
+      mode: ProfileMode.myEdit,
+      profileEntity: profile,
+      editProfile: profile.copyWith(),
+      editDescription: profile.description,
+    ));
+  }
+
+  // ━━ تهيئة بوضع العرض (شاشة مركباتي) ━━
+  void loadProfile(ProfileEntity profile) {
+    emit(ProfileLoadedState(
+      mode: ProfileMode.myView,
+      profileEntity: profile,
+    ));
+  }
+
+  // ━━ حفظ السيارة فقط مع الإبقاء على باقي البيانات ━━
+  Future<void> saveCar(CarEntity car, XFile? carPic) async {
+    final current = state;
+    if (current is! ProfileLoadedState) return;
+
+    final profile = current.profileEntity!;
+    if (carPic != null) carPhoto = carPic;
+
+    emit(ProfileLoadingState(profileEntity: profile));
+
+    final response = await profileRepoIm.updateProfile(
+      null,
+      profile.description,
+      car.color,
+      car.seats,
+      carPhoto,
+      boolToInt(car.hasRadio),
+      boolToInt(car.allowsSmoking),
+      null, null, null, null,
+      car.type,
+      profile.gender,
+      profile.address,
+    );
+
+    response.fold(
+      (error) => emit(ProfileErrorState(
+        message: error.message,
+        profileEntity: profile,
+      )),
+      (updated) {
+        carPhoto = null;
+        emit(ProfileLoadedState(
+          mode: ProfileMode.myView,
+          profileEntity: updated,
+        ));
+      },
+    );
+  }
+
+  // ━━ تطبيق التعديلات دفعة واحدة قبل الحفظ ━━
+  void applyEdit({
+    String? description,
+    String? address,
+    String? gender,
+    CarEntity? car,
+  }) {
+    final current = state;
+    if (current is! ProfileLoadedState) return;
+    emit(current.copyWith(
+      editDescription: description,
+      editProfile: current.editProfile?.copyWith(
+        description: description,
+        address: address,
+        gender: gender,
+        car: car ?? current.editProfile?.car,
+      ),
+    ));
+  }
+
   // ━━━━━━━━━━━━━━━━━━━━━━━━
   // Save
   // ━━━━━━━━━━━━━━━━━━━━━━━━
@@ -126,7 +203,7 @@ class ProfileCubit extends Cubit<ProfileState> {
       boolToInt(car?.allowsSmoking),
       null, null, null, null,
       car?.type,
-      null,
+      profile?.gender,
       profile?.address,
     );
 

@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:alatarekak/core/errors/excptions.dart';
 import 'package:alatarekak/core/errors/filuar.dart';
+import 'package:alatarekak/features/profiles/data/date_source/profile_locat_data_source.dart';
 import 'package:alatarekak/features/profiles/data/date_source/profile_remote_date_source.dart';
 import 'package:alatarekak/features/profiles/data/model/rating_modle.dart';
 import 'package:alatarekak/features/profiles/domain/entity/comment_entity.dart';
@@ -11,8 +12,12 @@ import 'package:alatarekak/features/profiles/domain/repo/profile_rep.dart';
 
 class ProfileRepoIm extends ProfileRepo {
   final ProfileRemoteDateSourceIm profileRemoteDateSourceIm;
+  final ProfileLocatDataSourceIm profileLocatDataSourceIm;
 
-  ProfileRepoIm({required this.profileRemoteDateSourceIm});
+  ProfileRepoIm({
+    required this.profileRemoteDateSourceIm,
+    required this.profileLocatDataSourceIm,
+  });
 
   @override
   Future<Either<Filuar, CommentEntity>> addcommit(
@@ -39,8 +44,12 @@ class ProfileRepoIm extends ProfileRepo {
 
   @override
   Future<Either<Filuar, ProfileEntity>> showProfile(int userid) async {
+    final cached = profileLocatDataSourceIm.getProfile(userid);
+    if (cached != null) return right(cached);
+
     try {
       final profile = await profileRemoteDateSourceIm.showProfile(userid);
+      await profileLocatDataSourceIm.saveProfile(userid, profile);
       return right(profile);
     } on ServerExpcptions catch (e) {
       return left(e.error);
@@ -79,6 +88,7 @@ class ProfileRepoIm extends ProfileRepo {
           typeOfCar,
           gender,
           address);
+      await profileLocatDataSourceIm.saveProfile(profile.data.userId, profile);
       return right(profile);
     } on ServerExpcptions catch (e) {
       return left(e.error);

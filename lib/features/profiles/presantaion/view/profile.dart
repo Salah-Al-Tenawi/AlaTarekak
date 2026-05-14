@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:alatarekak/core/utils/functions/get_userid.dart';
-import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
-import 'package:alatarekak/features/profiles/domain/entity/profile_entity.dart';
 import 'package:alatarekak/features/profiles/presantaion/manger/profile_cubit.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/widget/profile_body.dart';
-import 'package:alatarekak/features/profiles/presantaion/view/widget/profile_erorr.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -16,57 +13,25 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
-  late ProfileCubit _profileCubit;
-  late int userId;
-  late Future<ProfileEntity> _loadProfileFuture;
+  late final int _userId;
 
   @override
   void initState() {
     super.initState();
-    _profileCubit = context.read<ProfileCubit>();
     final args = Get.arguments;
-    userId = (args is int) ? args : (myid() ?? 0);
-    _loadProfileFuture = _fetchProfileData(userId);
+    _userId = (args is int) ? args : (myid() ?? 0);
+    _load();
   }
 
-  Future<ProfileEntity> _fetchProfileData(int id) async {
-    if (id == myid()) {
-      return await _profileCubit.showMyProfile();
+  void _load() {
+    final cubit = context.read<ProfileCubit>();
+    if (_userId == myid()) {
+      cubit.showMyProfile();
     } else {
-      return await _profileCubit.showOtherProfile(id);
+      cubit.showOtherProfile(_userId);
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () async {
-          setState(() {
-            _loadProfileFuture = _fetchProfileData(userId);
-          });
-        },
-        child: FutureBuilder<ProfileEntity>(
-          future: _loadProfileFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const LoadingWidgetSize150();
-            }
-
-            if (snapshot.hasError || snapshot.data == null) {
-              return ProfileErrorWidget(
-                onRetry: () {
-                  setState(() {
-                    _loadProfileFuture = _fetchProfileData(userId);
-                  });
-                },
-              );
-            }
-
-            return const ProfileBody();
-          },
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => ProfileBody(onRefresh: _load);
 }

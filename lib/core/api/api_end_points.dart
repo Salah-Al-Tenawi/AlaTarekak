@@ -1,5 +1,5 @@
 class ApiEndPoint {
-  static const baserUrl = "http://192.168.1.111:8000/api";
+  static const baserUrl = "http://192.168.0.104:8000/api";
   static const broadcastAuth = "http://192.168.1.111:8000/broadcasting/auth";
   static const baseUrlGoogle ="http://192.168.43.81:8000";
 
