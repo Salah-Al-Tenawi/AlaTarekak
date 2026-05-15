@@ -39,7 +39,7 @@ import 'package:alatarekak/features/maps/presantion/view/search_ride_map.dart';
 import 'package:alatarekak/features/onboarding/ui/manger/cubit/onboarding_cubit.dart';
 import 'package:alatarekak/features/onboarding/ui/onboarding.dart';
 import 'package:alatarekak/features/policy/policy.dart';
-import 'package:alatarekak/features/profiles/data/date_source/profile_locat_data_source.dart';
+import 'package:alatarekak/features/profiles/data/date_source/profile_local_data_source.dart';
 import 'package:alatarekak/features/profiles/data/date_source/profile_remote_date_source.dart';
 import 'package:alatarekak/features/profiles/domain/entity/profile_entity.dart';
 import 'package:alatarekak/features/splash_view/presentaion/manger/cubit/splash_view_cubit.dart';
@@ -154,7 +154,7 @@ List<GetPage<dynamic>> appRoute = [
             create: (context) => ProfileCubit(ProfileRepoIm(
                 profileRemoteDateSourceIm:
                     ProfileRemoteDateSourceIm(api: getit.get<DioConSumer>()),
-                profileLocatDataSourceIm: ProfileLocatDataSourceIm())),
+                profileLocalDataSourceIm: ProfileLocalDataSourceIm())),
             child: const Profile(),
           )),
 
@@ -308,7 +308,7 @@ List<GetPage<dynamic>> appRoute = [
           create: (_) => ProfileCubit(ProfileRepoIm(
               profileRemoteDateSourceIm:
                   ProfileRemoteDateSourceIm(api: getit.get<DioConSumer>()),
-              profileLocatDataSourceIm: ProfileLocatDataSourceIm())),
+              profileLocalDataSourceIm: ProfileLocalDataSourceIm())),
         ),
         BlocProvider(
           create: (_) => ConversationCubit(
@@ -336,7 +336,7 @@ List<GetPage<dynamic>> appRoute = [
         create: (_) => ProfileCubit(ProfileRepoIm(
             profileRemoteDateSourceIm:
                 ProfileRemoteDateSourceIm(api: getit.get<DioConSumer>()),
-            profileLocatDataSourceIm: ProfileLocatDataSourceIm()))
+            profileLocalDataSourceIm: ProfileLocalDataSourceIm()))
           ..initWithProfile(profile),
         child: ProfileEditScreen(profile: profile),
       );
@@ -350,7 +350,7 @@ List<GetPage<dynamic>> appRoute = [
         create: (_) => ProfileCubit(ProfileRepoIm(
             profileRemoteDateSourceIm:
                 ProfileRemoteDateSourceIm(api: getit.get<DioConSumer>()),
-            profileLocatDataSourceIm: ProfileLocatDataSourceIm()))
+            profileLocalDataSourceIm: ProfileLocalDataSourceIm()))
           ..loadProfile(profile),
         child: const ProfileMyCarsScreen(),
       );

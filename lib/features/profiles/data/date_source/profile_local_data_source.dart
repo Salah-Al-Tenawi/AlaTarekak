@@ -2,13 +2,13 @@ import 'dart:convert';
 import 'package:alatarekak/core/service/hive_services.dart';
 import 'package:alatarekak/features/profiles/data/model/profile_model.dart';
 
-abstract class ProfileLocatDataSource {
+abstract class ProfileLocalDataSource {
   ProfileModel? getProfile(int id);
   Future<void> saveProfile(int id, ProfileModel profile);
   Future<void> clearProfile(int id);
 }
 
-class ProfileLocatDataSourceIm extends ProfileLocatDataSource {
+class ProfileLocalDataSourceIm extends ProfileLocalDataSource {
   @override
   ProfileModel? getProfile(int id) {
     final raw = HiveBoxes.profileBox.get('$id');
