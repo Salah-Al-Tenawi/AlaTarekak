@@ -9,6 +9,7 @@ import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/features/booking_user_in_trip/presantion/manger/cubit/booking_user_in_trip_cubit.dart';
 import 'package:alatarekak/features/trip_create/data/model/booking_model.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
+import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/features/trip_details/presantaion/view/widget/status_trip.dart';
 
 class BookingUserINTrip extends StatefulWidget {
@@ -38,8 +39,10 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
     return Scaffold(
       backgroundColor: MyColors.background,
       appBar: AppBar(
-        backgroundColor: MyColors.primary,
-        title: const Text("الحجوزات", style: TextStyle(color: Colors.white)),
+        backgroundColor: MyColors.surface,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Text("الحجوزات", style: AppTextStyles.titleMedium),
         centerTitle: true,
       ),
       body: usersBooking.isEmpty
@@ -120,7 +123,7 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
           children: [
             Text(
               name,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: MyColors.textPrimary,
@@ -134,7 +137,7 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
               ),
               child: Text(
                 statusInfo.text,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: MyColors.background,
@@ -151,18 +154,18 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
   Widget buildSeatsAndPrice(int seats, int totalPrice) {
     return Row(
       children: [
-        const Icon(Icons.event_seat, size: 18, color: MyColors.textSecondary),
+        Icon(Icons.event_seat, size: 18, color: MyColors.textSecondary),
         const SizedBox(width: 4),
         Text(
           "$seats مقاعد",
-          style: const TextStyle(fontSize: 14, color: MyColors.textSecondary),
+          style: TextStyle(fontSize: 14, color: MyColors.textSecondary),
         ),
         const SizedBox(width: 12),
-        const Icon(Icons.attach_money, size: 18, color: MyColors.accent),
+        Icon(Icons.attach_money, size: 18, color: MyColors.accent),
         const SizedBox(width: 4),
         Text(
           "$totalPrice ل.س",
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             color: MyColors.accent,
             fontWeight: FontWeight.bold,
@@ -176,11 +179,11 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
   Widget buildBookingDate(String date) {
     return Row(
       children: [
-        const Icon(Icons.calendar_today, size: 16, color: MyColors.textSecondary),
+        Icon(Icons.calendar_today, size: 16, color: MyColors.textSecondary),
         const SizedBox(width: 4),
         Text(
           formatDate(date),
-          style: const TextStyle(fontSize: 13, color: MyColors.textSecondary),
+          style: TextStyle(fontSize: 13, color: MyColors.textSecondary),
         ),
       ],
     );
@@ -189,7 +192,7 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
   // 🔹 بطاقة الحجز
   Widget buildBookingCard(BookingModel booking) {
     return Card(
-      color: Colors.white,
+      color: MyColors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -231,11 +234,11 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
   Row buildCommincationNumber(BookingModel booking) {
     return Row(
       children: [
-        const Icon(Icons.phone, size: 16, color: MyColors.textSecondary),
+        Icon(Icons.phone, size: 16, color: MyColors.textSecondary),
         const SizedBox(width: 4),
         Text(
           booking.numberPhone,
-          style: const TextStyle(fontSize: 13, color: MyColors.textSecondary),
+          style: TextStyle(fontSize: 13, color: MyColors.textSecondary),
         ),
       ],
     );
@@ -302,22 +305,22 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
             );
 
           case "confirmed":
-            return _statusChip("تم القبول", Colors.green);
+            return _statusChip("تم القبول", MyColors.success);
 
           case "Booking rejected":
             return _statusChip("تم رفض الحجز", MyColors.accent);
 
           case "cancelled":
-            return _statusChip("ملغاة", Colors.red);
+            return _statusChip("ملغاة", MyColors.error);
 
           case "no_show":
-            return _statusChip("لم يحضر", Colors.orange);
+            return _statusChip("لم يحضر", MyColors.warning);
 
           case "completed":
-            return _statusChip("مكتملة", Colors.blue);
+            return _statusChip("مكتملة", MyColors.blue);
 
           case "active":
-            return _statusChip("تم الحجز", Colors.blue);
+            return _statusChip("تم الحجز", MyColors.blue);
 
           default:
             return _statusChip("تمت المعالجة", MyColors.textSecondary);

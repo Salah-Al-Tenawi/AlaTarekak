@@ -14,25 +14,25 @@ class ProfileVerificationIcon extends StatelessWidget {
       builder: (context, status) {
         switch (status) {
           case 'approved':
-            return const Tooltip(
+            return Tooltip(
               message: 'موثَّق',
               child: FaIcon(FontAwesomeIcons.circleCheck,
                   color: MyColors.success, size: 20),
             );
           case 'pending':
-            return const Tooltip(
+            return Tooltip(
               message: 'قيد المراجعة',
               child: FaIcon(FontAwesomeIcons.clock,
                   color: MyColors.warning, size: 20),
             );
           case 'rejected':
-            return const Tooltip(
+            return Tooltip(
               message: 'مرفوض',
               child: FaIcon(FontAwesomeIcons.circleXmark,
                   color: MyColors.error, size: 20),
             );
           default:
-            return const Tooltip(
+            return Tooltip(
               message: 'غير موثَّق',
               child: FaIcon(FontAwesomeIcons.circleExclamation,
                   color: MyColors.textHint, size: 20),

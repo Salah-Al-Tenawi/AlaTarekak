@@ -319,12 +319,15 @@ class _PushRideMapState extends State<PushRideMap> {
     final durationMin = (info['duration'] as num) / 60;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: MyColors.surface,
+        borderRadius:
+            const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
-              color: Colors.black26, blurRadius: 16, offset: Offset(0, -4))
+              color: MyColors.shadowMedium,
+              blurRadius: 16,
+              offset: const Offset(0, -4))
         ],
       ),
       padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 32.h),
@@ -408,7 +411,7 @@ class _PushRideMapState extends State<PushRideMap> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const CircularProgressIndicator(
+                CircularProgressIndicator(
                   valueColor:
                       AlwaysStoppedAnimation<Color>(MyColors.primary),
                   strokeWidth: 3,
@@ -490,10 +493,12 @@ class _CircleButton extends StatelessWidget {
       child: Container(
         width: 42,
         height: 42,
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color: MyColors.surface,
           shape: BoxShape.circle,
-          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
+          boxShadow: [
+            BoxShadow(color: MyColors.shadowMedium, blurRadius: 6)
+          ],
         ),
         child: Icon(icon, size: 18, color: MyColors.primary),
       ),
@@ -510,9 +515,11 @@ class _StepBadge extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: MyColors.surface,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
+        boxShadow: [
+          BoxShadow(color: MyColors.shadowMedium, blurRadius: 6)
+        ],
       ),
       child: Text(label,
           style:
@@ -546,39 +553,73 @@ class _SearchCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))
+        color: MyColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: MyColors.border),
+        boxShadow: [
+          BoxShadow(
+              color: MyColors.shadowMedium,
+              blurRadius: 12,
+              offset: const Offset(0, 4))
         ],
       ),
-      child: Column(
+      child: Row(
         children: [
-          _SearchField(
-            controller: startController,
-            focusNode: startFocus,
-            hint: "نقطة الانطلاق",
-            dotColor: MyColors.success,
-            icon: Icons.radio_button_checked,
-            onChanged: onStartChanged,
-            onClear: onClearStart,
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: const Divider(height: 1, color: MyColors.divider),
-          ),
-          _SearchField(
-            controller: endController,
-            focusNode: endFocus,
-            hint: "الوجهة",
-            dotColor: MyColors.accent,
-            icon: Icons.location_on_rounded,
-            onChanged: onEndChanged,
-            onClear: onClearEnd,
+          const _RouteConnector(),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: Column(
+              children: [
+                _SearchField(
+                  controller: startController,
+                  focusNode: startFocus,
+                  hint: "من أين تنطلق؟",
+                  onChanged: onStartChanged,
+                  onClear: onClearStart,
+                ),
+                Divider(height: 1, color: MyColors.divider),
+                _SearchField(
+                  controller: endController,
+                  focusNode: endFocus,
+                  hint: "إلى أين تتجه؟",
+                  onChanged: onEndChanged,
+                  onClear: onClearEnd,
+                ),
+              ],
+            ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Start dot → dotted line → destination pin, like mainstream ride apps.
+class _RouteConnector extends StatelessWidget {
+  const _RouteConnector();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.radio_button_checked, color: MyColors.success, size: 18),
+        ...List.generate(
+          3,
+          (_) => Container(
+            width: 3,
+            height: 3,
+            margin: const EdgeInsets.symmetric(vertical: 2.5),
+            decoration: BoxDecoration(
+              color: MyColors.textHint,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+        Icon(Icons.location_on_rounded, color: MyColors.accent, size: 20),
+      ],
     );
   }
 }
@@ -587,8 +628,6 @@ class _SearchField extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
   final String hint;
-  final Color dotColor;
-  final IconData icon;
   final ValueChanged<String> onChanged;
   final VoidCallback onClear;
 
@@ -596,46 +635,46 @@ class _SearchField extends StatelessWidget {
     required this.controller,
     required this.focusNode,
     required this.hint,
-    required this.dotColor,
-    required this.icon,
     required this.onChanged,
     required this.onClear,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-      child: Row(
-        children: [
-          Icon(icon, color: dotColor, size: 22),
-          SizedBox(width: 10.w),
-          Expanded(
-            child: TextField(
-              controller: controller,
-              focusNode: focusNode,
-              onChanged: onChanged,
-              textAlign: TextAlign.right,
-              style: AppTextStyles.bodySmall
-                  .copyWith(color: MyColors.textPrimary),
-              decoration: InputDecoration(
-                hintText: hint,
-                hintStyle: AppTextStyles.bodySmall
-                    .copyWith(color: MyColors.textHint),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 8.h),
-              ),
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: controller,
+            focusNode: focusNode,
+            onChanged: onChanged,
+            style: AppTextStyles.bodyMedium,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle:
+                  AppTextStyles.bodyMedium.copyWith(color: MyColors.textHint),
+              border: InputBorder.none,
+              filled: false,
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(vertical: 13.h),
             ),
           ),
-          if (controller.text.isNotEmpty)
-            GestureDetector(
-              onTap: onClear,
-              child: const Icon(Icons.close_rounded,
-                  size: 18, color: MyColors.textHint),
+        ),
+        if (controller.text.isNotEmpty)
+          GestureDetector(
+            onTap: onClear,
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 4.w),
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: MyColors.surfaceAlt,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.close_rounded,
+                  size: 14, color: MyColors.textSecondary),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }
@@ -654,20 +693,21 @@ class _SuggestionsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(top: 4.h),
-      constraints: BoxConstraints(maxHeight: 200.h),
+      margin: EdgeInsets.only(top: 6.h),
+      constraints: BoxConstraints(maxHeight: 220.h),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 8)
+        color: MyColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MyColors.border),
+        boxShadow: [
+          BoxShadow(color: MyColors.shadowMedium, blurRadius: 10)
         ],
       ),
       child: ListView.separated(
         shrinkWrap: true,
         padding: EdgeInsets.symmetric(vertical: 6.h),
         itemCount: suggestions.length,
-        separatorBuilder: (context, i) => const Divider(
+        separatorBuilder: (context, i) => Divider(
             height: 1,
             color: MyColors.divider,
             indent: 16,
@@ -676,10 +716,19 @@ class _SuggestionsList extends StatelessWidget {
           final place = suggestions[i];
           return ListTile(
             dense: true,
-            leading: Icon(
-              Icons.place_outlined,
-              color: isForStart ? MyColors.success : MyColors.accent,
-              size: 20,
+            leading: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: isForStart
+                    ? MyColors.successLight
+                    : MyColors.accentLight,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.place_outlined,
+                color: isForStart ? MyColors.success : MyColors.accent,
+                size: 16,
+              ),
             ),
             title: Text(
               place.displayName.split(',').first,

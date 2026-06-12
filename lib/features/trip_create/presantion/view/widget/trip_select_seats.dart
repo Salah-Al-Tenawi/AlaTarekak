@@ -32,7 +32,7 @@ class _TripSelectSeatsState extends State<TripSelectSeats> {
                 widget.tripFrom.numberSeats++;
               });
             },
-            icon: const FaIcon(
+            icon: FaIcon(
               FontAwesomeIcons.plus,
               size: 40,
               color: MyColors.textPrimary,
@@ -50,7 +50,7 @@ class _TripSelectSeatsState extends State<TripSelectSeats> {
                 }
               });
             },
-            icon: const FaIcon(FontAwesomeIcons.minus,
+            icon: FaIcon(FontAwesomeIcons.minus,
                 size: 40, color: MyColors.textPrimary),
           ),
         ],

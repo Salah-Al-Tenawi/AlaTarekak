@@ -20,7 +20,7 @@ class TripTextNote extends StatelessWidget {
             const TextSpan(
               text: "• ",
             ),
-            const TextSpan(
+            TextSpan(
               text: "أي شخص",
               style: TextStyle(
                 color: MyColors.accent,

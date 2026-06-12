@@ -14,7 +14,7 @@ class SmokingSwitchTile extends StatelessWidget {
     return CustomListTile(
       title: "التدخين",
       titleTextStyle: AppTextStyles.bodyMedium,
-      iconleading: const Icon(Icons.smoking_rooms, size: 20, color: MyColors.primary),
+      iconleading: Icon(Icons.smoking_rooms, size: 20, color: MyColors.primary),
       subtitle: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [

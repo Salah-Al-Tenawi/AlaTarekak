@@ -55,7 +55,7 @@ class _ForgetPasswordScreenState extends State<ForgetPassword> {
               Container(
                 height: screenHeight * 0.36,
                 width: double.infinity,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -173,7 +173,7 @@ class _ForgetPasswordScreenState extends State<ForgetPassword> {
                             validator: (val) => val == null || val.isEmpty
                                 ? 'أدخل البريد الإلكتروني'
                                 : null,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               hintText: 'user@gmail.com',
                               prefixIcon: Icon(Icons.email_outlined,
                                   color: MyColors.primary),

@@ -36,7 +36,7 @@ class _LoginState extends State<Login> {
           Container(
             height: screenHeight * 0.34,
             width: double.infinity,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,

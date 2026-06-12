@@ -63,7 +63,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               Container(
                 height: screenHeight * 0.34,
                 width: double.infinity,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -188,7 +188,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             },
                             decoration: InputDecoration(
                               hintText: 'كلمة المرور الجديدة',
-                              prefixIcon: const Icon(Icons.lock_outline,
+                              prefixIcon: Icon(Icons.lock_outline,
                                   color: MyColors.primary),
                               suffixIcon: IconButton(
                                 icon: Icon(
@@ -221,7 +221,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             },
                             decoration: InputDecoration(
                               hintText: 'تأكيد كلمة المرور',
-                              prefixIcon: const Icon(Icons.lock_outline,
+                              prefixIcon: Icon(Icons.lock_outline,
                                   color: MyColors.primary),
                               suffixIcon: IconButton(
                                 icon: Icon(

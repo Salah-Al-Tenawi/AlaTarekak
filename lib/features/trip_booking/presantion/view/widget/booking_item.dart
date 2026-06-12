@@ -171,7 +171,7 @@ class _BookingItemState extends State<BookingItem> {
             alignment: Alignment.centerRight,
             child: Text(
               widget.booking.driverName,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: MyColors.textPrimary,
@@ -213,12 +213,12 @@ class _BookingItemState extends State<BookingItem> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.my_location, size: 18, color: MyColors.accent),
+            Icon(Icons.my_location, size: 18, color: MyColors.accent),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 "من: ${widget.booking.pickupAddress}",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   color: MyColors.textPrimary,
                 ),
@@ -240,12 +240,12 @@ class _BookingItemState extends State<BookingItem> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.location_on, size: 18, color: MyColors.accent),
+            Icon(Icons.location_on, size: 18, color: MyColors.accent),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 "إلى: ${widget.booking.destinationAddress}",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   color: MyColors.textPrimary,
                 ),
@@ -257,7 +257,7 @@ class _BookingItemState extends State<BookingItem> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.calendar_today,
+            Icon(Icons.calendar_today,
                 size: 16, color: MyColors.textSecondary),
             const SizedBox(width: 8),
             Text(
@@ -269,7 +269,7 @@ class _BookingItemState extends State<BookingItem> {
               ),
             ),
             const SizedBox(width: 16),
-            const Icon(Icons.access_time, size: 16, color: MyColors.textSecondary),
+            Icon(Icons.access_time, size: 16, color: MyColors.textSecondary),
             const SizedBox(width: 8),
             Text(
               _formatTime(widget.booking.departureTime),
@@ -289,7 +289,7 @@ class _BookingItemState extends State<BookingItem> {
               padding: const EdgeInsetsGeometry.all(8),
               child: Text(
                 timeUntil(widget.booking.departureTime),
-                style: const TextStyle(
+                style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                     color: MyColors.textHint),
@@ -322,7 +322,7 @@ class _BookingItemState extends State<BookingItem> {
         const SizedBox(height: 4),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             color: MyColors.textHint,
           ),
@@ -330,7 +330,7 @@ class _BookingItemState extends State<BookingItem> {
         const SizedBox(height: 2),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: MyColors.textPrimary,
@@ -361,7 +361,7 @@ class _BookingItemState extends State<BookingItem> {
         const SizedBox(height: 4),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 11,
             color: MyColors.textLight,
           ),
@@ -369,7 +369,7 @@ class _BookingItemState extends State<BookingItem> {
         const SizedBox(height: 2),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
             color: MyColors.textLight,
@@ -681,7 +681,7 @@ class _BookingItemState extends State<BookingItem> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             "إلغاء المقاعد",
                             style: TextStyle(
                               fontSize: 18,
@@ -690,14 +690,14 @@ class _BookingItemState extends State<BookingItem> {
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.close,
+                            icon: Icon(Icons.close,
                                 color: MyColors.textLight),
                             onPressed: () => Navigator.of(context).pop(),
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
-                      const Text(
+                      Text(
                         "حدد عدد المقاعد التي تريد إلغاء حجزها",
                         style: TextStyle(
                           fontSize: 14,
@@ -735,7 +735,7 @@ class _BookingItemState extends State<BookingItem> {
                             // عدد المقاعد المختارة
                             Text(
                               "$selectedSeats",
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: MyColors.primary,
@@ -764,7 +764,7 @@ class _BookingItemState extends State<BookingItem> {
                       const SizedBox(height: 8),
                       Text(
                         "الحد الأقصى للإلغاء: $maxSeats مقاعد",
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           color: MyColors.textSecondary,
                         ),
@@ -777,7 +777,7 @@ class _BookingItemState extends State<BookingItem> {
                               onPressed: () => Navigator.of(context).pop(),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: MyColors.primary,
-                                side: const BorderSide(color: MyColors.primary),
+                                side: BorderSide(color: MyColors.primary),
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 12),
                                 shape: RoundedRectangleBorder(
@@ -838,7 +838,7 @@ class _BookingItemState extends State<BookingItem> {
                 onTap: () {
                   Get.toNamed(RouteName.policy);
                 },
-                child: const Text(
+                child: Text(
                   "تعرف على سياسية التطبيق",
                   style: TextStyle(
                     color: MyColors.accent,

@@ -21,7 +21,7 @@ class ComplaintDetailScreen extends StatelessWidget {
         backgroundColor: MyColors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_forward_ios_rounded,
+          icon: Icon(Icons.arrow_forward_ios_rounded,
               color: MyColors.primary, size: 20),
           onPressed: () => Get.back(),
         ),
@@ -92,7 +92,7 @@ class ComplaintDetailScreen extends StatelessWidget {
                       child: Text(
                         'شكواك وصلت بنجاح ولم يطّلع عليها أحد بعد. سيبدأ فريق الدعم مراجعتها قريباً.',
                         style: AppTextStyles.labelSmall.copyWith(
-                            color: const Color(0xFF1565C0), height: 1.5),
+                            color: Color(0xFF1565C0), height: 1.5),
                       ),
                     ),
                   ],
@@ -114,7 +114,7 @@ class ComplaintDetailScreen extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.hourglass_top_rounded,
+                    Icon(Icons.hourglass_top_rounded,
                         color: MyColors.warning, size: 17),
                     SizedBox(width: 8.w),
                     Expanded(
@@ -137,7 +137,7 @@ class ComplaintDetailScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: MyColors.surface,
                 borderRadius: BorderRadius.circular(14),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
                       color: MyColors.shadowLight,
                       blurRadius: 8,
@@ -159,7 +159,7 @@ class ComplaintDetailScreen extends StatelessWidget {
                             color: MyColors.primary.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Icon(
+                          child: Icon(
                               Icons.report_problem_outlined,
                               color: MyColors.primary,
                               size: 17),
@@ -170,7 +170,7 @@ class ComplaintDetailScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Divider(height: 0, thickness: 0.5),
+                  Divider(height: 0, thickness: 0.5),
                   Padding(
                     padding: EdgeInsets.all(14.w),
                     child: Text(
@@ -190,7 +190,7 @@ class ComplaintDetailScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: MyColors.surface,
                 borderRadius: BorderRadius.circular(14),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
                       color: MyColors.shadowLight,
                       blurRadius: 8,

@@ -54,7 +54,7 @@ class VerifyOtpForgetPassword extends StatelessWidget {
               Container(
                 height: screenHeight * 0.38,
                 width: double.infinity,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,

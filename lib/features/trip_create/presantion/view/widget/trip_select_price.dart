@@ -67,7 +67,7 @@ class _TripSelectPriceState extends State<TripSelectPrice> {
             onPressed: () {
               incremant(widget.tripFrom.price);
             },
-            icon: const FaIcon(
+            icon: FaIcon(
               FontAwesomeIcons.plus,
               size: 40,
               color: MyColors.textPrimary,
@@ -81,7 +81,7 @@ class _TripSelectPriceState extends State<TripSelectPrice> {
             onPressed: () {
               decremant(widget.tripFrom.price);
             },
-            icon: const FaIcon(FontAwesomeIcons.minus,
+            icon: FaIcon(FontAwesomeIcons.minus,
                 size: 40, color: MyColors.textPrimary),
           ),
         ],

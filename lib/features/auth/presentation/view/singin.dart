@@ -43,7 +43,7 @@ class _SinginState extends State<Singin> {
           Container(
             height: screenHeight * 0.27,
             width: double.infinity,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,

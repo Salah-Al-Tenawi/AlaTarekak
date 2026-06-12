@@ -97,7 +97,7 @@ class _DatePickerSheetState extends State<_DatePickerSheet> {
                       color: MyColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.calendar_month_rounded,
+                    child: Icon(Icons.calendar_month_rounded,
                         color: MyColors.primary, size: 20),
                   ),
                   SizedBox(width: 10.w),
@@ -172,7 +172,7 @@ class _DatePickerSheetState extends State<_DatePickerSheet> {
               // ━━ التقويم ━━
               Theme(
                 data: Theme.of(context).copyWith(
-                  colorScheme: const ColorScheme.light(
+                  colorScheme: ColorScheme.light(
                     primary: MyColors.primary,
                     onPrimary: Colors.white,
                     surface: MyColors.surface,
@@ -207,7 +207,7 @@ class _DatePickerSheetState extends State<_DatePickerSheet> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.event_available_rounded,
+                    Icon(Icons.event_available_rounded,
                         color: MyColors.accent, size: 18),
                     SizedBox(width: 8.w),
                     Text(

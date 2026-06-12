@@ -93,7 +93,7 @@ class _TripAddNumberPhoneState extends State<TripAddNumberPhone> {
             backgroundColor: MyColors.surface,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_forward_ios_rounded,
+              icon: Icon(Icons.arrow_forward_ios_rounded,
                   color: MyColors.primary, size: 20),
               onPressed: () => Get.back(),
             ),
@@ -184,7 +184,7 @@ class _TripAddNumberPhoneState extends State<TripAddNumberPhone> {
                         decoration: InputDecoration(
                           labelText: "رقم الهاتف",
                           hintText: "09XXXXXXXX",
-                          prefixIcon: const Icon(Icons.phone_outlined,
+                          prefixIcon: Icon(Icons.phone_outlined,
                               color: MyColors.accent),
                           suffixIcon: Icon(
                             isValid
@@ -197,14 +197,14 @@ class _TripAddNumberPhoneState extends State<TripAddNumberPhone> {
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14.r),
                               borderSide:
-                                  const BorderSide(color: MyColors.border)),
+                                  BorderSide(color: MyColors.border)),
                           enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14.r),
                               borderSide:
-                                  const BorderSide(color: MyColors.border)),
+                                  BorderSide(color: MyColors.border)),
                           focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14.r),
-                              borderSide: const BorderSide(
+                              borderSide: BorderSide(
                                   color: MyColors.primary, width: 1.5)),
                         ),
                         validator: (v) => inputvaild(v!, "nubmerphone", 10, 10),
@@ -253,7 +253,7 @@ class _SubmitBar extends StatelessWidget {
                   onPressed: onBack,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: MyColors.primary,
-                    side: const BorderSide(color: MyColors.primary),
+                    side: BorderSide(color: MyColors.primary),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14.r)),
                     minimumSize: Size(double.infinity, 52.h),

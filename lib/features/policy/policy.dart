@@ -17,7 +17,7 @@ class Policy extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               "سياسة الإلغاء",
               style: TextStyle(
                 fontSize: 20,
@@ -26,7 +26,7 @@ class Policy extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               "النص كامل يسيمنتب  ",
               style: TextStyle(
                 fontSize: 16,
@@ -34,7 +34,7 @@ class Policy extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               "بنود السياسة:",
               style: TextStyle(
                 fontSize: 18,
@@ -62,12 +62,12 @@ class Policy extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.circle, size: 8, color: MyColors.accent),
+          Icon(Icons.circle, size: 8, color: MyColors.accent),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 color: MyColors.textPrimary,
               ),

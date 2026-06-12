@@ -99,7 +99,7 @@ class ProfileImageAndName extends StatelessWidget {
         Expanded(
           child: Text(
             name,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
               color: MyColors.textPrimary,

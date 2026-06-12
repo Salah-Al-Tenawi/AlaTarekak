@@ -66,7 +66,7 @@ class CustomTextformfild extends StatelessWidget {
         decoration: InputDecoration(
           prefix: prefix,
           labelText: title,
-          labelStyle: const TextStyle(
+          labelStyle: TextStyle(
             fontSize: 14,
             color: MyColors.navy,
           ),
@@ -79,7 +79,7 @@ class CustomTextformfild extends StatelessWidget {
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15),
           ),
-          focusedBorder: const OutlineInputBorder(
+          focusedBorder: OutlineInputBorder(
             borderSide: BorderSide(color: MyColors.primary),
           ),
         ),

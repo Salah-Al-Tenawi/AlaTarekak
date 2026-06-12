@@ -978,7 +978,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
                 controller: seatsController,
                 fill: true,
                 fillColor: Colors.white,
-                icon: const Icon(
+                icon: Icon(
                   Icons.event_seat,
                   color: MyColors.accent,
                 ),
@@ -1000,7 +1000,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
                 controller: contactController,
                 fill: true,
                 fillColor: Colors.white,
-                icon: const Icon(
+                icon: Icon(
                   Icons.phone,
                   color: MyColors.accent,
                 ),
@@ -1067,7 +1067,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
                 Navigator.pop(context);
               }
             },
-            child: const Text(
+            child: Text(
               "موافق",
               style: AppTextStyles.buttonLarge,
             ),

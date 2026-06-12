@@ -41,7 +41,7 @@ class HomeDrawer extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 15.w),
       titleTextStyle: font15ggreyw600,
       onTap: () => Get.toNamed(RouteName.profile, arguments: myid()),
-      trailing: const Icon(
+      trailing: Icon(
         Icons.person_pin_sharp,
         color: MyColors.accent,
         size: 30,
@@ -55,7 +55,7 @@ class HomeDrawer extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 15.w),
       titleTextStyle: font15ggreyw600,
       onTap: () => Get.toNamed(RouteName.policy),
-      trailing: const Icon(
+      trailing: Icon(
         Icons.policy,
         color: MyColors.accent,
         size: 30,
@@ -76,7 +76,7 @@ class HomeDrawer extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              title: const Row(
+              title: Row(
                 children: [
                   Icon(Icons.verified_user, color: MyColors.primary, size: 28),
                   SizedBox(width: 8),
@@ -86,14 +86,16 @@ class HomeDrawer extends StatelessWidget {
                   ),
                 ],
               ),
-              content: const Text(
+              content: Text(
                 "حرصًا على أمانك وأمان جميع مستخدمي التطبيق، "
                 "ولمنع الحسابات الوهمية والأشخاص غير الموثوقين، "
                 "نطلب منك إتمام عملية توثيق الهوية.\n\n"
                 "لن تتمكن من حجز الرحلات أو إنشاء رحلات جديدة "
                 "إلا بعد إتمام التوثيق بنجاح.",
-                style:
-                    TextStyle(fontSize: 14, color: Colors.black87, height: 1.5),
+                style: TextStyle(
+                    fontSize: 14,
+                    color: MyColors.textPrimary,
+                    height: 1.5),
                 textAlign: TextAlign.justify,
               ),
               actionsPadding:
@@ -154,7 +156,7 @@ class HomeDrawer extends StatelessWidget {
           },
         );
       },
-      trailing: const Icon(
+      trailing: Icon(
         Icons.verified_user,
         color: MyColors.accent,
         size: 28,
@@ -178,7 +180,7 @@ class HomeDrawer extends StatelessWidget {
                 MyButton(
                   color: MyColors.accent,
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: const Text("لا", style: AppTextStyles.bodyMedium),
+                  child: Text("لا", style: AppTextStyles.bodyMedium),
                 ),
                 MyButton(
                   color: MyColors.primary,
@@ -188,14 +190,14 @@ class HomeDrawer extends StatelessWidget {
                         .read<HomeNavCubit>()
                         .logout(scaffoldContext);
                   },
-                  child: const Text("نعم", style: AppTextStyles.bodyMedium),
+                  child: Text("نعم", style: AppTextStyles.bodyMedium),
                 ),
               ],
             );
           },
         );
       },
-      trailing: const Icon(
+      trailing: Icon(
         Icons.login_outlined,
         color: MyColors.accent,
         size: 30,

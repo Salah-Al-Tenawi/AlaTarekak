@@ -41,7 +41,7 @@ class ProfileMyCarsScreen extends StatelessWidget {
             backgroundColor: MyColors.surface,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_forward_ios_rounded,
+              icon: Icon(Icons.arrow_forward_ios_rounded,
                   color: MyColors.primary, size: 20),
               onPressed: () => Get.back(result: true),
             ),
@@ -105,7 +105,7 @@ class ProfileMyCarsScreen extends StatelessWidget {
 class _CarDisplayCard extends StatelessWidget {
   final CarEntity car;
   final VoidCallback onEdit;
-  const _CarDisplayCard({required this.car, required this.onEdit});
+  _CarDisplayCard({required this.car, required this.onEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +113,7 @@ class _CarDisplayCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
               color: MyColors.shadowLight,
               blurRadius: 10,
@@ -175,7 +175,7 @@ class _CarDisplayCard extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.edit_outlined,
+                            Icon(Icons.edit_outlined,
                                 size: 16, color: MyColors.primary),
                             SizedBox(width: 4.w),
                             Text('تعديل',
@@ -249,7 +249,7 @@ class _CarDisplayCard extends StatelessWidget {
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 class _EmptyCarState extends StatelessWidget {
   final VoidCallback onAdd;
-  const _EmptyCarState({required this.onAdd});
+  _EmptyCarState({required this.onAdd});
 
   @override
   Widget build(BuildContext context) {
@@ -259,7 +259,7 @@ class _EmptyCarState extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
               color: MyColors.shadowLight,
               blurRadius: 8,
@@ -275,7 +275,7 @@ class _EmptyCarState extends StatelessWidget {
               color: MyColors.primary.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.directions_car_outlined,
+            child: Icon(Icons.directions_car_outlined,
                 size: 36, color: MyColors.primary),
           ),
           SizedBox(height: 14.h),
@@ -505,7 +505,7 @@ class _CarFormSheetState extends State<_CarFormSheet> {
                       color: MyColors.primary.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.directions_car_outlined,
+                    child: Icon(Icons.directions_car_outlined,
                         color: MyColors.primary, size: 18),
                   ),
                   SizedBox(width: 10.w),
@@ -766,7 +766,7 @@ class _SwitchRow extends StatelessWidget {
 // Why Section
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 class _WhySection extends StatelessWidget {
-  const _WhySection();
+  _WhySection();
 
   @override
   Widget build(BuildContext context) {
@@ -775,7 +775,7 @@ class _WhySection extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
               color: MyColors.shadowLight,
               blurRadius: 8,
@@ -793,7 +793,7 @@ class _WhySection extends StatelessWidget {
                 decoration: BoxDecoration(
                     color: MyColors.accentLight,
                     borderRadius: BorderRadius.circular(10)),
-                child: const Icon(Icons.info_outline_rounded,
+                child: Icon(Icons.info_outline_rounded,
                     color: MyColors.accent, size: 18),
               ),
               SizedBox(width: 10.w),

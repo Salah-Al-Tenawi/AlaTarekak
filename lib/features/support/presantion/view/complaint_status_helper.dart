@@ -12,21 +12,21 @@ class ComplaintStatusCfg {
 ComplaintStatusCfg complaintStatusConfig(String status) {
   switch (status) {
     case 'resolved':
-      return const ComplaintStatusCfg(
+      return ComplaintStatusCfg(
         'تم الحل',
         Icons.check_circle_outline_rounded,
         MyColors.success,
         MyColors.successLight,
       );
     case 'rejected':
-      return const ComplaintStatusCfg(
+      return ComplaintStatusCfg(
         'مرفوض',
         Icons.cancel_outlined,
         MyColors.error,
         MyColors.errorLight,
       );
     case 'pending':
-      return const ComplaintStatusCfg(
+      return ComplaintStatusCfg(
         'قيد المراجعة',
         Icons.hourglass_empty_rounded,
         MyColors.warning,

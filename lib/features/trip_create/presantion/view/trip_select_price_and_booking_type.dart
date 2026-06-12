@@ -108,7 +108,7 @@ class _TripSelectPriceAndBookingTypeState
         backgroundColor: MyColors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_forward_ios_rounded,
+          icon: Icon(Icons.arrow_forward_ios_rounded,
               color: MyColors.primary, size: 20),
           onPressed: widget.onBack ?? () => Get.back(),
         ),
@@ -205,15 +205,15 @@ class _TripSelectPriceAndBookingTypeState
                     fillColor: MyColors.surface,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14.r),
-                      borderSide: const BorderSide(color: MyColors.border),
+                      borderSide: BorderSide(color: MyColors.border),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14.r),
-                      borderSide: const BorderSide(color: MyColors.border),
+                      borderSide: BorderSide(color: MyColors.border),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14.r),
-                      borderSide: const BorderSide(
+                      borderSide: BorderSide(
                           color: MyColors.primary, width: 1.5),
                     ),
                     contentPadding: EdgeInsets.all(12.w),
@@ -267,7 +267,7 @@ class _PriceSelector extends StatelessWidget {
   final int price;
   final VoidCallback onIncrease;
   final VoidCallback onDecrease;
-  const _PriceSelector(
+  _PriceSelector(
       {required this.price,
       required this.onIncrease,
       required this.onDecrease});
@@ -279,7 +279,7 @@ class _PriceSelector extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(color: MyColors.shadowLight, blurRadius: 8, offset: Offset(0, 2))
         ],
       ),
@@ -362,14 +362,14 @@ class _OptionRow<T> extends StatelessWidget {
           child: GestureDetector(
             onTap: () => onSelect(opt.value),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: Duration(milliseconds: 200),
               margin: EdgeInsets.only(
                   left: options.last == opt ? 0 : 8.w),
               padding: EdgeInsets.symmetric(vertical: 14.h),
               decoration: BoxDecoration(
                 color: isSelected ? MyColors.primary : MyColors.surface,
                 borderRadius: BorderRadius.circular(14.r),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
                       color: MyColors.shadowLight,
                       blurRadius: 8,
@@ -448,7 +448,7 @@ class _BottomNavBar extends StatelessWidget {
                 onPressed: onBack,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: MyColors.primary,
-                  side: const BorderSide(color: MyColors.primary),
+                  side: BorderSide(color: MyColors.primary),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14.r)),
                   minimumSize: Size(double.infinity, 52.h),

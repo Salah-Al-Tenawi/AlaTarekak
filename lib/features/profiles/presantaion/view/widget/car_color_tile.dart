@@ -14,10 +14,10 @@ class CarColorTile extends StatelessWidget {
     return CustomListTile(
       title: "لون",
       titleTextStyle: AppTextStyles.bodyMedium,
-      iconleading: const Icon(Icons.color_lens, size: 20, color: MyColors.primary),
+      iconleading: Icon(Icons.color_lens, size: 20, color: MyColors.primary),
       subtitle: Text(
         color??"",
-        style: const TextStyle(color: MyColors.textPrimary),
+        style: TextStyle(color: MyColors.textPrimary),
       ),
     );
   }

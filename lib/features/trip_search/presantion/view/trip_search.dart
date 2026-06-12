@@ -144,7 +144,7 @@ class _TripSearchState extends State<TripSearch>
             // ━━ Header ━━
             Container(
               width: double.infinity,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: MyColors.primary,
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(32),
@@ -289,7 +289,7 @@ class _SearchCard extends StatelessWidget {
   final ValueChanged<int> onSeatsChanged;
   final VoidCallback onSearch;
 
-  const _SearchCard({
+  _SearchCard({
     required this.sourceAddress,
     required this.destAddress,
     required this.selectedDate,
@@ -308,7 +308,7 @@ class _SearchCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(20.r),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: MyColors.shadowLight,
             blurRadius: 16,
@@ -475,7 +475,7 @@ class _LocationRow extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.arrow_back_ios_rounded,
+            Icon(Icons.arrow_back_ios_rounded,
                 size: 14, color: MyColors.textHint),
           ],
         ),
@@ -556,7 +556,7 @@ class _SeatsChip extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.people_alt_rounded, size: 16, color: MyColors.primary),
+          Icon(Icons.people_alt_rounded, size: 16, color: MyColors.primary),
           SizedBox(width: 6.w),
           Expanded(
             child: Column(
@@ -583,7 +583,7 @@ class _SeatsChip extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(color: MyColors.primary.withValues(alpha: 0.3)),
               ),
-              child: const Icon(Icons.remove, size: 12, color: MyColors.primary),
+              child: Icon(Icons.remove, size: 12, color: MyColors.primary),
             ),
           ),
           SizedBox(width: 4.w),

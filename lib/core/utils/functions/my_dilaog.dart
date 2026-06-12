@@ -28,7 +28,7 @@ Future<bool?> myConfirmDilaogWithPolicy(
         children: [
           Padding(
             padding: EdgeInsetsGeometry.symmetric(vertical: 10.h),
-            child: const Center(
+            child: Center(
               child: Icon(
                 Icons.error,
                 size: 50,
@@ -44,7 +44,7 @@ Future<bool?> myConfirmDilaogWithPolicy(
               onTap: () {
                 Get.toNamed(RouteName.policy);
               },
-              child: const Text(
+              child: Text(
                 "تعرف على سياسية التطبيق",
                 style: TextStyle(
                   color: MyColors.accent,

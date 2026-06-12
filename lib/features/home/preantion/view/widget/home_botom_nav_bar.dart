@@ -17,7 +17,7 @@ class ModernBottomNavBar extends StatelessWidget {
     Icons.person_rounded,
   ];
 
-  static const _titles = [
+  static final _titles = [
     "حجوزاتي",
     "رحلاتي",
     "الرئيسية",
@@ -33,9 +33,9 @@ class ModernBottomNavBar extends StatelessWidget {
           margin: EdgeInsets.only(bottom: 12.h, right: 20.w, left: 20.w),
           height: 80.h,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: MyColors.surface,
             borderRadius: BorderRadius.circular(28.r),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
                 color: MyColors.shadowLight,
                 blurRadius: 20,
@@ -97,7 +97,7 @@ class ModernBottomNavBar extends StatelessWidget {
                                             child: Container(
                                               padding:
                                                   const EdgeInsets.all(3),
-                                              decoration: const BoxDecoration(
+                                              decoration: BoxDecoration(
                                                 color: MyColors.error,
                                                 shape: BoxShape.circle,
                                               ),

@@ -112,7 +112,7 @@ class _ChatScreenState extends State<ChatScreen> {
               },
               builder: (context, state) {
                 if (state is MessageLoading) {
-                  return const Center(
+                  return Center(
                       child: CircularProgressIndicator(color: MyColors.primary));
                 }
 
@@ -250,7 +250,7 @@ class _MessageBubble extends StatelessWidget {
                   ? NetworkImage(message.sender.avatar!)
                   : null,
               child: message.sender.avatar == null
-                  ? const Icon(Icons.person,
+                  ? Icon(Icons.person,
                       size: 14, color: MyColors.textHint)
                   : null,
             ),
@@ -354,7 +354,7 @@ class _ImageBubble extends StatelessWidget {
               width: 0.6.sw,
               height: 120.h,
               color: MyColors.surfaceAlt,
-              child: const Icon(Icons.broken_image_outlined,
+              child: Icon(Icons.broken_image_outlined,
                   color: MyColors.textHint),
             ),
           ),
@@ -382,7 +382,7 @@ class _InputBar extends StatelessWidget {
   final VoidCallback onSend;
   final VoidCallback onImage;
 
-  const _InputBar({
+  _InputBar({
     required this.controller,
     required this.onSend,
     required this.onImage,
@@ -395,7 +395,7 @@ class _InputBar extends StatelessWidget {
           12.w, 8.h, 12.w, MediaQuery.of(context).viewInsets.bottom + 12.h),
       decoration: BoxDecoration(
         color: MyColors.surface,
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
               color: MyColors.shadowLight,
               blurRadius: 8,
@@ -407,7 +407,7 @@ class _InputBar extends StatelessWidget {
           // Image picker
           IconButton(
             onPressed: onImage,
-            icon: const Icon(Icons.image_outlined, color: MyColors.primary),
+            icon: Icon(Icons.image_outlined, color: MyColors.primary),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
           ),
@@ -447,7 +447,7 @@ class _InputBar extends StatelessWidget {
             child: Container(
               width: 42,
               height: 42,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: MyColors.accent,
                 shape: BoxShape.circle,
               ),

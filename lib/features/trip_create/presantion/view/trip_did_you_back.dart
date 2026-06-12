@@ -37,13 +37,13 @@ class _TripDidYouBackState extends State<TripDidYouBack> {
             padding: EdgeInsets.only(top: 130.h),
             child: Column(
               children: [
-                const Text(
+                Text(
                   "تم إنشاء الرحلة بنجاح ",
                   style: AppTextStyles.titleMedium,
                 ),
                 Padding(
                   padding: EdgeInsets.only(top: 30.h, bottom: 100.h),
-                  child: const FaIcon(
+                  child: FaIcon(
                     FontAwesomeIcons.circleCheck,
                     size: 150,
                     color: MyColors.accent,

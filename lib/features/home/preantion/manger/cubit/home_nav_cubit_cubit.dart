@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/route_manager.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/service/chat_socket_service.dart';
+import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/features/auth/data/repo/auth_repo_im.dart';
 
 class HomeNavCubit extends Cubit<int> {
@@ -19,7 +20,7 @@ class HomeNavCubit extends Cubit<int> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(error.message),
-            backgroundColor: Colors.red,
+            backgroundColor: MyColors.error,
           ),
         );
       },

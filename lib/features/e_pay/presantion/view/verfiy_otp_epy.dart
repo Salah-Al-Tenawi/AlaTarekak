@@ -86,7 +86,7 @@ class _VerifyOtpEPayScreenState extends State<VerifyOtpEPay> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 20.h),
-            const Align(
+            Align(
               alignment: Alignment.topCenter,
               child: Icon(
                 Icons.account_balance_wallet,
@@ -110,7 +110,7 @@ class _VerifyOtpEPayScreenState extends State<VerifyOtpEPay> {
               controller: _phoneController,
               title: "رقم الهاتف",
               keyboardType: TextInputType.phone,
-              icon: const Icon(
+              icon: Icon(
                 Icons.phone,
                 color: MyColors.accent,
               ),
@@ -130,7 +130,7 @@ class _VerifyOtpEPayScreenState extends State<VerifyOtpEPay> {
             CustomTextformfild(
               controller: _passwordController,
               title: "كلمة المرور",
-              icon: const Icon(
+              icon: Icon(
                 Icons.lock,
                 color: MyColors.accent,
               ),
@@ -187,7 +187,7 @@ class _VerifyOtpEPayScreenState extends State<VerifyOtpEPay> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: 20.h),
-          const Align(
+          Align(
             alignment: Alignment.topCenter,
             child: Icon(
               Icons.verified_user,
@@ -237,7 +237,7 @@ class _VerifyOtpEPayScreenState extends State<VerifyOtpEPay> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
+              Text(
                 'لم تستلم الرمز؟',
                 style: TextStyle(fontSize: 14, color: MyColors.accent),
               ),
@@ -248,7 +248,7 @@ class _VerifyOtpEPayScreenState extends State<VerifyOtpEPay> {
                         _passwordController.text,
                       );
                 },
-                child: const Text(
+                child: Text(
                   'إعادة إرسال الرمز',
                   style: TextStyle(color: MyColors.primary),
                 ),

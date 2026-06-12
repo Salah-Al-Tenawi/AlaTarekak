@@ -11,6 +11,7 @@ class HiveService {
       Hive.openBox<String>(HiveBoxes.profileBoxName),
       Hive.openBox<UserModel>(HiveBoxes.authBoxName),
       Hive.openBox(HiveBoxes.tripBoxName),
+      Hive.openBox(HiveBoxes.settingsBoxName),
     ]);
   }
 
@@ -53,4 +54,9 @@ class HiveBoxes {
   static const String tripBoxName = 'tripBox';
   static Box get tripBox =>
       Hive.box(tripBoxName);
+
+  //  App settings (theme mode, ...)
+  static const String settingsBoxName = 'settingsBox';
+  static Box get settingsBox =>
+      Hive.box(settingsBoxName);
 }

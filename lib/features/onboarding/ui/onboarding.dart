@@ -52,7 +52,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               Container(
                 width: double.infinity,
                 height: double.infinity,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,

@@ -75,7 +75,7 @@ class _EmptyState extends StatelessWidget {
                 color: MyColors.primary.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.airport_shuttle_outlined,
+              child: Icon(Icons.airport_shuttle_outlined,
                   size: 40, color: MyColors.primary),
             ),
             SizedBox(height: 20.h),

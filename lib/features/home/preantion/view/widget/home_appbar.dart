@@ -39,7 +39,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ],
           ),
-          child: const Row(
+          child: Row(
             children: [
               Icon(
                 Icons.add,
@@ -75,7 +75,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.account_balance_wallet,
             color: MyColors.accent,
             size: 20,
@@ -103,7 +103,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
             borderRadius: BorderRadius.circular(20),
           ),
           contentPadding: const EdgeInsets.all(20),
-          title: const Row(
+          title: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.account_balance_wallet,
@@ -120,7 +120,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
             children: [
               Text(
                 "$balance ل.س",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: MyColors.accent,
@@ -187,7 +187,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: MyColors.textHint),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       FaIcon(FontAwesomeIcons.telegram,
@@ -227,7 +227,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         IconButton(
           onPressed: onRefresh,
-          icon: const Icon(
+          icon: Icon(
             Icons.refresh,
             color: MyColors.accent,
           ),
@@ -256,13 +256,13 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               margin: EdgeInsets.only(left: 8.w, bottom: 5.h, right: 8.w),
               width: 35.w,
               height: 45.h,
-              decoration: const BoxDecoration(boxShadow: [
+              decoration: BoxDecoration(boxShadow: [
                 BoxShadow(
                     blurRadius: 5,
                     offset: Offset(5, 5),
                     color: MyColors.navy)
               ], shape: BoxShape.circle, color: MyColors.background),
-              child: const Icon(Icons.chat),
+              child: Icon(Icons.chat),
             ),
           ),
         ),
@@ -287,7 +287,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               width: 35.w,
               height: 45.h,
               decoration: BoxDecoration(
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
                       blurRadius: 5,
                       offset: Offset(5, 5),

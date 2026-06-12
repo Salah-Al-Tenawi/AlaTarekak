@@ -60,7 +60,7 @@ class _VerfiyEmailSinginState extends State<VerfiyEmailSingin> {
               Container(
                 height: screenHeight * 0.38,
                 width: double.infinity,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -231,7 +231,7 @@ class _VerfiyEmailSinginState extends State<VerfiyEmailSingin> {
                                     .copyWith(color: MyColors.textSecondary),
                               ),
                               if (isResendLoading)
-                                const SizedBox(
+                                SizedBox(
                                   width: 14,
                                   height: 14,
                                   child: CircularProgressIndicator(

@@ -14,7 +14,7 @@ class ProfileSupportScreen extends StatelessWidget {
         backgroundColor: MyColors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_forward_ios_rounded,
+          icon: Icon(Icons.arrow_forward_ios_rounded,
               color: MyColors.primary, size: 20),
           onPressed: () => Get.back(),
         ),

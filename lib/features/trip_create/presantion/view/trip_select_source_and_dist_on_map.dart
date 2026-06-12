@@ -38,7 +38,7 @@ class _TripSelectSourceAndDestOnMapState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
+            Text(
               "حدد موقع انطلاق و وجهة الرحلة و المسار على الخريطة",
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -53,7 +53,7 @@ class _TripSelectSourceAndDestOnMapState
               onPressed: () {
                 Get.toNamed(RouteName.pushRideMap, arguments: tripFrom);
               },
-              child: const FaIcon(FontAwesomeIcons.mapLocationDot,
+              child: FaIcon(FontAwesomeIcons.mapLocationDot,
                   size: 60, color: MyColors.accent),
             ),
           ],

@@ -147,25 +147,25 @@ class _StatusHeader extends StatelessWidget {
     switch (status) {
       case 'approved':
         return _HeaderConfig(
-          gradientColors: const [Color(0xFF1B5E20), MyColors.success],
+          gradientColors: [Color(0xFF1B5E20), MyColors.success],
           icon: Icons.verified_rounded,
           title: 'تم التوثيق بنجاح',
         );
       case 'pending':
         return _HeaderConfig(
-          gradientColors: const [Color(0xFFE65100), MyColors.warning],
+          gradientColors: [Color(0xFFE65100), MyColors.warning],
           icon: Icons.hourglass_top_rounded,
           title: 'طلبك قيد المراجعة',
         );
       case 'rejected':
         return _HeaderConfig(
-          gradientColors: const [Color(0xFFB71C1C), MyColors.error],
+          gradientColors: [Color(0xFFB71C1C), MyColors.error],
           icon: Icons.cancel_outlined,
           title: 'تم رفض الطلب',
         );
       default:
         return _HeaderConfig(
-          gradientColors: const [MyColors.navy, MyColors.primary, MyColors.blue],
+          gradientColors: [MyColors.navy, MyColors.primary, MyColors.blue],
           icon: Icons.badge_outlined,
           title: 'توثيق الحساب',
         );
@@ -401,7 +401,7 @@ class _RejectedBody extends StatelessWidget {
 class _DocumentsCard extends StatelessWidget {
   final bool isDriver;
   final DocumentsModel? documents;
-  const _DocumentsCard({required this.isDriver, required this.documents});
+  _DocumentsCard({required this.isDriver, required this.documents});
 
   @override
   Widget build(BuildContext context) {
@@ -430,7 +430,7 @@ class _DocumentsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
               color: MyColors.shadowLight,
               blurRadius: 8,
@@ -441,7 +441,7 @@ class _DocumentsCard extends StatelessWidget {
         children: [
           for (int i = 0; i < items.length; i++) ...[
             if (i > 0)
-              const Divider(
+              Divider(
                   height: 1,
                   thickness: 1,
                   color: MyColors.divider,
@@ -528,7 +528,7 @@ class _DocStatusRow extends StatelessWidget {
 
 class _Timeline extends StatelessWidget {
   final List<_TimelineStep> steps;
-  const _Timeline({required this.steps});
+  _Timeline({required this.steps});
 
   @override
   Widget build(BuildContext context) {
@@ -537,7 +537,7 @@ class _Timeline extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
               color: MyColors.shadowLight,
               blurRadius: 8,
@@ -635,7 +635,7 @@ class _BenefitCard extends StatelessWidget {
   final Color color;
   final String title;
   final String subtitle;
-  const _BenefitCard({
+  _BenefitCard({
     required this.icon,
     required this.color,
     required this.title,
@@ -649,7 +649,7 @@ class _BenefitCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(12.r),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
               color: MyColors.shadowLight,
               blurRadius: 6,

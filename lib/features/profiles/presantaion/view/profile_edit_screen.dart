@@ -107,7 +107,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             backgroundColor: MyColors.surface,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_forward_ios_rounded,
+              icon: Icon(Icons.arrow_forward_ios_rounded,
                   color: MyColors.primary, size: 20),
               onPressed: () => Get.back(),
             ),
@@ -197,7 +197,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                                     ),
                                   ),
                                 ),
-                                const Icon(
+                                Icon(
                                     Icons.keyboard_arrow_down_rounded,
                                     color: MyColors.textHint,
                                     size: 20),
@@ -293,7 +293,7 @@ class _AddressSheet extends StatelessWidget {
                   color: MyColors.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.location_on_outlined,
+                child: Icon(Icons.location_on_outlined,
                     color: MyColors.primary, size: 17),
               ),
               SizedBox(width: 10.w),
@@ -325,7 +325,7 @@ class _AddressSheet extends StatelessWidget {
                             : FontWeight.normal,
                       )),
                   trailing: isSelected
-                      ? const Icon(Icons.check_circle_rounded,
+                      ? Icon(Icons.check_circle_rounded,
                           color: MyColors.primary, size: 20)
                       : null,
                   onTap: () {
@@ -407,7 +407,7 @@ class _PhotoPicker extends StatelessWidget {
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 class _SectionCard extends StatelessWidget {
   final List<Widget> children;
-  const _SectionCard({required this.children});
+  _SectionCard({required this.children});
 
   @override
   Widget build(BuildContext context) {
@@ -415,7 +415,7 @@ class _SectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
               color: MyColors.shadowLight,
               blurRadius: 8,

@@ -203,7 +203,7 @@ class _SharedInputs extends StatelessWidget {
   final TextEditingController convIdCtrl, userIdCtrl, titleCtrl, typeCtrl,
       contentCtrl, msgIdCtrl, pageCtrl;
 
-  const _SharedInputs({
+  _SharedInputs({
     required this.convIdCtrl,
     required this.userIdCtrl,
     required this.titleCtrl,
@@ -220,7 +220,7 @@ class _SharedInputs extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(color: MyColors.shadowLight, blurRadius: 8, offset: Offset(0, 2))
         ],
       ),
@@ -281,7 +281,7 @@ class _Input extends StatelessWidget {
             EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.r),
-          borderSide: const BorderSide(color: MyColors.primary, width: 1),
+          borderSide: BorderSide(color: MyColors.primary, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.r),
@@ -325,7 +325,7 @@ class _ApiCardState extends State<_ApiCard> {
       case 'POST':
         return const Color(0xFF4CAF50);
       case 'DELETE':
-        return const Color(0xFFF44336);
+        return Color(0xFFF44336);
       default:
         return MyColors.primary;
     }
@@ -340,7 +340,7 @@ class _ApiCardState extends State<_ApiCard> {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
               color: MyColors.shadowLight,
               blurRadius: 8,

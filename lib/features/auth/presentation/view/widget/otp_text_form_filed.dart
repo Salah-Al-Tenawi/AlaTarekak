@@ -123,18 +123,18 @@ class OtpTextformState extends State<OtpTextform> {
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: MyColors.border),
+            borderSide: BorderSide(color: MyColors.border),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(
+            borderSide: BorderSide(
               color: MyColors.accent,
               width: 1.5,
             ),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: MyColors.error),
+            borderSide: BorderSide(color: MyColors.error),
           ),
         ),
         onChanged: (value) {

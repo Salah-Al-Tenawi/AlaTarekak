@@ -129,7 +129,7 @@ class _StatsCard extends StatelessWidget {
   final List<_StatData> items;
   final int columns;
 
-  const _StatsCard({
+  _StatsCard({
     required this.icon,
     required this.title,
     required this.iconBg,
@@ -144,7 +144,7 @@ class _StatsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: MyColors.shadowLight,
             blurRadius: 8,

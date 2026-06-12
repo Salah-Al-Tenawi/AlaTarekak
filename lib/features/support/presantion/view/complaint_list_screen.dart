@@ -31,7 +31,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
         backgroundColor: MyColors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_forward_ios_rounded,
+          icon: Icon(Icons.arrow_forward_ios_rounded,
               color: MyColors.primary, size: 20),
           onPressed: () => Get.back(),
         ),
@@ -41,7 +41,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
       body: BlocBuilder<ComplaintListCubit, ComplaintListState>(
         builder: (context, state) {
           if (state is ComplaintListLoading) {
-            return const Center(
+            return Center(
               child: CircularProgressIndicator(color: MyColors.primary),
             );
           }
@@ -98,10 +98,10 @@ class _ComplaintCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: isUnread
               ? Border.all(
-                  color: const Color(0xFF1565C0).withValues(alpha: 0.3),
+                  color: Color(0xFF1565C0).withValues(alpha: 0.3),
                   width: 1)
               : null,
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
                 color: MyColors.shadowLight,
                 blurRadius: 8,
@@ -176,7 +176,7 @@ class _ComplaintCard extends StatelessWidget {
               ),
             ),
             SizedBox(width: 6.w),
-            const Icon(Icons.arrow_back_ios_rounded,
+            Icon(Icons.arrow_back_ios_rounded,
                 size: 14, color: MyColors.textHint),
           ],
         ),
@@ -227,7 +227,7 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline_rounded,
+            Icon(Icons.error_outline_rounded,
                 size: 52, color: MyColors.error),
             SizedBox(height: 12.h),
             Text(message,

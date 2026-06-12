@@ -13,7 +13,7 @@ class PrivacyPolicyDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
-      title: const Row(
+      title: Row(
         children: [
           Icon(Icons.privacy_tip, color: MyColors.accent),
           SizedBox(width: 8),

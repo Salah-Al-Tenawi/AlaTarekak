@@ -178,13 +178,13 @@ class _SearchRideMapState extends State<SearchRideMap> {
                 children: [
                   Text(
                     "المسار ${state.currentRouteIndex + 1}/${state.routes.length}",
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: MyColors.primary,
                     ),
                   ),
-                  const Icon(Icons.route, color: MyColors.accent, size: 30),
+                  Icon(Icons.route, color: MyColors.accent, size: 30),
                 ],
               ),
               const SizedBox(height: 16),
@@ -217,7 +217,7 @@ class _SearchRideMapState extends State<SearchRideMap> {
                   height: 50.h,
                   borderRadius: true,
                   splashcolor: MyColors.primary,
-                  child: const Text(
+                  child: Text(
                     "التالي",
                     style: AppTextStyles.bodyMedium,
                   ),

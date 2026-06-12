@@ -5,7 +5,7 @@ Future<void> showNoTripsDialog(BuildContext context) async {
   return showDialog(
     context: context,
     builder: (ctx) => AlertDialog(
-      backgroundColor: Colors.white,
+      backgroundColor: MyColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -18,7 +18,7 @@ Future<void> showNoTripsDialog(BuildContext context) async {
             color: MyColors.accent.withOpacity(0.8),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'لا توجد رحلات متاحة حالياً',
             style: TextStyle(
               color: MyColors.primary,

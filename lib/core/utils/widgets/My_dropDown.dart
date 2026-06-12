@@ -28,7 +28,7 @@ class MyDropdown extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 5.h),
       child: DropdownButtonFormField<String>(
         decoration: InputDecoration(
-          focusedBorder: const OutlineInputBorder(
+          focusedBorder: OutlineInputBorder(
               borderSide: BorderSide(color: MyColors.primary)),
           labelText: title,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),

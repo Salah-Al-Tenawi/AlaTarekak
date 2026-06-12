@@ -107,7 +107,7 @@ class ColumnButtonsLogin extends StatelessWidget {
                     onPressed: () {},
                     style: OutlinedButton.styleFrom(
                       foregroundColor: MyColors.textPrimary,
-                      side: const BorderSide(color: MyColors.border),
+                      side: BorderSide(color: MyColors.border),
                       padding: EdgeInsets.symmetric(vertical: 12.h),
                     ),
                     icon: Image.asset(ImagesUrl.imagegoogle, width: 20, height: 20),

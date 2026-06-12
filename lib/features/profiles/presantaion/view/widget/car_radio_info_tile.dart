@@ -13,7 +13,7 @@ class CarRadioInfoTile extends StatelessWidget {
     return CustomListTile(
       title: "الراديو",
       titleTextStyle: AppTextStyles.bodyMedium,
-      iconleading: const Icon(Icons.radio, size: 20, color: MyColors.primary),
+      iconleading: Icon(Icons.radio, size: 20, color: MyColors.primary),
       subtitle: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(

@@ -31,7 +31,7 @@ class ItemTrip extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 2,
-      color: Colors.white,
+      color: MyColors.surface,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
@@ -52,14 +52,14 @@ class ItemTrip extends StatelessWidget {
                             ? NetworkImage(trip.driver.avatar!)
                             : null,
                         child: trip.driver.avatar == null
-                            ? const Icon(Icons.person,
+                            ? Icon(Icons.person,
                                 color: MyColors.background)
                             : null,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         trip.driver.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                           color: MyColors.textPrimary,
@@ -96,7 +96,7 @@ class ItemTrip extends StatelessWidget {
                       child: Divider(
                         thickness: 1,
                         height: 1,
-                        color: Colors.grey.shade300,
+                        color: MyColors.border,
                         indent: 8,
                         endIndent: 8,
                       ),
@@ -119,7 +119,7 @@ class ItemTrip extends StatelessWidget {
                     child: Container(
                       height: 20.h,
                       width: 2.w,
-                      color: Colors.grey.shade300,
+                      color: MyColors.border,
                     ),
                   ),
                   _LocationRowModern(
@@ -139,7 +139,7 @@ class ItemTrip extends StatelessWidget {
                   _InfoChip(
                       icon: Icons.access_time,
                       label: DateTimeUtils.formatTime(trip.departure),
-                      color: Colors.red),
+                      color: MyColors.error),
                   _InfoChip(
                     icon: Icons.event_seat,
                     label: " ${trip.seatsAvailable} | ${trip.seatsBooked}",
@@ -164,7 +164,7 @@ class ItemTrip extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.monetization_on,
                             color: MyColors.accent,
                             size: 22,
@@ -172,7 +172,7 @@ class ItemTrip extends StatelessWidget {
                           const SizedBox(width: 6),
                           Text(
                             "للراكب ${trip.pricePerSeat}  ل.س",
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: MyColors.primary,
@@ -208,8 +208,9 @@ class ItemTrip extends StatelessWidget {
                                     WidgetStateProperty.resolveWith<Color>(
                                   (states) =>
                                       states.contains(WidgetState.pressed)
-                                          ? Colors.red.shade700
-                                          : Colors.red,
+                                          ? MyColors.error
+                                              .withValues(alpha: 0.8)
+                                          : MyColors.error,
                                 ),
                               ),
                               icon: const Icon(Icons.cancel, size: 20),
@@ -288,7 +289,7 @@ void showEndTripDialog(BuildContext context) {
         backgroundColor: MyColors.background,
         title: Row(
           children: [
-            const Icon(Icons.warning_amber_rounded,
+            Icon(Icons.warning_amber_rounded,
                 color: MyColors.accent, size: 28),
             SizedBox(width: 8.w),
             Text(
@@ -305,7 +306,7 @@ void showEndTripDialog(BuildContext context) {
           "عند التأكيد بإنهاء الرحلة من قبل السائق والمسافرين سيتم تحويل حساب الرحلة من المسافرين الى السائق ",
           style: TextStyle(
             fontSize: 15.sp,
-            color: Colors.black87,
+            color: MyColors.textPrimary,
           ),
         ),
         actionsAlignment: MainAxisAlignment.spaceEvenly,
@@ -315,7 +316,7 @@ void showEndTripDialog(BuildContext context) {
               Navigator.of(context).pop(); // إلغاء
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey.shade300,
+              backgroundColor: MyColors.surfaceAlt,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.r),
               ),
@@ -324,7 +325,7 @@ void showEndTripDialog(BuildContext context) {
             child: Text(
               "رجوع",
               style: TextStyle(
-                color: Colors.black87,
+                color: MyColors.textPrimary,
                 fontSize: 14.sp,
               ),
             ),
@@ -372,7 +373,7 @@ class _LocationRowModern extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: Text(text,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: MyColors.textPrimary
@@ -454,12 +455,12 @@ Widget buildRemainingTime(Duration duration) {
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
     decoration: BoxDecoration(
-      color: Colors.amber.shade100,
+      color: MyColors.warningLight,
       borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: Colors.amber, width: 1.5),
+      border: Border.all(color: MyColors.warning, width: 1.5),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.1),
+          color: MyColors.shadowMedium,
           blurRadius: 6,
           offset: const Offset(2, 2),
         ),
@@ -468,14 +469,14 @@ Widget buildRemainingTime(Duration duration) {
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.access_time, color: Colors.black54, size: 18),
+        Icon(Icons.access_time, color: MyColors.textSecondary, size: 18),
         const SizedBox(width: 6),
         Text(
           formatRemainingTime(duration),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: MyColors.textPrimary,
           ),
         ),
       ],

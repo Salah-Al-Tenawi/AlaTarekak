@@ -84,7 +84,7 @@ class TripReviewAndConfirm extends StatelessWidget {
 
 class _RouteCard extends StatelessWidget {
   final TripFrom tripFrom;
-  const _RouteCard({required this.tripFrom});
+  _RouteCard({required this.tripFrom});
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +100,7 @@ class _RouteCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
               color: MyColors.shadowLight,
               blurRadius: 8,
@@ -122,7 +122,7 @@ class _RouteCard extends StatelessWidget {
                     Container(
                       width: 12.r,
                       height: 12.r,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                           color: MyColors.primary, shape: BoxShape.circle),
                     ),
                     Expanded(
@@ -134,7 +134,7 @@ class _RouteCard extends StatelessWidget {
                     Container(
                       width: 12.r,
                       height: 12.r,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                           color: MyColors.accent, shape: BoxShape.circle),
                     ),
                   ],
@@ -161,7 +161,7 @@ class _RouteCard extends StatelessWidget {
             ),
           ),
           SizedBox(height: 14.h),
-          const Divider(color: MyColors.border, height: 1, thickness: 1),
+          Divider(color: MyColors.border, height: 1, thickness: 1),
           SizedBox(height: 12.h),
           // ── chips row ──
           Wrap(
@@ -222,7 +222,7 @@ class _RouteCard extends StatelessWidget {
 
 class _DetailsCard extends StatelessWidget {
   final TripFrom tripFrom;
-  const _DetailsCard({required this.tripFrom});
+  _DetailsCard({required this.tripFrom});
 
   @override
   Widget build(BuildContext context) {
@@ -235,7 +235,7 @@ class _DetailsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
               color: MyColors.shadowLight,
               blurRadius: 8,
@@ -315,7 +315,7 @@ class _BottomBar extends StatelessWidget {
                 onPressed: onBack,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: MyColors.primary,
-                  side: const BorderSide(color: MyColors.primary),
+                  side: BorderSide(color: MyColors.primary),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14.r)),
                   minimumSize: Size(double.infinity, 52.h),
@@ -472,5 +472,5 @@ class _RowDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      const Divider(color: MyColors.border, height: 1, thickness: 1);
+      Divider(color: MyColors.border, height: 1, thickness: 1);
 }

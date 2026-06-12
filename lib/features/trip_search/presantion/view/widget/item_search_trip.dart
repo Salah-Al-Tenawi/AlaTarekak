@@ -167,7 +167,7 @@ class _DriverAvatar extends StatelessWidget {
         color: MyColors.primary.withValues(alpha: 0.08),
       ),
       child: avatar == null
-          ? const Icon(Icons.person_rounded, color: MyColors.primary, size: 20)
+          ? Icon(Icons.person_rounded, color: MyColors.primary, size: 20)
           : null,
     );
   }

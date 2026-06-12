@@ -23,7 +23,7 @@ class ProfilePersonalInfoScreen extends StatelessWidget {
           backgroundColor: MyColors.surface,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_forward_ios_rounded,
+            icon: Icon(Icons.arrow_forward_ios_rounded,
                 color: MyColors.primary, size: 20),
             onPressed: () => Get.back(),
           ),
@@ -92,7 +92,7 @@ class ProfilePersonalInfoScreen extends StatelessWidget {
       backgroundColor: MyColors.surface,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_forward_ios_rounded,
+        icon: Icon(Icons.arrow_forward_ios_rounded,
             color: MyColors.primary, size: 20),
         onPressed: () => Get.back(),
       ),
@@ -100,7 +100,7 @@ class ProfilePersonalInfoScreen extends StatelessWidget {
       centerTitle: true,
       actions: [
         IconButton(
-          icon: const Icon(Icons.edit_outlined,
+          icon: Icon(Icons.edit_outlined,
               color: MyColors.primary, size: 22),
           tooltip: 'تعديل',
           onPressed: () async {
@@ -199,7 +199,7 @@ class _Header extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.star_rounded, color: MyColors.accent, size: 18),
+              Icon(Icons.star_rounded, color: MyColors.accent, size: 18),
               SizedBox(width: 4.w),
               Text(
                 profile.averageRating.toStringAsFixed(1),
@@ -225,7 +225,7 @@ class _Header extends StatelessWidget {
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 class _AccountStatusCard extends StatelessWidget {
   final ProfileEntity profile;
-  const _AccountStatusCard({required this.profile});
+  _AccountStatusCard({required this.profile});
 
   @override
   Widget build(BuildContext context) {
@@ -233,7 +233,7 @@ class _AccountStatusCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: MyColors.shadowLight,
             blurRadius: 10,
@@ -498,7 +498,7 @@ class _StatusConfig {
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 class _InfoCard extends StatelessWidget {
   final ProfileEntity profile;
-  const _InfoCard({required this.profile});
+  _InfoCard({required this.profile});
 
   @override
   Widget build(BuildContext context) {
@@ -512,7 +512,7 @@ class _InfoCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: MyColors.shadowLight,
             blurRadius: 8,
@@ -564,7 +564,7 @@ class _InfoCard extends StatelessWidget {
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 class _BioCard extends StatelessWidget {
   final String bio;
-  const _BioCard({required this.bio});
+  _BioCard({required this.bio});
 
   @override
   Widget build(BuildContext context) {
@@ -575,7 +575,7 @@ class _BioCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: MyColors.shadowLight,
             blurRadius: 8,
@@ -595,7 +595,7 @@ class _BioCard extends StatelessWidget {
                   color: MyColors.background,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.info_outline_rounded,
+                child: Icon(Icons.info_outline_rounded,
                     color: MyColors.primary, size: 17),
               ),
               SizedBox(width: 8.w),
@@ -674,7 +674,7 @@ class _InfoRow extends StatelessWidget {
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 class _RatingCard extends StatelessWidget {
   final ProfileEntity profile;
-  const _RatingCard({required this.profile});
+  _RatingCard({required this.profile});
 
   @override
   Widget build(BuildContext context) {
@@ -683,7 +683,7 @@ class _RatingCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: MyColors.shadowLight,
             blurRadius: 8,
@@ -703,7 +703,7 @@ class _RatingCard extends StatelessWidget {
                   color: MyColors.accentLight,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.star_outline_rounded,
+                child: Icon(Icons.star_outline_rounded,
                     color: MyColors.accent, size: 17),
               ),
               SizedBox(width: 8.w),
@@ -789,7 +789,7 @@ class _MiniBarChart extends StatelessWidget {
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 class _CommentsCard extends StatelessWidget {
   final ProfileEntity profile;
-  const _CommentsCard({required this.profile});
+  _CommentsCard({required this.profile});
 
   @override
   Widget build(BuildContext context) {
@@ -798,7 +798,7 @@ class _CommentsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: MyColors.shadowLight,
             blurRadius: 8,
@@ -821,7 +821,7 @@ class _CommentsCard extends StatelessWidget {
                     color: MyColors.accentLight,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.chat_bubble_outline_rounded,
+                  child: Icon(Icons.chat_bubble_outline_rounded,
                       color: MyColors.accent, size: 17),
                 ),
                 SizedBox(width: 8.w),

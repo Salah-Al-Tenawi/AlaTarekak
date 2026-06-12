@@ -74,7 +74,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
           backgroundColor: MyColors.surface,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_forward_ios_rounded,
+            icon: Icon(Icons.arrow_forward_ios_rounded,
                 color: MyColors.primary, size: 20),
             onPressed: () => Get.back(),
           ),
@@ -119,7 +119,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.warning_amber_rounded,
+                      Icon(Icons.warning_amber_rounded,
                           color: MyColors.error, size: 18),
                       SizedBox(width: 8.w),
                       Expanded(
@@ -195,7 +195,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: MyColors.border),
                         ),
-                        child: const Icon(
+                        child: Icon(
                             Icons.add_photo_alternate_outlined,
                             color: MyColors.textHint,
                             size: 28),
@@ -328,7 +328,7 @@ class _AttachmentThumb extends StatelessWidget {
             onTap: onRemove,
             child: Container(
               padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                   color: MyColors.error, shape: BoxShape.circle),
               child:
                   const Icon(Icons.close, color: Colors.white, size: 12),

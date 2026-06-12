@@ -42,7 +42,7 @@ class _TripDidYouBackTextAndButtonsState
   @override
   Widget build(BuildContext context) {
     return Column(children: [
-      const Text(
+      Text(
         " هل ترغب بإنشاء رحلة للعودة  ",
         style: AppTextStyles.bodyMedium,
       ),
@@ -62,7 +62,7 @@ class _TripDidYouBackTextAndButtonsState
             width: 120.w,
             height: 50,
             borderRadius: true,
-            child: const Text(
+            child: Text(
               "نعم ",
               style: AppTextStyles.bodySmall,
             ),
@@ -75,7 +75,7 @@ class _TripDidYouBackTextAndButtonsState
             width: 120.w,
             height: 50,
             borderRadius: true,
-            child: const Text(
+            child: Text(
               "لا شكراً ",
               style: AppTextStyles.bodyMedium,
             ),

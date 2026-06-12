@@ -14,7 +14,7 @@ class RadioSwitchTile extends StatelessWidget {
     return CustomListTile(
       title: "الراديو",
       titleTextStyle: AppTextStyles.bodyMedium,
-      iconleading: const Icon(Icons.radio, size: 20, color: MyColors.primary),
+      iconleading: Icon(Icons.radio, size: 20, color: MyColors.primary),
       subtitle: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [

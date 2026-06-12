@@ -86,7 +86,7 @@ class _VerfiyUserState extends State<VerfiyUser> {
                         decoration: BoxDecoration(
                           color: MyColors.surface,
                           borderRadius: BorderRadius.circular(16.r),
-                          boxShadow: const [
+                          boxShadow: [
                             BoxShadow(
                                 color: MyColors.shadowLight,
                                 blurRadius: 8,
@@ -242,7 +242,7 @@ class _Header extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [MyColors.navy, MyColors.primary, MyColors.blue],

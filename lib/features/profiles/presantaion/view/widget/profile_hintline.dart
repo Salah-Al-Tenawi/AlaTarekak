@@ -48,7 +48,7 @@ class ProfileHintline extends StatelessWidget {
       titleTextStyle: AppTextStyles.bodyLarge,
       subtitle: Text(
         hintLine.isEmpty ? "لا يوجد نبذة بعد" : hintLine,
-        style: const TextStyle(color: MyColors.textHint),
+        style: TextStyle(color: MyColors.textHint),
       ),
     );
   }

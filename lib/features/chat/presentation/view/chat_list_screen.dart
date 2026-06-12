@@ -21,16 +21,14 @@ class ChatListScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: MyColors.surface,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_forward_ios_rounded,
-              color: MyColors.primary, size: 20),
-          onPressed: () => Get.back(),
-        ),
+        // Shown as a bottom-nav tab: a back arrow here would pop the whole
+        // Home route.
+        automaticallyImplyLeading: false,
         title: Text('المحادثات', style: AppTextStyles.titleMedium),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit_outlined, color: MyColors.primary),
+            icon: Icon(Icons.edit_outlined, color: MyColors.primary),
             onPressed: () {},
           ),
         ],
@@ -38,7 +36,7 @@ class ChatListScreen extends StatelessWidget {
       body: BlocBuilder<ConversationCubit, ConversationState>(
         builder: (context, state) {
           if (state is ConversationLoading) {
-            return const Center(
+            return Center(
                 child: CircularProgressIndicator(color: MyColors.primary));
           }
           if (state is ConversationError) {
@@ -76,7 +74,7 @@ class ChatListScreen extends StatelessWidget {
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 class _ConversationCard extends StatelessWidget {
   final ConversationEntity conv;
-  const _ConversationCard({required this.conv});
+  _ConversationCard({required this.conv});
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +103,7 @@ class _ConversationCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: MyColors.surface,
               borderRadius: BorderRadius.circular(16.r),
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
                     color: MyColors.shadowLight,
                     blurRadius: 8,
@@ -260,7 +258,7 @@ class _ErrorView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.wifi_off_rounded, size: 48, color: MyColors.error),
+          Icon(Icons.wifi_off_rounded, size: 48, color: MyColors.error),
           SizedBox(height: 12.h),
           Text(message,
               style: AppTextStyles.bodySmall

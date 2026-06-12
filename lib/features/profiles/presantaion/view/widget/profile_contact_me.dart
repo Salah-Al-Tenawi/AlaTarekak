@@ -12,7 +12,7 @@ class ProfileContactMe extends StatelessWidget {
       },
       child: Container(
         padding: const EdgeInsets.all(10),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: MyColors.accent,
           shape: BoxShape.circle,
         ),

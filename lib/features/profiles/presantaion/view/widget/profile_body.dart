@@ -62,11 +62,16 @@ class ProfileBody extends StatelessWidget {
     return AppBar(
       backgroundColor: MyColors.surface,
       elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_forward_ios_rounded,
-            color: MyColors.primary, size: 20),
-        onPressed: () => Get.back(),
-      ),
+      automaticallyImplyLeading: false,
+      // My profile is a bottom-nav tab (no back); other profiles are
+      // pushed as a route and need one.
+      leading: isMyProfile
+          ? null
+          : IconButton(
+              icon: Icon(Icons.arrow_forward_ios_rounded,
+                  color: MyColors.primary, size: 20),
+              onPressed: () => Get.back(),
+            ),
       title: Text(
         isMyProfile ? "حسابي" : "الملف الشخصي",
         style: AppTextStyles.titleMedium,
@@ -208,7 +213,7 @@ class _MyProfileHeader extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.location_on_outlined,
+                Icon(Icons.location_on_outlined,
                     size: 13, color: MyColors.textHint),
                 SizedBox(width: 2.w),
                 Text(profile.address,
@@ -320,7 +325,7 @@ class _BadgeConfig {
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 class _QuickStatsRow extends StatelessWidget {
   final ProfileEntity profile;
-  const _QuickStatsRow({required this.profile});
+  _QuickStatsRow({required this.profile});
 
   @override
   Widget build(BuildContext context) {
@@ -328,7 +333,7 @@ class _QuickStatsRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
               color: MyColors.shadowLight, blurRadius: 10, offset: Offset(0, 2))
         ],
@@ -415,7 +420,7 @@ class _StatCell extends StatelessWidget {
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 class _MenuCard extends StatelessWidget {
   final ProfileEntity profile;
-  const _MenuCard({required this.profile});
+  _MenuCard({required this.profile});
 
   @override
   Widget build(BuildContext context) {
@@ -426,7 +431,7 @@ class _MenuCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
               color: MyColors.shadowLight, blurRadius: 10, offset: Offset(0, 2))
         ],
@@ -732,7 +737,7 @@ class _PublicHeader extends StatelessWidget {
                     if (profile.address.isNotEmpty)
                       Row(
                         children: [
-                          const Icon(Icons.location_on_outlined,
+                          Icon(Icons.location_on_outlined,
                               size: 13, color: MyColors.textHint),
                           SizedBox(width: 2.w),
                           Expanded(
@@ -754,7 +759,7 @@ class _PublicHeader extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.format_quote_rounded,
+                Icon(Icons.format_quote_rounded,
                     size: 16, color: MyColors.textHint),
                 SizedBox(width: 6.w),
                 Expanded(
@@ -778,7 +783,7 @@ class _PublicHeader extends StatelessWidget {
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 class _AccountStatusCard extends StatelessWidget {
   final ProfileEntity profile;
-  const _AccountStatusCard({required this.profile});
+  _AccountStatusCard({required this.profile});
 
   @override
   Widget build(BuildContext context) {
@@ -786,7 +791,7 @@ class _AccountStatusCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
               color: MyColors.shadowLight, blurRadius: 10, offset: Offset(0, 2))
         ],
@@ -985,7 +990,7 @@ class _StatusConfig {
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 class _RatingCard extends StatelessWidget {
   final ProfileEntity profile;
-  const _RatingCard({required this.profile});
+  _RatingCard({required this.profile});
 
   @override
   Widget build(BuildContext context) {
@@ -994,7 +999,7 @@ class _RatingCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
               color: MyColors.shadowLight, blurRadius: 10, offset: Offset(0, 2))
         ],
@@ -1061,7 +1066,7 @@ class _MiniBarChart extends StatelessWidget {
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 class _CarCard extends StatelessWidget {
   final CarEntity car;
-  const _CarCard({required this.car});
+  _CarCard({required this.car});
 
   @override
   Widget build(BuildContext context) {
@@ -1069,7 +1074,7 @@ class _CarCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
               color: MyColors.shadowLight, blurRadius: 10, offset: Offset(0, 2))
         ],
@@ -1089,7 +1094,7 @@ class _CarCard extends StatelessWidget {
                     color: MyColors.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.directions_car_rounded,
+                  child: Icon(Icons.directions_car_rounded,
                       color: MyColors.primary, size: 17),
                 ),
                 SizedBox(width: 8.w),
@@ -1200,7 +1205,7 @@ class _CarInfoChip extends StatelessWidget {
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 class _CommentsSection extends StatelessWidget {
   final ProfileEntity profile;
-  const _CommentsSection({required this.profile});
+  _CommentsSection({required this.profile});
 
   @override
   Widget build(BuildContext context) {
@@ -1209,7 +1214,7 @@ class _CommentsSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
               color: MyColors.shadowLight, blurRadius: 10, offset: Offset(0, 2))
         ],
@@ -1228,7 +1233,7 @@ class _CommentsSection extends StatelessWidget {
                   decoration: BoxDecoration(
                       color: MyColors.accentLight,
                       borderRadius: BorderRadius.circular(8)),
-                  child: const Icon(Icons.chat_bubble_outline_rounded,
+                  child: Icon(Icons.chat_bubble_outline_rounded,
                       color: MyColors.accent, size: 17),
                 ),
                 SizedBox(width: 8.w),
@@ -1304,7 +1309,7 @@ class _VerifyOption extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.arrow_back_ios_rounded,
+            Icon(Icons.arrow_back_ios_rounded,
                 size: 14, color: MyColors.textHint),
           ],
         ),
@@ -1345,7 +1350,7 @@ class _MenuItem extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
         child: Row(
           children: [
-            const Icon(Icons.arrow_back_ios_rounded,
+            Icon(Icons.arrow_back_ios_rounded,
                 size: 14, color: MyColors.textHint),
             const Spacer(),
             if (badge != null) ...[
@@ -1431,7 +1436,7 @@ class _LogoutButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.logout_rounded, color: MyColors.error, size: 20),
+            Icon(Icons.logout_rounded, color: MyColors.error, size: 20),
             SizedBox(width: 8.w),
             Text("تسجيل الخروج",
                 style: AppTextStyles.bodyMedium.copyWith(

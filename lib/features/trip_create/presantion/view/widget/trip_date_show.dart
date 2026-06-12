@@ -8,7 +8,7 @@ import 'package:alatarekak/core/them/text_style_app.dart';
 class TripDateShow extends StatelessWidget {
   final String? day;
   final String? hour;
-  const TripDateShow({
+  TripDateShow({
     super.key,
     required this.day,
     required this.hour,
@@ -22,7 +22,7 @@ class TripDateShow extends StatelessWidget {
           color: MyColors.background,
           borderRadius: BorderRadius.circular(15),
           border: Border.all(color: MyColors.textPrimary, width: 0.2),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
                 spreadRadius: 1,
                 blurRadius: 1,
@@ -40,7 +40,7 @@ class TripDateShow extends StatelessWidget {
               SizedBox(
                 width: 37.w,
               ),
-              const FaIcon(FontAwesomeIcons.calendarDay,
+              FaIcon(FontAwesomeIcons.calendarDay,
                   size: 14, color: MyColors.accent),
             ],
           ),
@@ -51,7 +51,7 @@ class TripDateShow extends StatelessWidget {
               SizedBox(
                 width: 50.w,
               ),
-              const FaIcon(FontAwesomeIcons.clock,
+              FaIcon(FontAwesomeIcons.clock,
                   size: 15, color: MyColors.accent),
             ],
           ),

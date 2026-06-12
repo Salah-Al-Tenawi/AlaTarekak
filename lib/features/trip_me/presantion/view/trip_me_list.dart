@@ -6,6 +6,7 @@ import 'package:get/get_core/get_core.dart';
 import 'package:get/get_navigation/get_navigation.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
+import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
@@ -18,6 +19,14 @@ class TripMeList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: MyColors.background,
+      appBar: AppBar(
+        backgroundColor: MyColors.surface,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Text('رحلاتي', style: AppTextStyles.titleMedium),
+        centerTitle: true,
+      ),
       body: BlocConsumer<TripMeCubit, TripMeState>(
         listener: (context, state) {
           if (state is TripMeErorr) {
@@ -87,25 +96,27 @@ class TripMeList extends StatelessWidget {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                backgroundColor: Colors.white,
-                                title: const Row(
+                                backgroundColor: MyColors.surface,
+                                title: Row(
                                   children: [
                                     Icon(Icons.warning_amber_rounded,
-                                        color: Colors.red, size: 28),
-                                    SizedBox(width: 8),
+                                        color: MyColors.error, size: 28),
+                                    const SizedBox(width: 8),
                                     Text(
                                       'تأكيد',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 20,
+                                        color: MyColors.textPrimary,
                                       ),
                                     ),
                                   ],
                                 ),
-                                content: const Text(
+                                content: Text(
                                   'هل أنت متأكد من إلغاء الرحلة؟',
                                   style: TextStyle(
-                                      fontSize: 16, color: Colors.black87),
+                                      fontSize: 16,
+                                      color: MyColors.textPrimary),
                                 ),
                                 actionsPadding: const EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 8),
@@ -113,29 +124,26 @@ class TripMeList extends StatelessWidget {
                                   ElevatedButton(
                                     onPressed: () => Navigator.pop(ctx, false),
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          MyColors.background
-                                          ,
-                                      foregroundColor: Colors
-                                          .white, 
+                                      backgroundColor: MyColors.surfaceAlt,
+                                      foregroundColor: MyColors.textPrimary,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 24, vertical: 12),
                                     ),
-                                    child: const Text(
+                                    child: Text(
                                       'لا',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.white, 
+                                        color: MyColors.textPrimary,
                                       ),
                                     ),
                                   ),
                                   ElevatedButton(
                                     onPressed: () => Navigator.pop(ctx, true),
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
+                                      backgroundColor: MyColors.error,
                                       foregroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
@@ -184,7 +192,7 @@ class TripMeList extends StatelessWidget {
                           onPressed: () {
                             context.read<TripMeCubit>().getMeTrips();
                           },
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.refresh,
                             color: MyColors.accent,
                             size: 50,

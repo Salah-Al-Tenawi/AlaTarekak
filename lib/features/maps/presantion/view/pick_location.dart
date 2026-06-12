@@ -132,7 +132,7 @@ class _PickLocationState extends State<PickLocation> {
                           hintStyle: AppTextStyles.bodySmall
                               .copyWith(color: MyColors.textHint),
                           prefixIcon: isSearching
-                              ? const Padding(
+                              ? Padding(
                                   padding: EdgeInsets.all(12),
                                   child: SizedBox(
                                     width: 16,
@@ -143,11 +143,11 @@ class _PickLocationState extends State<PickLocation> {
                                     ),
                                   ),
                                 )
-                              : const Icon(Icons.search_rounded,
+                              : Icon(Icons.search_rounded,
                                   color: MyColors.primary),
                           suffixIcon: _searchController.text.isNotEmpty
                               ? IconButton(
-                                  icon: const Icon(Icons.close_rounded,
+                                  icon: Icon(Icons.close_rounded,
                                       color: MyColors.textHint, size: 18),
                                   onPressed: () {
                                     _searchController.clear();
@@ -210,7 +210,7 @@ class _PickLocationState extends State<PickLocation> {
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.location_on_outlined,
+                                    Icon(Icons.location_on_outlined,
                                         size: 18, color: MyColors.accent),
                                     SizedBox(width: 10.w),
                                     Expanded(
@@ -258,12 +258,12 @@ class _PickLocationState extends State<PickLocation> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (isLoadingPoint)
-                          const CircularProgressIndicator(
+                          CircularProgressIndicator(
                               color: MyColors.primary)
                         else if (placeName != null)
                           Row(
                             children: [
-                              const Icon(Icons.location_on_rounded,
+                              Icon(Icons.location_on_rounded,
                                   color: MyColors.accent, size: 20),
                               SizedBox(width: 8.w),
                               Expanded(

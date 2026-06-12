@@ -84,7 +84,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
           backgroundColor: MyColors.surface,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_forward_ios_rounded,
+            icon: Icon(Icons.arrow_forward_ios_rounded,
                 color: MyColors.primary, size: 20),
             onPressed: () => Get.back(),
           ),
@@ -98,7 +98,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                   color: MyColors.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.support_agent_rounded,
+                child: Icon(Icons.support_agent_rounded,
                     color: MyColors.primary, size: 18),
               ),
               SizedBox(width: 8.w),
@@ -144,7 +144,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                             .read<ContactSupportCubit>()
                             .requestAgent(),
                     icon: isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 16,
                             height: 16,
                             child: CircularProgressIndicator(
@@ -156,7 +156,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                         style: AppTextStyles.labelMedium),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: MyColors.primary,
-                      side: const BorderSide(color: MyColors.primary),
+                      side: BorderSide(color: MyColors.primary),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10)),
                       minimumSize: Size(double.infinity, 40.h),
@@ -197,7 +197,7 @@ class _ChatBubble extends StatelessWidget {
             CircleAvatar(
               radius: 14.r,
               backgroundColor: MyColors.primary.withValues(alpha: 0.1),
-              child: const Icon(Icons.support_agent_rounded,
+              child: Icon(Icons.support_agent_rounded,
                   color: MyColors.primary, size: 14),
             ),
             SizedBox(width: 8.w),
@@ -210,11 +210,11 @@ class _ChatBubble extends StatelessWidget {
                 color: isSupport ? MyColors.surface : MyColors.primary,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(14),
-                  topRight: const Radius.circular(14),
+                  topRight: Radius.circular(14),
                   bottomLeft: Radius.circular(isSupport ? 0 : 14),
                   bottomRight: Radius.circular(isSupport ? 14 : 0),
                 ),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
                       color: MyColors.shadowLight,
                       blurRadius: 6,
@@ -278,7 +278,7 @@ class _InputBar extends StatelessWidget {
             child: Container(
               width: 40,
               height: 40,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                   color: MyColors.primary, shape: BoxShape.circle),
               child: const Icon(Icons.send_rounded,
                   color: Colors.white, size: 18),

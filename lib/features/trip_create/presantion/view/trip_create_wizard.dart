@@ -112,7 +112,7 @@ class _TripCreateWizardState extends State<TripCreateWizard> {
       backgroundColor: MyColors.surface,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_forward_ios_rounded,
+        icon: Icon(Icons.arrow_forward_ios_rounded,
             color: MyColors.primary, size: 20),
         onPressed: _back,
       ),
@@ -150,7 +150,7 @@ class _WizardStepIndicator extends StatelessWidget {
               value: currentStep / totalSteps,
               backgroundColor: MyColors.surfaceAlt,
               valueColor:
-                  const AlwaysStoppedAnimation<Color>(MyColors.primary),
+                  AlwaysStoppedAnimation<Color>(MyColors.primary),
               minHeight: 5.h,
             ),
           ),

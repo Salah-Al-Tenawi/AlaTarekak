@@ -70,24 +70,10 @@ class _HomeState extends State<Home> {
     child: Icon(Icons.add ,color: MyColors.primary,),
   ),
         drawer: Drawer(child: HomeDrawer(scaffoldContext: context)),
-        appBar: AppBar(
-          backgroundColor: MyColors.primary,
-  leading: IconButton(
-    icon: Icon(Icons.settings,color:Colors.white),
-    onPressed: () {
-      // define action for settings
-    },
-  ),
-  title: Center(child: Text('عطريقك',style: TextStyle(color:Colors.white),)),
-  actions: [
-    IconButton(
-      icon: Icon(Icons.notifications,color: Colors.white,),
-      onPressed: () {
-        // define action for notifications
-      },
-    ),
-  ],
-),body: BlocListener<HomeNavCubit, int>(
+        // No global AppBar: each tab provides its own header, which avoids
+        // the stacked double app bars (e.g. TripSearch ships a branded
+        // SafeArea header of its own).
+        body: BlocListener<HomeNavCubit, int>(
           // Keeps the PageView in sync when a tab change comes from outside
           // the bottom nav bar (e.g. the chat icon in the app bar).
           listener: (context, index) {
@@ -131,7 +117,7 @@ class _HomeState extends State<Home> {
             onPressed: () => Get.back(result: false),
             style: TextButton.styleFrom(
               foregroundColor: MyColors.accent,
-              backgroundColor: Colors.grey[200],
+              backgroundColor: MyColors.surfaceAlt,
             ),
             child: const Text("لا"),
           ),
@@ -139,7 +125,7 @@ class _HomeState extends State<Home> {
             onPressed: () => Get.back(result: true),
             style: TextButton.styleFrom(
               foregroundColor: MyColors.primary,
-              backgroundColor: Colors.grey[200],
+              backgroundColor: MyColors.surfaceAlt,
             ),
             child: const Text("نعم"),
           ),

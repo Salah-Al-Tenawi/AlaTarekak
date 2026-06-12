@@ -180,7 +180,7 @@ class _TripSelectDateAndSeatsState extends State<TripSelectDateAndSeats> {
         backgroundColor: MyColors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_forward_ios_rounded,
+          icon: Icon(Icons.arrow_forward_ios_rounded,
               color: MyColors.primary, size: 20),
           onPressed: () => Get.back(),
         ),
@@ -308,7 +308,7 @@ class _StepIndicator extends StatelessWidget {
               value: currentStep / totalSteps,
               backgroundColor: MyColors.surfaceAlt,
               valueColor:
-                  const AlwaysStoppedAnimation<Color>(MyColors.primary),
+                  AlwaysStoppedAnimation<Color>(MyColors.primary),
               minHeight: 5.h,
             ),
           ),
@@ -378,13 +378,13 @@ class _DatePickerRow extends StatelessWidget {
           return GestureDetector(
             onTap: () => onSelect(day),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: Duration(milliseconds: 200),
               width: isSelected ? 90.w : 72.w,
               decoration: BoxDecoration(
                 color:
                     isSelected ? MyColors.primary : MyColors.surface,
                 borderRadius: BorderRadius.circular(14.r),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
                     color: MyColors.shadowLight,
                     blurRadius: 6,
@@ -454,7 +454,7 @@ class _TimeSlotRow extends StatelessWidget {
           child: GestureDetector(
             onTap: () => onSelect(i),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: Duration(milliseconds: 200),
               margin: EdgeInsets.only(
                 right: i < _timeSlots.length - 1 ? 8.w : 0,
               ),
@@ -464,7 +464,7 @@ class _TimeSlotRow extends StatelessWidget {
                     ? MyColors.primary
                     : MyColors.surface,
                 borderRadius: BorderRadius.circular(14.r),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
                     color: MyColors.shadowLight,
                     blurRadius: 8,
@@ -517,7 +517,7 @@ class _TimeSlotRow extends StatelessWidget {
 class _TimeDisplay extends StatelessWidget {
   final TimeOfDay time;
   final VoidCallback onTap;
-  const _TimeDisplay({required this.time, required this.onTap});
+  _TimeDisplay({required this.time, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -533,7 +533,7 @@ class _TimeDisplay extends StatelessWidget {
           color: MyColors.surface,
           borderRadius: BorderRadius.circular(14.r),
           border: Border.all(color: MyColors.border),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
                 color: MyColors.shadowLight,
                 blurRadius: 6,
@@ -573,7 +573,7 @@ class _SeatsCounter extends StatelessWidget {
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
 
-  const _SeatsCounter({
+  _SeatsCounter({
     required this.seats,
     required this.onIncrement,
     required this.onDecrement,
@@ -586,7 +586,7 @@ class _SeatsCounter extends StatelessWidget {
       decoration: BoxDecoration(
         color: MyColors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: MyColors.shadowLight,
             blurRadius: 8,
