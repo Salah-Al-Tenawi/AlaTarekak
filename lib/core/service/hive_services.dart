@@ -49,7 +49,7 @@ class HiveBoxes {
   static Box<String> get profileBox =>
       Hive.box<String>(profileBoxName);
 
-  // 🚗 Trips
+  //  Trips
   static const String tripBoxName = 'tripBox';
   static Box get tripBox =>
       Hive.box(tripBoxName);

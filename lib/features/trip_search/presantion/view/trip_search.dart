@@ -17,7 +17,8 @@ class TripSearch extends StatefulWidget {
   State<TripSearch> createState() => _TripSearchState();
 }
 
-class _TripSearchState extends State<TripSearch> {
+class _TripSearchState extends State<TripSearch>
+    with SingleTickerProviderStateMixin {
   String? sourceLat;
   String? sourceLng;
   String? sourceAddress;
@@ -26,6 +27,50 @@ class _TripSearchState extends State<TripSearch> {
   String? destAddress;
   DateTime? selectedDate;
   int seats = 1;
+
+  late final AnimationController _ctrl;
+  late final Animation<double> _logoScale;
+  late final Animation<double> _logoFade;
+  late final Animation<Offset> _titleSlide;
+  late final Animation<double> _titleFade;
+  late final Animation<Offset> _cardSlide;
+  late final Animation<double> _cardFade;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+
+    _logoScale = Tween(begin: 0.6, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: const Interval(0.0, 0.55, curve: Curves.elasticOut)),
+    );
+    _logoFade = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: const Interval(0.0, 0.4, curve: Curves.easeIn)),
+    );
+    _titleSlide = Tween(begin: const Offset(0, 0.4), end: Offset.zero).animate(
+      CurvedAnimation(parent: _ctrl, curve: const Interval(0.25, 0.65, curve: Curves.easeOut)),
+    );
+    _titleFade = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: const Interval(0.25, 0.6, curve: Curves.easeIn)),
+    );
+    _cardSlide = Tween(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+      CurvedAnimation(parent: _ctrl, curve: const Interval(0.45, 1.0, curve: Curves.easeOut)),
+    );
+    _cardFade = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: const Interval(0.45, 0.9, curve: Curves.easeIn)),
+    );
+
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   String _formatDate(DateTime dt) {
     final now = DateTime.now();
@@ -94,65 +139,135 @@ class _TripSearchState extends State<TripSearch> {
       },
       child: Scaffold(
         backgroundColor: MyColors.background,
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('ابحث عن رحلة', style: AppTextStyles.titleLarge),
-                SizedBox(height: 4.h),
-                Text('أين تريد الذهاب؟',
-                    style: AppTextStyles.bodySmall
-                        .copyWith(color: MyColors.textSecondary)),
-                SizedBox(height: 20.h),
-                _SearchCard(
-                  sourceAddress: sourceAddress,
-                  destAddress: destAddress,
-                  selectedDate: selectedDate,
-                  seats: seats,
-                  formatDate: _formatDate,
-                  onSourceTap: () async {
-                    final result = await Get.toNamed(
-                      RouteName.pickLocation,
-                      arguments: {'type': 'source'},
-                    );
-                    if (result != null) {
-                      setState(() {
-                        sourceAddress = result['placeName'];
-                        sourceLat = result['lat'];
-                        sourceLng = result['lng'];
-                      });
-                    }
-                  },
-                  onDestTap: () async {
-                    final result = await Get.toNamed(
-                      RouteName.pickLocation,
-                      arguments: {'type': 'destination'},
-                    );
-                    if (result != null) {
-                      setState(() {
-                        destAddress = result['placeName'];
-                        destLat = result['lat'];
-                        destLng = result['lng'];
-                      });
-                    }
-                  },
-                  onDateTap: () async {
-                    final picked = await showAppDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(const Duration(days: 365)),
-                    );
-                    if (picked != null) setState(() => selectedDate = picked);
-                  },
-                  onSeatsChanged: (v) => setState(() => seats = v),
-                  onSearch: () => _validateAndSearch(context),
+        body: Column(
+          children: [
+            // ━━ Header ━━
+            Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: MyColors.primary,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(32),
+                  bottomRight: Radius.circular(32),
                 ),
-              ],
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 40.h),
+                  child: Column(
+                    children: [
+                      // Logo: scale + fade
+                      FadeTransition(
+                        opacity: _logoFade,
+                        child: ScaleTransition(
+                          scale: _logoScale,
+                          child: Image.asset(
+                            'assets/images/app_logo.png',
+                            width: 90.w,
+                            height: 90.w,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10.h),
+                      // Title + subtitle: slide up + fade
+                      FadeTransition(
+                        opacity: _titleFade,
+                        child: SlideTransition(
+                          position: _titleSlide,
+                          child: Column(
+                            children: [
+                              Text(
+                                'ابحث عن رحلة',
+                                style: AppTextStyles.titleLarge
+                                    .copyWith(color: MyColors.textOnDark),
+                                textAlign: TextAlign.center,
+                              ),
+                              SizedBox(height: 4.h),
+                              Text(
+                                'وين طريقك ؟',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                    color: MyColors.textOnDark
+                                        .withValues(alpha: 0.7)),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
+
+            // ━━ Search Card (يطفو فوق الـ header) ━━
+            Expanded(
+              child: SingleChildScrollView(
+                child: FadeTransition(
+                  opacity: _cardFade,
+                  child: SlideTransition(
+                    position: _cardSlide,
+                    child: Transform.translate(
+                      offset: Offset(0, -24.h),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w),
+                        child: _SearchCard(
+                          sourceAddress: sourceAddress,
+                          destAddress: destAddress,
+                          selectedDate: selectedDate,
+                          seats: seats,
+                          formatDate: _formatDate,
+                          onSourceTap: () async {
+                            final result = await Get.toNamed(
+                              RouteName.pickLocation,
+                              arguments: {'type': 'source'},
+                            );
+                            if (result != null) {
+                              setState(() {
+                                sourceAddress = result['placeName'];
+                                sourceLat = result['lat'];
+                                sourceLng = result['lng'];
+                              });
+                            }
+                          },
+                          onDestTap: () async {
+                            final result = await Get.toNamed(
+                              RouteName.pickLocation,
+                              arguments: {'type': 'destination'},
+                            );
+                            if (result != null) {
+                              setState(() {
+                                destAddress = result['placeName'];
+                                destLat = result['lat'];
+                                destLng = result['lng'];
+                              });
+                            }
+                          },
+                          onDateTap: () async {
+                            final picked = await showAppDatePicker(
+                              context: context,
+                              initialDate: DateTime.now(),
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime.now()
+                                  .add(const Duration(days: 365)),
+                            );
+                            if (picked != null) {
+                              setState(() => selectedDate = picked);
+                            }
+                          },
+                          onSeatsChanged: (v) => setState(() => seats = v),
+                          onSearch: () => _validateAndSearch(context),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -203,18 +318,6 @@ class _SearchCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // ━━ الوجهة ━━
-          _LocationRow(
-            icon: Icons.location_on_rounded,
-            iconColor: MyColors.accent,
-            hint: 'إلى أين؟',
-            value: destAddress,
-            onTap: onDestTap,
-            isTop: true,
-          ),
-
-          Divider(height: 1, indent: 16.w, endIndent: 16.w),
-
           // ━━ الانطلاق ━━
           _LocationRow(
             icon: Icons.my_location_rounded,
@@ -222,6 +325,18 @@ class _SearchCard extends StatelessWidget {
             hint: 'من أين تنطلق؟',
             value: sourceAddress,
             onTap: onSourceTap,
+            isTop: true,
+          ),
+
+          Divider(height: 1, indent: 16.w, endIndent: 16.w),
+
+          // ━━ الوجهة ━━
+          _LocationRow(
+            icon: Icons.location_on_rounded,
+            iconColor: MyColors.accent,
+            hint: 'إلى أين تتجه؟',
+            value: destAddress,
+            onTap: onDestTap,
             isTop: false,
           ),
 

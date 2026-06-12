@@ -29,11 +29,10 @@ class _VerfiyUserState extends State<VerfiyUser> {
 
   @override
   Widget build(BuildContext context) {
-    final isDriver = userType == "driver";
-    final screenHeight = MediaQuery.of(context).size.height;
+    final isDriver = userType == 'driver';
 
     return Scaffold(
-      resizeToAvoidBottomInset: true,
+      backgroundColor: MyColors.background,
       body: BlocConsumer<VerifyUserCubit, VerfiyUserState>(
         listener: (context, state) {
           if (state is VerfiyError) {
@@ -62,233 +61,165 @@ class _VerfiyUserState extends State<VerfiyUser> {
 
           return Column(
             children: [
-              // ━━ Header gradient ━━
-              Container(
-                height: screenHeight * 0.36,
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [MyColors.navy, MyColors.primary, MyColors.blue],
-                  ),
-                ),
-                child: SafeArea(
-                  bottom: false,
-                  child: Column(
-                    children: [
-                      // ━━ زر الرجوع ━━
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 8.w, vertical: 4.h),
-                          child: IconButton(
-                            icon: const Icon(Icons.arrow_forward_ios_rounded,
-                                color: Colors.white, size: 20),
-                            onPressed: () => Get.back(),
-                          ),
-                        ),
-                      ),
-
-                      const Spacer(),
-
-                      // ━━ أيقونة ━━
-                      Container(
-                        width: 68.w,
-                        height: 68.w,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withValues(alpha: 0.15),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.3),
-                            width: 2,
-                          ),
-                        ),
-                        child: Icon(
-                          isDriver
-                              ? Icons.badge_outlined
-                              : Icons.person_pin_outlined,
-                          color: Colors.white,
-                          size: 30,
-                        ),
-                      ),
-
-                      SizedBox(height: 14.h),
-
-                      Text(
-                        'توثيق الهوية',
-                        style: TextStyle(
-                          fontSize: 22.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-
-                      SizedBox(height: 6.h),
-
-                      // ━━ شارة النوع ━━
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 14.w, vertical: 4.h),
-                        decoration: BoxDecoration(
-                          color: MyColors.accent.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: MyColors.accent.withValues(alpha: 0.5),
-                          ),
-                        ),
-                        child: Text(
-                          isDriver ? 'توثيق كسائق' : 'توثيق كمستخدم',
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-
-                      SizedBox(height: 24.h),
-                    ],
-                  ),
-                ),
-              ),
-
-              // ━━ البطاقة البيضاء ━━
+              _Header(isDriver: isDriver),
               Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: MyColors.surface,
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(32.r)),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 16,
-                        offset: Offset(0, -4),
+                child: SingleChildScrollView(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── وصف ──
+                      _InfoNote(
+                        icon: Icons.info_outline_rounded,
+                        color: MyColors.primary,
+                        bgColor: MyColors.primary.withValues(alpha: 0.07),
+                        text: isDriver
+                            ? 'يرجى رفع صورة واضحة للمستندات التالية لإتمام عملية التوثيق وتفعيل حسابك كسائق.'
+                            : 'يرجى رفع صورة واضحة للهوية الشخصية وجهين لإتمام عملية التوثيق.',
                       ),
-                    ],
-                  ),
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.fromLTRB(24.w, 28.h, 24.w, 24.h),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('المستندات المطلوبة',
-                            style: AppTextStyles.titleLarge),
-                        SizedBox(height: 4.h),
-                        Text(
-                          isDriver
-                              ? 'ارفع صورة الهوية ورخصة القيادة وفحص السيارة'
-                              : 'ارفع صورة الهوية الشخصية وجهين',
-                          style: AppTextStyles.bodySmall
-                              .copyWith(color: MyColors.textSecondary),
-                        ),
 
-                        SizedBox(height: 24.h),
+                      SizedBox(height: 20.h),
 
-                        // ━━ صور الهوية ━━
-                        _SectionLabel(label: 'الهوية الشخصية'),
-                        SizedBox(height: 12.h),
-
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _ImageCard(
-                                label: 'الوجه الأمامي',
-                                icon: Icons.credit_card,
-                                image: frontImage,
-                                onTap: cubit.pickFrontId,
-                              ),
-                            ),
-                            SizedBox(width: 12.w),
-                            Expanded(
-                              child: _ImageCard(
-                                label: 'الوجه الخلفي',
-                                icon: Icons.credit_card_outlined,
-                                image: backImage,
-                                onTap: cubit.pickBackId,
-                              ),
-                            ),
+                      // ── بطاقات المستندات ──
+                      Container(
+                        decoration: BoxDecoration(
+                          color: MyColors.surface,
+                          borderRadius: BorderRadius.circular(16.r),
+                          boxShadow: const [
+                            BoxShadow(
+                                color: MyColors.shadowLight,
+                                blurRadius: 8,
+                                offset: Offset(0, 2)),
                           ],
                         ),
-
-                        if (isDriver) ...[
-                          SizedBox(height: 20.h),
-                          _SectionLabel(label: 'مستندات السائق'),
-                          SizedBox(height: 12.h),
-
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _ImageCard(
-                                  label: 'رخصة القيادة',
-                                  icon: Icons.drive_eta_outlined,
-                                  image: licenseImage,
-                                  onTap: cubit.pickDriverLicense,
-                                ),
-                              ),
-                              SizedBox(width: 12.w),
-                              Expanded(
-                                child: _ImageCard(
-                                  label: 'فحص السيارة',
-                                  icon: Icons.car_repair_outlined,
-                                  image: mechanicImage,
-                                  onTap: cubit.pickMechanic,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-
-                        SizedBox(height: 32.h),
-
-                        // ━━ زر الإرسال ━━
-                        SizedBox(
-                          width: double.infinity,
-                          height: 52.h,
-                          child: ElevatedButton(
-                            onPressed: isLoading
-                                ? null
-                                : () {
-                                    if (isDriver) {
-                                      if (cubit.allImagesSelected(true)) {
-                                        cubit.submitDriverImages();
-                                      } else {
-                                        AppSnackBar.error(
-                                            'الرجاء رفع جميع المستندات');
-                                      }
-                                    } else {
-                                      if (cubit.allImagesSelected(false)) {
-                                        cubit.submitPassengerImages();
-                                      } else {
-                                        AppSnackBar.error(
-                                            'الرجاء رفع صورتي الهوية');
-                                      }
-                                    }
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: MyColors.accent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14.r),
-                              ),
-                              elevation: 0,
+                        child: Column(
+                          children: [
+                            _DocRow(
+                              title: 'بطاقة الهوية الوطنية',
+                              subtitle: 'الوجه الأمامي',
+                              icon: Icons.credit_card_rounded,
+                              image: frontImage,
+                              onTap: cubit.pickFrontId,
+                              isFirst: true,
                             ),
-                            child: isLoading
-                                ? const SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : Text('إرسال للمراجعة',
-                                    style: AppTextStyles.buttonLarge),
+                            const _RowDivider(),
+                            _DocRow(
+                              title: 'بطاقة الهوية الوطنية',
+                              subtitle: 'الوجه الخلفي',
+                              icon: Icons.credit_card_outlined,
+                              image: backImage,
+                              onTap: cubit.pickBackId,
+                            ),
+                            if (isDriver) ...[
+                              const _RowDivider(),
+                              _DocRow(
+                                title: 'رخصة القيادة',
+                                subtitle: 'صورة الرخصة الحالية',
+                                icon: Icons.drive_eta_outlined,
+                                image: licenseImage,
+                                onTap: cubit.pickDriverLicense,
+                              ),
+                              const _RowDivider(),
+                              _DocRow(
+                                title: 'فحص السيارة',
+                                subtitle: 'بطاقة الفحص الميكانيكي',
+                                icon: Icons.car_repair_outlined,
+                                image: mechanicImage,
+                                onTap: cubit.pickMechanic,
+                                isLast: true,
+                              ),
+                            ] else ...[
+                              // close card when passenger
+                            ],
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(height: 16.h),
+
+                      // ── ملاحظة وقت المراجعة ──
+                      _InfoNote(
+                        icon: Icons.access_time_rounded,
+                        color: MyColors.warning,
+                        bgColor: MyColors.warningLight,
+                        text:
+                            'يستغرق الأمر مراجعة المستندات ما بين 24 إلى 48 ساعة عمل. ستتلقى إشعاراً عند اكتمال المراجعة.',
+                      ),
+
+                      SizedBox(height: 28.h),
+
+                      // ── زر الإرسال ──
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52.h,
+                        child: ElevatedButton(
+                          onPressed: isLoading
+                              ? null
+                              : () {
+                                  if (isDriver) {
+                                    if (cubit.allImagesSelected(true)) {
+                                      cubit.submitDriverImages();
+                                    } else {
+                                      AppSnackBar.error(
+                                          'الرجاء رفع جميع المستندات');
+                                    }
+                                  } else {
+                                    if (cubit.allImagesSelected(false)) {
+                                      cubit.submitPassengerImages();
+                                    } else {
+                                      AppSnackBar.error(
+                                          'الرجاء رفع صورتي الهوية');
+                                    }
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: MyColors.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14.r),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: isLoading
+                              ? SizedBox(
+                                  width: 22.r,
+                                  height: 22.r,
+                                  child: const CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2.5,
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.send_rounded, size: 18.sp),
+                                    SizedBox(width: 8.w),
+                                    Text('إرسال للمراجعة',
+                                        style: AppTextStyles.buttonLarge),
+                                  ],
+                                ),
+                        ),
+                      ),
+
+                      SizedBox(height: 12.h),
+
+                      // ── إلغاء ──
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48.h,
+                        child: TextButton(
+                          onPressed: () => Get.back(),
+                          child: Text(
+                            'إلغاء',
+                            style: AppTextStyles.labelLarge
+                                .copyWith(color: MyColors.textSecondary),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+
+                      SizedBox(height: 8.h),
+                    ],
                   ),
                 ),
               ),
@@ -300,110 +231,275 @@ class _VerfiyUserState extends State<VerfiyUser> {
   }
 }
 
-class _SectionLabel extends StatelessWidget {
-  final String label;
-  const _SectionLabel({required this.label});
+// ─── Header gradient ──────────────────────────────────────────────────────────
+
+class _Header extends StatelessWidget {
+  final bool isDriver;
+  const _Header({required this.isDriver});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 3.w,
-          height: 16.h,
-          decoration: BoxDecoration(
-            color: MyColors.accent,
-            borderRadius: BorderRadius.circular(2),
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [MyColors.navy, MyColors.primary, MyColors.blue],
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(28.r)),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(8.w, 4.h, 8.w, 28.h),
+          child: Column(
+            children: [
+              // back button
+              Align(
+                alignment: Alignment.centerRight,
+                child: IconButton(
+                  icon: Icon(Icons.arrow_forward_ios_rounded,
+                      color: Colors.white, size: 20.sp),
+                  onPressed: () => Get.back(),
+                ),
+              ),
+              SizedBox(height: 8.h),
+
+              // icon
+              Container(
+                width: 64.r,
+                height: 64.r,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.15),
+                  border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.3), width: 2),
+                ),
+                child: Icon(
+                  isDriver
+                      ? Icons.badge_outlined
+                      : Icons.person_pin_outlined,
+                  color: Colors.white,
+                  size: 30.sp,
+                ),
+              ),
+              SizedBox(height: 12.h),
+
+              Text(
+                'رفع المستندات',
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 6.h),
+
+              // badge
+              Container(
+                padding:
+                    EdgeInsets.symmetric(horizontal: 14.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: MyColors.accent.withValues(alpha: 0.22),
+                  borderRadius: BorderRadius.circular(20.r),
+                  border: Border.all(
+                      color: MyColors.accent.withValues(alpha: 0.5)),
+                ),
+                child: Text(
+                  isDriver ? 'توثيق كسائق' : 'توثيق كراكب',
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              SizedBox(height: 4.h),
+            ],
           ),
         ),
-        SizedBox(width: 8.w),
-        Text(label,
-            style: AppTextStyles.labelLarge
-                .copyWith(color: MyColors.textPrimary)),
-      ],
+      ),
     );
   }
 }
 
-class _ImageCard extends StatelessWidget {
-  final String label;
+// ─── Document row ─────────────────────────────────────────────────────────────
+
+class _DocRow extends StatelessWidget {
+  final String title;
+  final String subtitle;
   final IconData icon;
   final XFile? image;
   final Future<void> Function() onTap;
+  final bool isFirst;
+  final bool isLast;
 
-  const _ImageCard({
-    required this.label,
+  const _DocRow({
+    required this.title,
+    required this.subtitle,
     required this.icon,
     required this.image,
     required this.onTap,
+    this.isFirst = false,
+    this.isLast = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final hasImage = image != null;
+    final uploaded = image != null;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 130.h,
-        decoration: BoxDecoration(
-          color: hasImage ? Colors.transparent : MyColors.background,
-          border: Border.all(
-            color: hasImage ? MyColors.accent : MyColors.primary.withValues(alpha: 0.3),
-            width: hasImage ? 2 : 1.5,
-          ),
-          borderRadius: BorderRadius.circular(16.r),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.vertical(
+          top: isFirst ? Radius.circular(16.r) : Radius.zero,
+          bottom: isLast ? Radius.circular(16.r) : Radius.zero,
         ),
-        clipBehavior: Clip.antiAlias,
-        child: hasImage
-            ? Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.file(File(image!.path), fit: BoxFit.cover),
-                  Positioned(
-                    top: 6,
-                    left: 6,
-                    child: Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: const BoxDecoration(
-                        color: MyColors.accent,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.check,
-                          color: Colors.white, size: 12),
-                    ),
-                  ),
-                ],
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon,
-                      size: 32, color: MyColors.primary.withValues(alpha: 0.5)),
-                  SizedBox(height: 8.h),
-                  Text(
-                    label,
-                    style: AppTextStyles.labelSmall
-                        .copyWith(color: MyColors.textSecondary),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 6.h),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 10.w, vertical: 3.h),
-                    decoration: BoxDecoration(
-                      color: MyColors.accent.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      'اضغط للرفع',
-                      style: AppTextStyles.labelSmall
-                          .copyWith(color: MyColors.accent),
-                    ),
-                  ),
-                ],
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+          child: Row(
+            children: [
+              // thumbnail or icon box
+              Container(
+                width: 52.r,
+                height: 52.r,
+                decoration: BoxDecoration(
+                  color: uploaded
+                      ? null
+                      : MyColors.primary.withValues(alpha: 0.07),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: uploaded
+                    ? Image.file(File(image!.path), fit: BoxFit.cover)
+                    : Icon(icon,
+                        size: 26.sp,
+                        color: MyColors.primary.withValues(alpha: 0.6)),
               ),
+
+              SizedBox(width: 14.w),
+
+              // text
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: AppTextStyles.labelLarge),
+                    SizedBox(height: 3.h),
+                    Text(
+                      subtitle,
+                      style: AppTextStyles.labelSmall
+                          .copyWith(color: MyColors.textHint),
+                    ),
+                    SizedBox(height: 5.h),
+                    _StatusBadge(uploaded: uploaded),
+                  ],
+                ),
+              ),
+
+              SizedBox(width: 10.w),
+
+              // action icon
+              Container(
+                width: 36.r,
+                height: 36.r,
+                decoration: BoxDecoration(
+                  color: uploaded
+                      ? MyColors.successLight
+                      : MyColors.background,
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Icon(
+                  uploaded
+                      ? Icons.check_circle_rounded
+                      : Icons.upload_file_outlined,
+                  size: 20.sp,
+                  color:
+                      uploaded ? MyColors.success : MyColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
+}
+
+// ─── Status badge ─────────────────────────────────────────────────────────────
+
+class _StatusBadge extends StatelessWidget {
+  final bool uploaded;
+  const _StatusBadge({required this.uploaded});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+      decoration: BoxDecoration(
+        color: uploaded ? MyColors.successLight : MyColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(6.r),
+      ),
+      child: Text(
+        uploaded ? 'تم الرفع' : 'لم يتم الرفع بعد',
+        style: AppTextStyles.labelSmall.copyWith(
+          color: uploaded ? MyColors.success : MyColors.textHint,
+          fontSize: 10.sp,
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Info note box ────────────────────────────────────────────────────────────
+
+class _InfoNote extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final Color bgColor;
+  final String text;
+  const _InfoNote({
+    required this.icon,
+    required this.color,
+    required this.bgColor,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 18.sp),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: Text(
+              text,
+              style: AppTextStyles.labelSmall
+                  .copyWith(color: MyColors.textSecondary, height: 1.5),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Divider ──────────────────────────────────────────────────────────────────
+
+class _RowDivider extends StatelessWidget {
+  const _RowDivider();
+
+  @override
+  Widget build(BuildContext context) =>
+      Divider(height: 1, thickness: 1, color: MyColors.divider,
+          indent: 16.w, endIndent: 16.w);
 }

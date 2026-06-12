@@ -3,6 +3,8 @@ class TripFrom {
   String? endLat;
   String? startLng;
   String? endLng;
+  String? startName;
+  String? endName;
   int path;
   String? date;
   int numberSeats;
@@ -21,6 +23,8 @@ class TripFrom {
       this.startLng,
       this.endLat,
       this.endLng,
+      this.startName,
+      this.endName,
       this.path = 0,
       this.date,
       this.numberSeats = 0,
@@ -31,6 +35,6 @@ class TripFrom {
       this.bookingType = "Direct",
       this.distance,
       this.duration,
-      this.cashType = "cash" ,
-      this.notes =""});
+      this.cashType = "cash",
+      this.notes = ""});
 }

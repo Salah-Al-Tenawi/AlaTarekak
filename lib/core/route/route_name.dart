@@ -29,6 +29,7 @@ class RouteName {
 
   //trip  create
   static const tripSelectSourceAndDistOnMap = "/TripSelectSourceAndDistOnMap";
+  static const tripCreateWizard = "/tripCreateWizard";
   static const tripSelectDateAndSeats = "/tripSelectDateAndSeats";
   static const tripSelectPriceAndBookingType = "/tripSelectPriceAndBookingType";
   static const tripAddNumberPhone = "/tripAddNumberPhone";
@@ -64,4 +65,10 @@ static const chatApiTest = "/ChatApiTest";
   static const profileDriverVerification = "/profileDriverVerification";
   static const profileSettings = "/profileSettings";
   static const profileSupport = "/profileSupport";
+  static const profileComplaint = "/profileComplaint";
+  static const profileContactUs = "/profileContactUs";
+
+  // support
+  static const complaintList = "/complaintList";
+  static const complaintDetail = "/complaintDetail";
 }

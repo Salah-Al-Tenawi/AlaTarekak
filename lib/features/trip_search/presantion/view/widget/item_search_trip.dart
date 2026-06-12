@@ -3,216 +3,172 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
+import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/class/format_date_time.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_details/presantaion/view/widget/status_trip.dart';
 
-class ItemSearchTrip extends StatefulWidget {
+class ItemSearchTrip extends StatelessWidget {
   final TripModel trip;
   const ItemSearchTrip({super.key, required this.trip});
 
   @override
-  State<ItemSearchTrip> createState() => _ItemSearchTripState();
-}
-
-class _ItemSearchTripState extends State<ItemSearchTrip> {
-  @override
   Widget build(BuildContext context) {
-    final statusInfo = getStatusInfo(widget.trip.status);
+    final statusInfo = getStatusInfo(trip.status);
 
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+      margin: EdgeInsets.symmetric(vertical: 8.h, horizontal: 16.w),
       shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: MyColors.accent, width: 0.1)),
-      elevation: 4,
-      shadowColor: Colors.black.withOpacity(0.1),
-      color: Colors.white,
+        borderRadius: BorderRadius.circular(20.r),
+        side: BorderSide(color: MyColors.border, width: 1),
+      ),
+      elevation: 3,
+      shadowColor: MyColors.shadowMedium,
+      color: MyColors.surface,
       child: InkWell(
-        onTap: () {
-          Get.toNamed(RouteName.tripDetails, arguments: widget.trip.id);
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white,
-                Colors.grey.shade50,
-              ],
-            ),
-          ),
+        onTap: () => Get.toNamed(RouteName.tripDetails, arguments: trip.id),
+        borderRadius: BorderRadius.circular(20.r),
+        child: Padding(
+          padding: EdgeInsets.all(16.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ━━ رأس البطاقة: السائق + الحالة ━━
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  _DriverAvatar(avatar: trip.driver.avatar),
+                  SizedBox(width: 12.w),
                   Expanded(
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: MyColors.primary.withOpacity(0.3),
-                              width: 2,
-                            ),
-                            image: widget.trip.driver.avatar != null
-                                ? DecorationImage(
-                                    image: NetworkImage(
-                                        widget.trip.driver.avatar!),
-                                    fit: BoxFit.cover,
-                                  )
-                                : null,
-                          ),
-                          child: widget.trip.driver.avatar == null
-                              ? const Icon(Icons.person,
-                                  color: MyColors.primary, size: 20)
-                              : null,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            widget.trip.driver.name,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                              color: MyColors.textPrimary,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      trip.driver.name,
+                      style: AppTextStyles.bodyLarge
+                          .copyWith(fontWeight: FontWeight.w600),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: 8.w),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 10.w, vertical: 5.h),
                     decoration: BoxDecoration(
-                      color: statusInfo.color.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: statusInfo.color.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      color: statusInfo.color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20.r),
                     ),
                     child: Text(
                       statusInfo.text,
                       style: TextStyle(
                         color: statusInfo.color,
                         fontWeight: FontWeight.w600,
-                        fontSize: 12,
+                        fontSize: 11.sp,
                       ),
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 14.h),
 
+              // ━━ خط فاصل ━━
+              Divider(height: 1, color: MyColors.divider),
+
+              SizedBox(height: 14.h),
+
+              // ━━ المسار ━━
+              _LocationLine(
+                icon: Icons.circle,
+                iconColor: MyColors.primary,
+                text: trip.pickup.address,
+              ),
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Row(
-                  children: [
-                    Icon(Icons.airline_seat_recline_normal,
-                        size: 16, color: MyColors.primary.withOpacity(0.7)),
-                    Expanded(
-                      child: Divider(
-                        thickness: 1,
-                        height: 1,
-                        color: Colors.grey.shade300,
-                        indent: 8,
-                        endIndent: 8,
-                      ),
-                    ),
-                  ],
+                padding: EdgeInsets.only(right: 8.w),
+                child: Container(
+                  width: 2,
+                  height: 18.h,
+                  margin: EdgeInsets.symmetric(vertical: 4.h),
+                  color: MyColors.border,
                 ),
               ),
-
-              // Locations
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _LocationRowModern(
-                    icon: Icons.circle,
-                    iconColor: MyColors.primary,
-                    text: widget.trip.pickup.address,
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 7),
-                    child: Container(
-                      height: 20,
-                      width: 2,
-                      color: Colors.grey.shade300,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _LocationRowModern(
-                    icon: Icons.location_pin,
-                    iconColor: MyColors.accent,
-                    text: widget.trip.destination.address,
-                  ),
-                ],
+              _LocationLine(
+                icon: Icons.location_pin,
+                iconColor: MyColors.accent,
+                text: trip.destination.address,
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 14.h),
 
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
+              // ━━ التاريخ والوقت ━━
+              Row(
                 children: [
-                  Padding(
-                    padding: EdgeInsetsGeometry.only(right: 30.w),
-                    child: _InfoChip(
-                      icon: Icons.calendar_today,
-                      label: DateTimeUtils.formatDate(widget.trip.departure),
-                      color: MyColors.primary,
-                    ),
-                  ),
-                  const Spacer(),
                   _InfoChip(
-                    icon: Icons.access_time,
-                    label: DateTimeUtils.formatTime(widget.trip.departure),
+                    icon: Icons.calendar_today_rounded,
+                    label: DateTimeUtils.formatDate(trip.departure),
+                    color: MyColors.primary,
+                  ),
+                  SizedBox(width: 8.w),
+                  _InfoChip(
+                    icon: Icons.access_time_rounded,
+                    label: DateTimeUtils.formatTime(trip.departure),
                     color: MyColors.accent,
                   ),
-                  Align(
-                    alignment: Alignment.center,
+                ],
+              ),
+
+              SizedBox(height: 8.h),
+
+              // ━━ السعر والمقاعد ━━
+              Row(
+                children: [
+                  Expanded(
                     child: _InfoChip(
-                      icon: Icons.price_change,
-                      label:
-                          " تكلفة الراكب الواحد   ${widget.trip.pricePerSeat} ل.س",
-                      color: Colors.red,
+                      icon: Icons.monetization_on_rounded,
+                      label: '${trip.pricePerSeat} ل.س / راكب',
+                      color: MyColors.warning,
                     ),
                   ),
-                  Align(
-                    alignment: Alignment.center,
+                  SizedBox(width: 8.w),
+                  Expanded(
                     child: _InfoChip(
-                      icon: Icons.event_seat,
-                      label:
-                          "${widget.trip.seatsAvailable} مقاعد متاحة | ${widget.trip.seatsBooked} محجوزة",
-                      color: Colors.red.shade200,
+                      icon: Icons.event_seat_rounded,
+                      label: '${trip.seatsAvailable} مقاعد متاحة',
+                      color: MyColors.success,
                     ),
                   ),
                 ],
               ),
-
-              const SizedBox(height: 8),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _DriverAvatar extends StatelessWidget {
+  final String? avatar;
+  const _DriverAvatar({required this.avatar});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 42.w,
+      height: 42.w,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: MyColors.primary.withValues(alpha: 0.25),
+          width: 2,
+        ),
+        image: avatar != null
+            ? DecorationImage(
+                image: NetworkImage(avatar!),
+                fit: BoxFit.cover,
+              )
+            : null,
+        color: MyColors.primary.withValues(alpha: 0.08),
+      ),
+      child: avatar == null
+          ? const Icon(Icons.person_rounded, color: MyColors.primary, size: 20)
+          : null,
     );
   }
 }
@@ -228,35 +184,40 @@ class _InfoChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 7.h),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withOpacity(0.2),
-          width: 1,
-        ),
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: color.withValues(alpha: 0.18), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 6),
-          Text(label,
+          Icon(icon, size: 13, color: color),
+          SizedBox(width: 5.w),
+          Flexible(
+            child: Text(
+              label,
               style: TextStyle(
-                  fontSize: 12, color: color, fontWeight: FontWeight.w500)),
+                fontSize: 11.sp,
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _LocationRowModern extends StatelessWidget {
+class _LocationLine extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final String text;
 
-  const _LocationRowModern(
+  const _LocationLine(
       {required this.icon, required this.iconColor, required this.text});
 
   @override
@@ -264,17 +225,16 @@ class _LocationRowModern extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: iconColor),
-        const SizedBox(width: 12),
+        Icon(icon, size: 16, color: iconColor),
+        SizedBox(width: 10.w),
         Expanded(
-          child: Text(text,
-              style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: MyColors.textPrimary
-                  ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis),
+          child: Text(
+            text,
+            style: AppTextStyles.bodySmall
+                .copyWith(color: MyColors.textPrimary, fontSize: 13.sp),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );

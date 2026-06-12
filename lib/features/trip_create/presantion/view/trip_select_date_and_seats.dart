@@ -14,11 +14,13 @@ class _TimeSlotData {
   final String range;
   final IconData icon;
   final int hour;
+  final int minute;
   const _TimeSlotData({
     required this.label,
     required this.range,
     required this.icon,
     required this.hour,
+    this.minute = 0,
   });
 }
 
@@ -27,19 +29,22 @@ const _timeSlots = [
     label: 'صباحاً',
     range: '6:00 - 12:00',
     icon: Icons.wb_sunny_outlined,
-    hour: 9,
+    hour: 8,
+    minute: 0,
   ),
   _TimeSlotData(
     label: 'ظهراً',
     range: '12:00 - 17:00',
     icon: Icons.wb_sunny_rounded,
-    hour: 14,
+    hour: 13,
+    minute: 0,
   ),
   _TimeSlotData(
     label: 'مساءً',
     range: '17:00 - 00:00',
     icon: Icons.nights_stay_outlined,
-    hour: 20,
+    hour: 19,
+    minute: 0,
   ),
 ];
 
@@ -57,7 +62,14 @@ const _arabicMonths = [
 // الشاشة الرئيسية
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 class TripSelectDateAndSeats extends StatefulWidget {
-  const TripSelectDateAndSeats({super.key});
+  const TripSelectDateAndSeats({
+    super.key,
+    this.tripFrom,
+    this.onNext,
+  });
+
+  final TripFrom? tripFrom;
+  final void Function(TripFrom)? onNext;
 
   @override
   State<TripSelectDateAndSeats> createState() => _TripSelectDateAndSeatsState();
@@ -66,13 +78,65 @@ class TripSelectDateAndSeats extends StatefulWidget {
 class _TripSelectDateAndSeatsState extends State<TripSelectDateAndSeats> {
   late TripFrom _tripFrom;
   DateTime _selectedDate = DateTime.now();
-  int _selectedTimeSlot = 1; // افتراضي: ظهراً
+  int _selectedTimeSlot = 1;
+  TimeOfDay _selectedTime = const TimeOfDay(hour: 13, minute: 0);
   int _seats = 1;
 
   @override
   void initState() {
     super.initState();
-    _tripFrom = Get.arguments as TripFrom;
+    if (widget.tripFrom != null) {
+      _tripFrom = widget.tripFrom!;
+    } else {
+      _tripFrom = Get.arguments as TripFrom;
+    }
+  }
+
+  bool _isPast(TimeOfDay t) {
+    final dt = DateTime(
+      _selectedDate.year, _selectedDate.month, _selectedDate.day,
+      t.hour, t.minute,
+    );
+    return dt.isBefore(DateTime.now());
+  }
+
+  void _onSlotChanged(int index) {
+    final slot = _timeSlots[index];
+    final newTime = TimeOfDay(hour: slot.hour, minute: slot.minute);
+    if (_isPast(newTime)) {
+      AppSnackBar.warning("هذه الفترة قد مضت، يرجى اختيار فترة مستقبلية");
+      return;
+    }
+    setState(() {
+      _selectedTimeSlot = index;
+      _selectedTime = newTime;
+    });
+  }
+
+  Future<void> _onPickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+        child: child!,
+      ),
+    );
+    if (picked == null) return;
+    if (_isPast(picked)) {
+      AppSnackBar.warning("الوقت المختار في الماضي، يرجى اختيار وقت مستقبلي");
+      return;
+    }
+    setState(() {
+      _selectedTime = picked;
+      if (picked.hour >= 6 && picked.hour < 12) {
+        _selectedTimeSlot = 0;
+      } else if (picked.hour >= 12 && picked.hour < 17) {
+        _selectedTimeSlot = 1;
+      } else {
+        _selectedTimeSlot = 2;
+      }
+    });
   }
 
   void _onNext() {
@@ -81,21 +145,35 @@ class _TripSelectDateAndSeatsState extends State<TripSelectDateAndSeats> {
       return;
     }
 
-    final slot = _timeSlots[_selectedTimeSlot];
-    final dt = DateTime(
+    final selectedDt = DateTime(
       _selectedDate.year,
       _selectedDate.month,
       _selectedDate.day,
-      slot.hour,
+      _selectedTime.hour,
+      _selectedTime.minute,
     );
-    _tripFrom.date = DateFormat('yyyy-MM-dd HH:mm:ss').format(dt);
+
+    if (selectedDt.isBefore(DateTime.now())) {
+      AppSnackBar.warning("يرجى اختيار وقت مستقبلي");
+      return;
+    }
+
+    _tripFrom.date = DateFormat('yyyy-MM-dd HH:mm:ss').format(selectedDt);
     _tripFrom.numberSeats = _seats;
 
-    Get.toNamed(RouteName.tripSelectPriceAndBookingType, arguments: _tripFrom);
+    if (widget.onNext != null) {
+      widget.onNext!(_tripFrom);
+    } else {
+      Get.toNamed(RouteName.tripSelectPriceAndBookingType, arguments: _tripFrom);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final content = _buildContent();
+    // Wizard mode: no Scaffold needed
+    if (widget.onNext != null) return content;
+
     return Scaffold(
       backgroundColor: MyColors.background,
       appBar: AppBar(
@@ -109,10 +187,14 @@ class _TripSelectDateAndSeatsState extends State<TripSelectDateAndSeats> {
         title: Text("إضافة رحلة جديدة", style: AppTextStyles.titleMedium),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          // ━━ مؤشر الخطوة ━━
-          _StepIndicator(currentStep: 2, totalSteps: 3),
+      body: content,
+    );
+  }
+
+  Widget _buildContent() {
+    return Column(
+      children: [
+        _StepIndicator(currentStep: 2, totalSteps: 3),
 
           // ━━ المحتوى القابل للتمرير ━━
           Expanded(
@@ -156,8 +238,14 @@ class _TripSelectDateAndSeatsState extends State<TripSelectDateAndSeats> {
 
                   _TimeSlotRow(
                     selectedIndex: _selectedTimeSlot,
-                    onSelect: (i) =>
-                        setState(() => _selectedTimeSlot = i),
+                    onSelect: _onSlotChanged,
+                  ),
+
+                  SizedBox(height: 12.h),
+
+                  _TimeDisplay(
+                    time: _selectedTime,
+                    onTap: _onPickTime,
                   ),
 
                   SizedBox(height: 24.h),
@@ -187,8 +275,7 @@ class _TripSelectDateAndSeatsState extends State<TripSelectDateAndSeats> {
           // ━━ زر التالي ━━
           _NextButton(onTap: _onNext),
         ],
-      ),
-    );
+      );
   }
 }
 
@@ -216,13 +303,13 @@ class _StepIndicator extends StatelessWidget {
           ),
           SizedBox(height: 8.h),
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(4.r),
             child: LinearProgressIndicator(
               value: currentStep / totalSteps,
               backgroundColor: MyColors.surfaceAlt,
               valueColor:
                   const AlwaysStoppedAnimation<Color>(MyColors.primary),
-              minHeight: 5,
+              minHeight: 5.h,
             ),
           ),
         ],
@@ -244,13 +331,13 @@ class _SectionHeader extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 32,
-          height: 32,
+          width: 32.r,
+          height: 32.r,
           decoration: BoxDecoration(
             color: MyColors.primary.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(8.r),
           ),
-          child: Icon(icon, color: MyColors.primary, size: 17),
+          child: Icon(icon, color: MyColors.primary, size: 17.sp),
         ),
         SizedBox(width: 8.w),
         Text(title, style: AppTextStyles.labelLarge),
@@ -296,7 +383,7 @@ class _DatePickerRow extends StatelessWidget {
               decoration: BoxDecoration(
                 color:
                     isSelected ? MyColors.primary : MyColors.surface,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(14.r),
                 boxShadow: const [
                   BoxShadow(
                     color: MyColors.shadowLight,
@@ -376,7 +463,7 @@ class _TimeSlotRow extends StatelessWidget {
                 color: isSelected
                     ? MyColors.primary
                     : MyColors.surface,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(14.r),
                 boxShadow: const [
                   BoxShadow(
                     color: MyColors.shadowLight,
@@ -390,7 +477,7 @@ class _TimeSlotRow extends StatelessWidget {
                 children: [
                   Icon(
                     slot.icon,
-                    size: 24,
+                    size: 24.sp,
                     color: isSelected
                         ? Colors.white
                         : MyColors.accent,
@@ -425,6 +512,60 @@ class _TimeSlotRow extends StatelessWidget {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━
+// عرض الوقت المحدد
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+class _TimeDisplay extends StatelessWidget {
+  final TimeOfDay time;
+  final VoidCallback onTap;
+  const _TimeDisplay({required this.time, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.hour < 12 ? 'ص' : 'م';
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
+        decoration: BoxDecoration(
+          color: MyColors.surface,
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(color: MyColors.border),
+          boxShadow: const [
+            BoxShadow(
+                color: MyColors.shadowLight,
+                blurRadius: 6,
+                offset: Offset(0, 2)),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.edit_outlined, color: MyColors.accent, size: 18.sp),
+            SizedBox(width: 10.w),
+            Text(
+              '$hour:$minute $period',
+              style: AppTextStyles.titleLarge.copyWith(
+                color: MyColors.primary,
+                letterSpacing: 1.5,
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Text(
+              'اضغط لتحديد الوقت بدقة',
+              style: AppTextStyles.labelSmall
+                  .copyWith(color: MyColors.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━
 // عداد المقاعد
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 class _SeatsCounter extends StatelessWidget {
@@ -444,7 +585,7 @@ class _SeatsCounter extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
       decoration: BoxDecoration(
         color: MyColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         boxShadow: const [
           BoxShadow(
             color: MyColors.shadowLight,
@@ -510,18 +651,18 @@ class _CounterButton extends StatelessWidget {
     return GestureDetector(
       onTap: enabled ? onTap : null,
       child: Container(
-        width: 44,
-        height: 44,
+        width: 44.r,
+        height: 44.r,
         decoration: BoxDecoration(
           color: enabled
               ? MyColors.primary
               : MyColors.surfaceAlt,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
         ),
         child: Icon(
           icon,
           color: enabled ? Colors.white : MyColors.textHint,
-          size: 22,
+          size: 22.sp,
         ),
       ),
     );
@@ -549,12 +690,12 @@ class _NextButton extends StatelessWidget {
             backgroundColor: MyColors.accent,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(14.r),
             ),
             elevation: 0,
           ),
-          icon: const Icon(Icons.arrow_back_rounded, size: 20),
-          label: Text("التالي", style: AppTextStyles.buttonPrimary),
+          icon: Icon(Icons.arrow_back_rounded, size: 20.sp),
+          label: Text("التالي", style: AppTextStyles.buttonLarge),
         ),
       ),
     );

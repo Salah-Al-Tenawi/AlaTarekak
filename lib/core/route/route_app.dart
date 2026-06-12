@@ -62,6 +62,15 @@ import 'package:alatarekak/features/profiles/presantaion/view/profile_my_cars.da
 import 'package:alatarekak/features/profiles/presantaion/view/profile_driver_verification.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/profile_settings.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/profile_support.dart';
+import 'package:alatarekak/features/support/data/data_source/support_remote_data_source.dart';
+import 'package:alatarekak/features/support/data/repo/support_repo_im.dart';
+import 'package:alatarekak/features/support/presantion/manger/complaint_cubit/complaint_cubit.dart';
+import 'package:alatarekak/features/support/presantion/manger/contact_support_cubit/contact_support_cubit.dart';
+import 'package:alatarekak/features/support/presantion/view/complaint_screen.dart';
+import 'package:alatarekak/features/support/presantion/view/contact_us_screen.dart';
+import 'package:alatarekak/features/support/presantion/view/complaint_list_screen.dart';
+import 'package:alatarekak/features/support/presantion/view/complaint_detail_screen.dart';
+import 'package:alatarekak/features/support/presantion/manger/complaint_list_cubit/complaint_list_cubit.dart';
 import 'package:alatarekak/features/splash_view/presentaion/view/splash_view.dart';
 import 'package:alatarekak/features/trip_booking/data/data%20source/booking_remote_data_source.dart';
 import 'package:alatarekak/features/trip_booking/data/repo/booking_me_repo.dart';
@@ -71,6 +80,7 @@ import 'package:alatarekak/features/trip_create/data/data_source/trip_create_rem
 import 'package:alatarekak/features/trip_create/data/repo/trip_create_repo_im.dart';
 import 'package:alatarekak/features/trip_create/presantion/manger/cubit/push_ride_cubit.dart';
 import 'package:alatarekak/features/trip_create/presantion/view/trip_add_number_phone.dart';
+import 'package:alatarekak/features/trip_create/presantion/view/trip_create_wizard.dart';
 import 'package:alatarekak/features/trip_create/presantion/view/trip_select_date_and_seats.dart';
 import 'package:alatarekak/features/trip_create/presantion/view/trip_select_price_and_booking_type.dart';
 import 'package:alatarekak/features/trip_create/presantion/view/trip_select_source_and_dist_on_map.dart';
@@ -173,7 +183,9 @@ List<GetPage<dynamic>> appRoute = [
   GetPage(
     name: RouteName.pushRideMap,
     page: () => BlocProvider(
-      create: (_) => MapCubit(),
+      create: (_) => MapCubit(
+        MapRepoIm(mapsDataSource: MapsDataSourceIm(api: getit.get<DioConSumer>())),
+      ),
       child: const PushRideMap(),
     ),
   ),
@@ -190,28 +202,46 @@ List<GetPage<dynamic>> appRoute = [
   GetPage(
     name: RouteName.searchRideMap,
     page: () => BlocProvider(
-      create: (_) => MapCubit(),
+      create: (_) => MapCubit(
+        MapRepoIm(mapsDataSource: MapsDataSourceIm(api: getit.get<DioConSumer>())),
+      ),
       child: const SearchRideMap(),
     ),
   ),
   // trips create
-  // Todo add bloc provider
   GetPage(
-      name: RouteName.tripSelectSourceAndDistOnMap,
-      page: () => const TripSelectSourceAndDistOnMap()),
+    name: RouteName.tripSelectSourceAndDistOnMap,
+    page: () => const TripSelectSourceAndDistOnMap(),
+  ),
 
+  // ── wizard: steps 2-4 with PushRideCubit provided at top level ──
   GetPage(
-      name: RouteName.tripSelectDateAndSeats,
-      page: () => const TripSelectDateAndSeats()),
+    name: RouteName.tripCreateWizard,
+    page: () => BlocProvider(
+      create: (_) => PushRideCubit(
+        TripCreateRepoIm(
+          tripCreateRemoteDataSource: TripCreateRemoteDataSource(
+            api: getit.get<DioConSumer>(),
+          ),
+        ),
+      ),
+      child: const TripCreateWizard(),
+    ),
+  ),
 
+  // kept for standalone access if needed
   GetPage(
-      name: RouteName.tripSelectPriceAndBookingType,
-      page: () => const TripSelectPriceAndBookingType()),
-
+    name: RouteName.tripSelectDateAndSeats,
+    page: () => const TripSelectDateAndSeats(),
+  ),
+  GetPage(
+    name: RouteName.tripSelectPriceAndBookingType,
+    page: () => const TripSelectPriceAndBookingType(),
+  ),
   GetPage(
     name: RouteName.tripAddNumberPhone,
     page: () => BlocProvider(
-      create: (context) => PushRideCubit(
+      create: (_) => PushRideCubit(
         TripCreateRepoIm(
           tripCreateRemoteDataSource: TripCreateRemoteDataSource(
             api: getit.get<DioConSumer>(),
@@ -367,6 +397,46 @@ List<GetPage<dynamic>> appRoute = [
   GetPage(
     name: RouteName.profileSupport,
     page: () => const ProfileSupportScreen(),
+  ),
+  GetPage(
+    name: RouteName.profileComplaint,
+    page: () => BlocProvider(
+      create: (_) => ComplaintCubit(
+        SupportRepoIm(
+          remoteDataSource:
+              SupportRemoteDataSourceIm(api: getit.get<DioConSumer>()),
+        ),
+      ),
+      child: const ComplaintScreen(),
+    ),
+  ),
+  GetPage(
+    name: RouteName.profileContactUs,
+    page: () => BlocProvider(
+      create: (_) => ContactSupportCubit(
+        SupportRepoIm(
+          remoteDataSource:
+              SupportRemoteDataSourceIm(api: getit.get<DioConSumer>()),
+        ),
+      ),
+      child: const ContactUsScreen(),
+    ),
+  ),
+  GetPage(
+    name: RouteName.complaintList,
+    page: () => BlocProvider(
+      create: (_) => ComplaintListCubit(
+        SupportRepoIm(
+          remoteDataSource:
+              SupportRemoteDataSourceIm(api: getit.get<DioConSumer>()),
+        ),
+      ),
+      child: const ComplaintListScreen(),
+    ),
+  ),
+  GetPage(
+    name: RouteName.complaintDetail,
+    page: () => const ComplaintDetailScreen(),
   ),
 
   // policy

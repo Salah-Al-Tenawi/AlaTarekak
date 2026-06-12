@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/route_manager.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
@@ -19,72 +19,80 @@ class _TripSearchListState extends State<TripSearchList> {
   @override
   void initState() {
     trips = Get.arguments as List<TripModel>;
-
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: MyColors.background,
       appBar: AppBar(
-        title: const Text(
-          "الرحلات المتاحة",
-          style: AppTextStyles.titleLarge,
-        ),
         backgroundColor: MyColors.primary,
+        foregroundColor: MyColors.textOnDark,
+        elevation: 0,
         centerTitle: true,
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.only(top: 8, bottom: 16),
-        itemCount: trips.length,
-        itemBuilder: (context, index) {
-          final trip = trips[index];
-          if (trips.isEmpty) {
-            return Center(
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                decoration: BoxDecoration(
-                  color: MyColors.accent.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.airport_shuttle_outlined,
-                      size: 60,
-                      color: MyColors.primary.withOpacity(0.7),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'لا توجد رحلات متاحة حالياً',
-                      style: TextStyle(
-                        color: MyColors.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 18,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'حاول تغيير التاريخ أو الموقع للعثور على رحلات أخرى.',
-                      style: TextStyle(
-                        color: MyColors.textSecondary.withOpacity(0.7),
-                        fontSize: 14,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+        title: const Text('الرحلات المتاحة'),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(36.h),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.only(bottom: 10.h),
+            child: Text(
+              '${trips.length} رحلة متاحة',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: MyColors.textOnDark.withValues(alpha: 0.8),
               ),
-            );
-          }
+            ),
+          ),
+        ),
+      ),
+      body: trips.isEmpty
+          ? _EmptyState()
+          : ListView.builder(
+              padding: EdgeInsets.only(top: 12.h, bottom: 24.h),
+              itemCount: trips.length,
+              itemBuilder: (context, index) =>
+                  ItemSearchTrip(trip: trips[index]),
+            ),
+    );
+  }
+}
 
-          return ItemSearchTrip(
-            trip: trip,
-          );
-        },
+class _EmptyState extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 32.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80.w,
+              height: 80.w,
+              decoration: BoxDecoration(
+                color: MyColors.primary.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.airport_shuttle_outlined,
+                  size: 40, color: MyColors.primary),
+            ),
+            SizedBox(height: 20.h),
+            Text(
+              'لا توجد رحلات متاحة حالياً',
+              style: AppTextStyles.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'حاول تغيير التاريخ أو الموقع للعثور على رحلات أخرى',
+              style: AppTextStyles.bodySmall
+                  .copyWith(color: MyColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }

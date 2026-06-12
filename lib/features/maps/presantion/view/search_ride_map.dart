@@ -91,6 +91,9 @@ class _SearchRideMapState extends State<SearchRideMap> {
       options: MapOptions(
         initialCenter: center,
         initialZoom: _initialZoom,
+        interactionOptions: const InteractionOptions(
+          flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+        ),
         onTap: (_, point) => cubit.tapOnMap(point),
       ),
       children: [

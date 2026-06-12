@@ -1,4 +1,5 @@
 import 'package:latlong2/latlong.dart';
+import 'package:alatarekak/features/maps/data/model/place_suggestion.dart';
 
 abstract class MapState {}
 
@@ -12,6 +13,8 @@ class MapLoaded extends MapState {
   final int currentRouteIndex;
   final LatLng? start;
   final LatLng? end;
+  final String? startName;
+  final String? endName;
 
   MapLoaded({
     required this.routes,
@@ -19,10 +22,18 @@ class MapLoaded extends MapState {
     required this.currentRouteIndex,
     required this.start,
     required this.end,
+    this.startName,
+    this.endName,
   });
 }
 
 class MapError extends MapState {
   final String message;
   MapError(this.message);
+}
+
+class MapSearchResults extends MapState {
+  final List<PlaceSuggestion> suggestions;
+  final bool isForStart;
+  MapSearchResults(this.suggestions, {required this.isForStart});
 }
