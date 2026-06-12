@@ -1,6 +1,7 @@
 class ApiEndPoint {
-  static const baserUrl = "http://192.168.0.104:8000/api";
-  static const broadcastAuth = "http://192.168.1.111:8000/broadcasting/auth";
+  static const serverRoot = "http://192.168.0.110:8000";
+  static const baserUrl = "$serverRoot/api";
+  static const broadcastAuth = "$serverRoot/broadcasting/auth";
   static const baseUrlGoogle ="http://192.168.43.81:8000";
 
   static const mapsOpenRouteServices =
@@ -49,8 +50,6 @@ static const createwallet = "$baserUrl/wallet/verify-and-create";
 
  static const message = "$chat/conversations";
  static const deletmessage = "$chat/messages";
- static const markMessageRead = "$chat/messages"; // POST $markMessageRead/{id}/read
- static const conversationUnreadCount = "$chat/conversations"; // GET $conversationUnreadCount/{id}/unread-count
 
 
 

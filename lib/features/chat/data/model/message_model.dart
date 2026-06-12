@@ -1,3 +1,4 @@
+import 'package:alatarekak/core/api/api_end_points.dart';
 import 'package:alatarekak/features/chat/domain/entity/message_entity.dart';
 
 class MessageSenderModel extends MessageSenderEntity {
@@ -41,11 +42,22 @@ class MessageModel extends MessageEntity {
       content: content,
       type: type,
       image: type == 'image'
-          ? (json['image'] as String? ?? (content.isNotEmpty ? content : null))
+          ? _fullImageUrl(
+              json['image'] as String? ?? (content.isNotEmpty ? content : null))
           : json['image'] as String?,
       caption: json['caption'] as String?,
       isEdited: json['is_edited'] as bool? ?? false,
       createdAt: json['created_at'] as String? ?? '',
     );
+  }
+
+  /// REST returns full URLs, but the Pusher broadcast payload contains the
+  /// raw storage path — prefix it so images render either way.
+  static String? _fullImageUrl(String? path) {
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http')) return path;
+    var clean = path.startsWith('/') ? path.substring(1) : path;
+    if (!clean.startsWith('storage/')) clean = 'storage/$clean';
+    return '${ApiEndPoint.serverRoot}/$clean';
   }
 }

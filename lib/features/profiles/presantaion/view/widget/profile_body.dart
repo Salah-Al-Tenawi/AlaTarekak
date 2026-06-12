@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:alatarekak/core/constant/imagesUrl.dart';
 import 'package:alatarekak/core/route/route_name.dart';
+import 'package:alatarekak/core/service/chat_socket_service.dart';
 import 'package:alatarekak/core/service/locator_ser.dart';
 import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
@@ -465,7 +466,7 @@ class _MenuCard extends StatelessWidget {
             label: "توثيق الهوية",
             badge: verBadge,
             badgeColor: isVerified ? MyColors.success : null,
-            onTap: () => _showVerificationSheet(context),
+            onTap: () => _onVerificationTap(context),
           ),
           _divider(),
           _MenuItem(
@@ -478,6 +479,24 @@ class _MenuCard extends StatelessWidget {
             icon: Icons.support_agent_outlined,
             label: "الدعم الفني",
             onTap: () => Get.toNamed(RouteName.profileSupport),
+          ),
+          _divider(),
+          _MenuItem(
+            icon: Icons.list_alt_rounded,
+            label: "شكاواي",
+            onTap: () => Get.toNamed(RouteName.complaintList),
+          ),
+          _divider(),
+          _MenuItem(
+            icon: Icons.report_problem_outlined,
+            label: "تقديم شكوى",
+            onTap: () => Get.toNamed(RouteName.profileComplaint),
+          ),
+          _divider(),
+          _MenuItem(
+            icon: Icons.headset_mic_outlined,
+            label: "تواصل مع الدعم",
+            onTap: () => Get.toNamed(RouteName.profileContactUs),
           ),
         ],
       ),
@@ -495,6 +514,25 @@ class _MenuCard extends StatelessWidget {
       default:
         return null;
     }
+  }
+
+  void _onVerificationTap(BuildContext context) {
+    final status = profile.verification;
+    if (status == 'none') {
+      _showVerificationSheet(context);
+      return;
+    }
+    final docs = profile.documents;
+    final isDriver =
+        docs?.licensePic != null || docs?.mechanicCardPic != null;
+    Get.toNamed(
+      RouteName.profileDriverVerification,
+      arguments: {
+        'status': status,
+        'userType': isDriver ? 'driver' : 'passenger',
+        'documents': docs,
+      },
+    );
   }
 
   void _showVerificationSheet(BuildContext context) {
@@ -1372,7 +1410,10 @@ class _LogoutButton extends StatelessWidget {
     final result = await getit.get<AuthRepoIm>().logout();
     result.fold(
       (_) => AppSnackBar.error('فشل تسجيل الخروج، حاول مجدداً'),
-      (_) => Get.offAllNamed(RouteName.login),
+      (_) async {
+        await ChatSocketService.instance.disconnect();
+        Get.offAllNamed(RouteName.login);
+      },
     );
   }
 

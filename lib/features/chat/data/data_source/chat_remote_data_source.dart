@@ -25,8 +25,6 @@ abstract class ChatRemoteDataSource {
     String? caption,
   });
   Future<void> deleteMessage(int messageId);
-  Future<void> markMessageRead(int messageId);
-  Future<int> getUnreadCount(int conversationId);
 }
 
 class ChatRemoteDataSourceImpl extends ChatRemoteDataSource {
@@ -104,22 +102,6 @@ class ChatRemoteDataSourceImpl extends ChatRemoteDataSource {
   @override
   Future<void> deleteMessage(int messageId) async {
     await api.delete('${ApiEndPoint.deletmessage}/$messageId');
-  }
-
-  @override
-  Future<void> markMessageRead(int messageId) async {
-    await api.post('${ApiEndPoint.markMessageRead}/$messageId/read');
-  }
-
-  @override
-  Future<int> getUnreadCount(int conversationId) async {
-    final response = await api.get(
-      '${ApiEndPoint.conversationUnreadCount}/$conversationId/unread-count',
-    );
-    if (response is Map) {
-      return response['unread_count'] as int? ?? 0;
-    }
-    return 0;
   }
 
   List _extractList(dynamic response) {

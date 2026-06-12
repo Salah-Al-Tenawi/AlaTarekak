@@ -10,17 +10,17 @@ class ModernBottomNavBar extends StatelessWidget {
   const ModernBottomNavBar({super.key, required this.pageController});
 
   static const _navIcons = [
-    Icons.home_rounded,
-    Icons.directions_car_rounded,
     Icons.confirmation_number_outlined,
+    Icons.directions_car_rounded,
+    Icons.home_rounded,
     Icons.chat_bubble_outline_rounded,
     Icons.person_rounded,
   ];
 
   static const _titles = [
-    "الرئيسية",
-    "رحلاتي",
     "حجوزاتي",
+    "رحلاتي",
+    "الرئيسية",
     "الدردشة",
     "حسابي",
   ];

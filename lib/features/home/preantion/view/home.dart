@@ -24,7 +24,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool isNew = false;
-  final _pageController = PageController(initialPage: 0);
+  final _pageController = PageController(initialPage: 2);
 
   @override
   void initState() {
@@ -87,16 +87,26 @@ class _HomeState extends State<Home> {
       },
     ),
   ],
-),body: PageView(
-          controller: _pageController,
-          physics: const NeverScrollableScrollPhysics(),
-          children: const [
-            TripSearch(),
-            TripMeList(),
-            BookingUserINTrip(),
-            ChatListScreen(),
-            Profile(),
-          ],
+),body: BlocListener<HomeNavCubit, int>(
+          // Keeps the PageView in sync when a tab change comes from outside
+          // the bottom nav bar (e.g. the chat icon in the app bar).
+          listener: (context, index) {
+            if (_pageController.hasClients &&
+                _pageController.page?.round() != index) {
+              _pageController.jumpToPage(index);
+            }
+          },
+          child: PageView(
+            controller: _pageController,
+            physics: const NeverScrollableScrollPhysics(),
+            children: const [
+              BookingUserINTrip(),
+              TripMeList(),
+              TripSearch(),
+              ChatListScreen(),
+              Profile(),
+            ],
+          ),
         ),
         bottomNavigationBar:
             ModernBottomNavBar(pageController: _pageController),

@@ -17,6 +17,14 @@ final class MessageError extends MessageState {
   MessageError(this.message);
 }
 
+/// Send/delete failed — the message list is preserved so the chat
+/// doesn't disappear; the UI should show a snackbar instead.
+final class MessageActionFailed extends MessageState {
+  final List<MessageEntity> messages;
+  final String error;
+  MessageActionFailed({required this.messages, required this.error});
+}
+
 final class MessageSending extends MessageState {
   final List<MessageEntity> messages;
   MessageSending(this.messages);

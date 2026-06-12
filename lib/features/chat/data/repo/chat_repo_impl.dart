@@ -86,23 +86,4 @@ class ChatRepoImpl extends ChatRepo {
     }
   }
 
-  @override
-  Future<Either<Filuar, Unit>> markMessageRead(int messageId) async {
-    try {
-      await remoteDataSource.markMessageRead(messageId);
-      return right(unit);
-    } on ServerExpcptions catch (e) {
-      return left(e.error);
-    }
-  }
-
-  @override
-  Future<Either<Filuar, int>> getUnreadCount(int conversationId) async {
-    try {
-      final count = await remoteDataSource.getUnreadCount(conversationId);
-      return right(count);
-    } on ServerExpcptions catch (e) {
-      return left(e.error);
-    }
-  }
 }

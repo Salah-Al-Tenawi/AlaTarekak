@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/route_manager.dart';
 import 'package:alatarekak/core/route/route_name.dart';
+import 'package:alatarekak/core/service/chat_socket_service.dart';
 import 'package:alatarekak/features/auth/data/repo/auth_repo_im.dart';
 
 class HomeNavCubit extends Cubit<int> {
   final AuthRepoIm _authRepoIm;
-  HomeNavCubit(this._authRepoIm) : super(0);
+  HomeNavCubit(this._authRepoIm) : super(2);
 
   void changePage(int index) => emit(index);
 
@@ -22,8 +23,9 @@ class HomeNavCubit extends Cubit<int> {
           ),
         );
       },
-      (success) {
-        Get.offAllNamed(RouteName.login); 
+      (success) async {
+        await ChatSocketService.instance.disconnect();
+        Get.offAllNamed(RouteName.login);
       },
     );
   }

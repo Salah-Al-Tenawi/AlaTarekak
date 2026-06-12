@@ -28,6 +28,4 @@ abstract class ChatRepo {
   });
 
   Future<Either<Filuar, Unit>> deleteMessage(int messageId);
-  Future<Either<Filuar, Unit>> markMessageRead(int messageId);
-  Future<Either<Filuar, int>> getUnreadCount(int conversationId);
 }

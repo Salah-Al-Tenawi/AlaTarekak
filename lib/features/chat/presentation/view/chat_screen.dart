@@ -25,6 +25,7 @@ class _ChatScreenState extends State<ChatScreen> {
   late final int conversationId;
   late final String title;
   String? avatar;
+  bool _didInitialScroll = false;
 
   @override
   void initState() {
@@ -33,6 +34,7 @@ class _ChatScreenState extends State<ChatScreen> {
     conversationId = args['conversationId'] as int;
     title = args['title'] as String? ?? 'محادثة';
     avatar = args['avatar'] as String?;
+    _scrollController.addListener(_onScroll);
     context.read<MessageCubit>().loadMessages();
   }
 
@@ -43,14 +45,36 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  void _scrollToBottom() {
+  // Load older messages when the user scrolls near the top, then restore
+  // the scroll offset so the list doesn't jump.
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    if (_scrollController.position.pixels > 80) return;
+    final before = _scrollController.position.maxScrollExtent;
+    context.read<MessageCubit>().loadMore().then((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_scrollController.hasClients) return;
+        final delta = _scrollController.position.maxScrollExtent - before;
+        if (delta > 0) {
+          _scrollController
+              .jumpTo(_scrollController.position.pixels + delta);
+        }
+      });
+    });
+  }
+
+  void _scrollToBottom({bool animated = true}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
+      if (!_scrollController.hasClients) return;
+      final target = _scrollController.position.maxScrollExtent;
+      if (animated) {
         _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
+          target,
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeOut,
         );
+      } else {
+        _scrollController.jumpTo(target);
       }
     });
   }
@@ -74,6 +98,16 @@ class _ChatScreenState extends State<ChatScreen> {
               listener: (context, state) {
                 if (state is MessageSent || state is MessageDeleted) {
                   _scrollToBottom();
+                } else if (state is MessageLoaded && !_didInitialScroll) {
+                  _didInitialScroll = true;
+                  _scrollToBottom(animated: false);
+                } else if (state is MessageActionFailed) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(state.error),
+                      backgroundColor: MyColors.error,
+                    ),
+                  );
                 }
               },
               builder: (context, state) {
@@ -87,6 +121,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 if (state is MessageSending) messages = state.messages;
                 if (state is MessageSent) messages = state.messages;
                 if (state is MessageDeleted) messages = state.messages;
+                if (state is MessageActionFailed) messages = state.messages;
 
                 if (messages.isEmpty && state is! MessageLoading) {
                   return const _EmptyMessages();

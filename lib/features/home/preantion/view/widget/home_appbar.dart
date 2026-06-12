@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:alatarekak/core/route/route_name.dart';
+import 'package:alatarekak/features/home/preantion/manger/cubit/home_nav_cubit_cubit.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/utils/widgets/custom_badge.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -246,7 +248,9 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           border: true,
           child: InkWell(
             onTap: () {
-              Get.toNamed(RouteName.chatListScreen);
+              // Switch to the chat tab instead of pushing a duplicate
+              // ChatListScreen route (which spawns a second ConversationCubit).
+              context.read<HomeNavCubit>().changePage(3);
             },
             child: Container(
               margin: EdgeInsets.only(left: 8.w, bottom: 5.h, right: 8.w),
