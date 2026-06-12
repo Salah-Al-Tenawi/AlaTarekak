@@ -1,5 +1,6 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/support/domain/repo/support_repo.dart';
 
 part 'contact_support_state.dart';
@@ -9,12 +10,20 @@ class ContactSupportCubit extends Cubit<ContactSupportState> {
 
   ContactSupportCubit(this._repo) : super(const ContactSupportInitial());
 
-  Future<void> requestAgent() async {
+  /// POST /api/contact — يعمل حتى أثناء الحظر (قناة الاعتراض المصممة).
+  /// 200 و201 يعاملان بنفس الطريقة: افتح الشات بـ conversationId.
+  Future<void> openSupportChat() async {
     emit(const ContactSupportRequesting());
-    final result = await _repo.requestContactSupport();
+    final result = await _repo.openSupportChat();
+    if (isClosed) return;
+
     result.fold(
-      (failure) => emit(ContactSupportFailure(failure.message)),
-      (_) => emit(const ContactSupportAgentRequested()),
+      (failure) => emit(ContactSupportFailure(
+          HandelErorrMessage.contactSupport(failure.message))),
+      (chat) => emit(ContactSupportReady(
+        conversationId: chat.conversationId,
+        agentName: chat.agentName,
+      )),
     );
   }
 }

@@ -1,39 +1,43 @@
 import 'package:flutter/material.dart';
 
+/// أنواع الشكاوى — القيم مطابقة تماماً لقيم الباك إند (snake_case).
+/// قيمة غير معروفة ← other دفاعياً.
 enum ComplaintType {
-  safety,
-  driverBehavior,
-  passengerBehavior,
-  tripCancellation,
-  financial,
-  account,
-  technical,
-  other;
+  tripSafety('trip_safety'),
+  driverBehavior('driver_behavior'),
+  passengerBehavior('passenger_behavior'),
+  rideCancellation('ride_cancellation'),
+  financialIssue('financial_issue'),
+  accountIssue('account_issue'),
+  technicalIssue('technical_issue'),
+  other('other');
 
-  static ComplaintType fromString(String value) {
+  /// القيمة المرسلة/المستقبلة من الـ API
+  final String apiValue;
+  const ComplaintType(this.apiValue);
+
+  static ComplaintType fromString(String? value) {
     return ComplaintType.values.firstWhere(
-      (e) => e.name == value,
+      (e) => e.apiValue == value,
       orElse: () => ComplaintType.other,
     );
   }
 
-  String get apiValue => name;
-
   String get label {
     switch (this) {
-      case ComplaintType.safety:
+      case ComplaintType.tripSafety:
         return 'أمان الرحلة';
       case ComplaintType.driverBehavior:
         return 'سلوك السائق';
       case ComplaintType.passengerBehavior:
         return 'سلوك الراكب';
-      case ComplaintType.tripCancellation:
+      case ComplaintType.rideCancellation:
         return 'إلغاء الرحلة';
-      case ComplaintType.financial:
+      case ComplaintType.financialIssue:
         return 'مشكلة مالية';
-      case ComplaintType.account:
+      case ComplaintType.accountIssue:
         return 'مشكلة في الحساب';
-      case ComplaintType.technical:
+      case ComplaintType.technicalIssue:
         return 'عطل تقني';
       case ComplaintType.other:
         return 'أخرى';
@@ -42,19 +46,19 @@ enum ComplaintType {
 
   IconData get icon {
     switch (this) {
-      case ComplaintType.safety:
+      case ComplaintType.tripSafety:
         return Icons.shield_outlined;
       case ComplaintType.driverBehavior:
         return Icons.directions_car_outlined;
       case ComplaintType.passengerBehavior:
         return Icons.person_outline_rounded;
-      case ComplaintType.tripCancellation:
+      case ComplaintType.rideCancellation:
         return Icons.cancel_outlined;
-      case ComplaintType.financial:
+      case ComplaintType.financialIssue:
         return Icons.account_balance_wallet_outlined;
-      case ComplaintType.account:
+      case ComplaintType.accountIssue:
         return Icons.manage_accounts_outlined;
-      case ComplaintType.technical:
+      case ComplaintType.technicalIssue:
         return Icons.phone_android_outlined;
       case ComplaintType.other:
         return Icons.help_outline_rounded;
@@ -63,19 +67,19 @@ enum ComplaintType {
 
   Color get color {
     switch (this) {
-      case ComplaintType.safety:
+      case ComplaintType.tripSafety:
         return const Color(0xFFD32F2F);
       case ComplaintType.driverBehavior:
         return const Color(0xFF1565C0);
       case ComplaintType.passengerBehavior:
         return const Color(0xFF6A1B9A);
-      case ComplaintType.tripCancellation:
+      case ComplaintType.rideCancellation:
         return const Color(0xFFE65100);
-      case ComplaintType.financial:
+      case ComplaintType.financialIssue:
         return const Color(0xFF2E7D32);
-      case ComplaintType.account:
+      case ComplaintType.accountIssue:
         return const Color(0xFF00838F);
-      case ComplaintType.technical:
+      case ComplaintType.technicalIssue:
         return const Color(0xFF558B2F);
       case ComplaintType.other:
         return const Color(0xFF546E7A);
@@ -84,19 +88,19 @@ enum ComplaintType {
 
   Color get bgColor {
     switch (this) {
-      case ComplaintType.safety:
+      case ComplaintType.tripSafety:
         return const Color(0xFFFFEBEE);
       case ComplaintType.driverBehavior:
         return const Color(0xFFE3F2FD);
       case ComplaintType.passengerBehavior:
         return const Color(0xFFF3E5F5);
-      case ComplaintType.tripCancellation:
+      case ComplaintType.rideCancellation:
         return const Color(0xFFFFF3E0);
-      case ComplaintType.financial:
+      case ComplaintType.financialIssue:
         return const Color(0xFFE8F5E9);
-      case ComplaintType.account:
+      case ComplaintType.accountIssue:
         return const Color(0xFFE0F7FA);
-      case ComplaintType.technical:
+      case ComplaintType.technicalIssue:
         return const Color(0xFFF1F8E9);
       case ComplaintType.other:
         return const Color(0xFFECEFF1);

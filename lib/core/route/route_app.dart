@@ -26,7 +26,9 @@ import 'package:alatarekak/features/booking_user_in_trip/presantion/view/booking
 import 'package:alatarekak/features/e_pay/data/data_source/e_pay_remote_data_source.dart';
 import 'package:alatarekak/features/e_pay/data/repo/e_pay_repo_im.dart';
 import 'package:alatarekak/features/e_pay/presantion/manger/cubit/veriyotp_epy_cubit.dart';
+import 'package:alatarekak/features/e_pay/presantion/manger/cubit/wallet_cubit.dart';
 import 'package:alatarekak/features/e_pay/presantion/view/verfiy_otp_epy.dart';
+import 'package:alatarekak/features/e_pay/presantion/view/wallet_view.dart';
 import 'package:alatarekak/features/home/preantion/manger/cubit/home_nav_cubit_cubit.dart';
 import 'package:alatarekak/features/maps/data/data_source/maps_data_source.dart';
 import 'package:alatarekak/features/maps/data/repo/map_repo.dart';
@@ -49,6 +51,12 @@ import 'package:alatarekak/features/auth/presentation/manger/forget_password_cub
 import 'package:alatarekak/features/auth/presentation/manger/login_cubit/login_cubit.dart';
 import 'package:alatarekak/features/auth/presentation/manger/singin_cubit/singin_cubit.dart';
 import 'package:alatarekak/features/auth/presentation/view/forget_password.dart';
+import 'package:alatarekak/features/auth/presentation/view/banned_screen.dart';
+import 'package:alatarekak/features/notifications/data/data_source/notifications_local_data_source.dart';
+import 'package:alatarekak/features/notifications/data/data_source/notifications_remote_data_source.dart';
+import 'package:alatarekak/features/notifications/data/repo/notifications_repo_im.dart';
+import 'package:alatarekak/features/notifications/presantion/manger/cubit/notifications_cubit.dart';
+import 'package:alatarekak/features/notifications/presantion/view/notifications_screen.dart';
 import 'package:alatarekak/features/auth/presentation/view/login.dart';
 import 'package:alatarekak/features/auth/presentation/view/singin.dart';
 import 'package:alatarekak/features/home/preantion/view/home.dart';
@@ -62,6 +70,7 @@ import 'package:alatarekak/features/profiles/presantaion/view/profile_my_cars.da
 import 'package:alatarekak/features/profiles/presantaion/view/profile_driver_verification.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/profile_settings.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/profile_support.dart';
+import 'package:alatarekak/features/support/data/data_source/support_local_data_source.dart';
 import 'package:alatarekak/features/support/data/data_source/support_remote_data_source.dart';
 import 'package:alatarekak/features/support/data/repo/support_repo_im.dart';
 import 'package:alatarekak/features/support/presantion/manger/complaint_cubit/complaint_cubit.dart';
@@ -71,6 +80,7 @@ import 'package:alatarekak/features/support/presantion/view/contact_us_screen.da
 import 'package:alatarekak/features/support/presantion/view/complaint_list_screen.dart';
 import 'package:alatarekak/features/support/presantion/view/complaint_detail_screen.dart';
 import 'package:alatarekak/features/support/presantion/manger/complaint_list_cubit/complaint_list_cubit.dart';
+import 'package:alatarekak/features/support/presantion/manger/complaint_detail_cubit/complaint_detail_cubit.dart';
 import 'package:alatarekak/features/splash_view/presentaion/view/splash_view.dart';
 import 'package:alatarekak/features/trip_booking/data/data%20source/booking_remote_data_source.dart';
 import 'package:alatarekak/features/trip_booking/data/repo/booking_me_repo.dart';
@@ -129,6 +139,20 @@ List<GetPage<dynamic>> appRoute = [
           child: const PickLocation())),
 
   GetPage(name: RouteName.test, page: () => const MyTest()),
+  GetPage(name: RouteName.bannedScreen, page: () => const BannedScreen()),
+  GetPage(
+    name: RouteName.notifications,
+    page: () => BlocProvider(
+      create: (_) => NotificationsCubit(
+        NotificationsRepoIm(
+          remoteDataSource:
+              NotificationsRemoteDataSourceIm(api: getit.get<DioConSumer>()),
+          localDataSource: NotificationsLocalDataSourceIm(),
+        ),
+      ),
+      child: const NotificationsScreen(),
+    ),
+  ),
   GetPage(
     name: RouteName.login,
     page: () => BlocProvider(
@@ -405,6 +429,7 @@ List<GetPage<dynamic>> appRoute = [
         SupportRepoIm(
           remoteDataSource:
               SupportRemoteDataSourceIm(api: getit.get<DioConSumer>()),
+          localDataSource: SupportLocalDataSourceIm(),
         ),
       ),
       child: const ComplaintScreen(),
@@ -417,6 +442,7 @@ List<GetPage<dynamic>> appRoute = [
         SupportRepoIm(
           remoteDataSource:
               SupportRemoteDataSourceIm(api: getit.get<DioConSumer>()),
+          localDataSource: SupportLocalDataSourceIm(),
         ),
       ),
       child: const ContactUsScreen(),
@@ -429,6 +455,7 @@ List<GetPage<dynamic>> appRoute = [
         SupportRepoIm(
           remoteDataSource:
               SupportRemoteDataSourceIm(api: getit.get<DioConSumer>()),
+          localDataSource: SupportLocalDataSourceIm(),
         ),
       ),
       child: const ComplaintListScreen(),
@@ -436,7 +463,16 @@ List<GetPage<dynamic>> appRoute = [
   ),
   GetPage(
     name: RouteName.complaintDetail,
-    page: () => const ComplaintDetailScreen(),
+    page: () => BlocProvider(
+      create: (_) => ComplaintDetailCubit(
+        SupportRepoIm(
+          remoteDataSource:
+              SupportRemoteDataSourceIm(api: getit.get<DioConSumer>()),
+          localDataSource: SupportLocalDataSourceIm(),
+        ),
+      ),
+      child: const ComplaintDetailScreen(),
+    ),
   ),
 
   // policy
@@ -449,6 +485,16 @@ List<GetPage<dynamic>> appRoute = [
                 remoteDataSource:
                     EPayRemoteDataSource(api: getit.get<DioConSumer>()))),
             child: const VerifyOtpEPay(),
+          )),
+
+  GetPage(
+      name: RouteName.wallet,
+      page: () => BlocProvider(
+            create: (context) => WalletCubit(EPayRepoIm(
+                remoteDataSource:
+                    EPayRemoteDataSource(api: getit.get<DioConSumer>())))
+              ..getBalance(),
+            child: const WalletView(),
           )),
 
   // chat

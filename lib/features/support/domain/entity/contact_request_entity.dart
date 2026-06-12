@@ -1,11 +1,11 @@
-class ContactRequestEntity {
-  final int id;
-  final String status;
-  final String createdAt;
+/// نتيجة POST /api/contact — المغلف 200 و201 يعاملان بنفس الطريقة:
+/// افتح شاشة الشات بـ conversationId
+class SupportChatEntity {
+  final int conversationId;
+  final String? agentName;
 
-  const ContactRequestEntity({
-    required this.id,
-    required this.status,
-    required this.createdAt,
+  const SupportChatEntity({
+    required this.conversationId,
+    this.agentName,
   });
 }

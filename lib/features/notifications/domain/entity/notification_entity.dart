@@ -1,0 +1,103 @@
+class NotificationEntity {
+  final int id;
+  final String title;
+  final String message;
+
+  /// general | ride | chat | profile | system
+  final String category;
+  final String? type;
+  final String? priority;
+  final bool isRead;
+  final DateTime? createdAt;
+
+  /// حمولة الربط العميق: ride_id, booking_id, complaint_id...
+  final Map<String, dynamic>? data;
+
+  const NotificationEntity({
+    required this.id,
+    required this.title,
+    required this.message,
+    required this.category,
+    this.type,
+    this.priority,
+    required this.isRead,
+    this.createdAt,
+    this.data,
+  });
+
+  /// معرفات الربط العميق (إن وجدت)
+  int? get rideId => _dataInt('ride_id');
+  int? get bookingId => _dataInt('booking_id');
+  int? get complaintId => _dataInt('complaint_id');
+  int? get conversationId => _dataInt('conversation_id');
+
+  int? _dataInt(String key) {
+    final v = data?[key];
+    if (v is int) return v;
+    return int.tryParse(v?.toString() ?? '');
+  }
+
+  /// العنوان للعرض: الباك إند يخزن أغلب العناوين بالإنجليزية (العيب D5)
+  /// — نعيد العنونة بالعربية حسب type حتى يُعرَّب الباك إند.
+  String get displayTitle => _arabicTitles[type] ?? title;
+
+  static const Map<String, String> _arabicTitles = {
+    'ride_created': 'تم إنشاء الرحلة',
+    'ride_cancelled_driver': 'تم إلغاء الرحلة',
+    'ride_cancelled': 'تم إلغاء الرحلة',
+    'ride_cancelled_by_driver': 'قام السائق بإلغاء الرحلة',
+    'ride_finished_no_passengers': 'انتهت الرحلة',
+    'confirm_completion_needed': 'يرجى تأكيد إتمام الرحلة',
+    'ride_completed': 'اكتملت الرحلة',
+    'driver_no_show_reported': 'بلاغ عدم حضور بحقك',
+    'driver_no_show_refund': 'تمت إعادة المبلغ',
+    'ride_booked': 'حجز جديد',
+    'booking_requested': 'طلب حجز جديد',
+    'booking_confirmed': 'تم تأكيد حجزك',
+    'booking_request_sent': 'تم إرسال طلب الحجز',
+    'booking_accepted': 'تم قبول حجزك',
+    'booking_rejected': 'تم رفض طلب الحجز',
+    'booking_cancelled': 'تم إلغاء الحجز',
+    'passenger_cancelled': 'قام الراكب بإلغاء مقاعد',
+    'passenger_no_show': 'تسجيل عدم حضور',
+    'complaint_resolved': 'تم الرد على شكواك',
+    'verification_rejected': 'طلب التوثيق مرفوض',
+    'verification_approved': 'تم توثيق حسابك',
+    'wallet_request_approved': 'تمت الموافقة على طلب المحفظة',
+    'wallet_request_rejected': 'تم رفض طلب المحفظة',
+    'wallet_charged': 'تم شحن محفظتك',
+    'account_banned': 'تم حظر حسابك',
+    'account_unbanned': 'تمت إعادة تفعيل حسابك',
+    'chat_message': 'رسالة جديدة',
+  };
+
+  /// تسميات التصنيفات بالعربية — الباك إند يرسلها إنجليزية (§10.3)
+  static const Map<String, String> categoryLabels = {
+    'general': 'عام',
+    'ride': 'الرحلات',
+    'chat': 'الرسائل',
+    'profile': 'الملف الشخصي',
+    'system': 'النظام',
+  };
+
+  String get categoryLabel => categoryLabels[category] ?? 'عام';
+}
+
+/// صفحة إشعارات مع بيانات الـ pagination وعداد غير المقروء (§10.1)
+class NotificationsPageEntity {
+  final List<NotificationEntity> items;
+  final int currentPage;
+  final int lastPage;
+  final int total;
+  final int unreadCount;
+
+  const NotificationsPageEntity({
+    required this.items,
+    required this.currentPage,
+    required this.lastPage,
+    required this.total,
+    required this.unreadCount,
+  });
+
+  bool get hasMore => currentPage < lastPage;
+}

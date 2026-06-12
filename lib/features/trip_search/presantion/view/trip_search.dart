@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:alatarekak/core/route/route_name.dart';
+import 'package:alatarekak/core/service/notifications_badge_service.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/widgets/custom_date_picker.dart';
@@ -64,6 +65,11 @@ class _TripSearchState extends State<TripSearch>
     );
 
     _ctrl.forward();
+
+    // تحديث عداد الإشعارات غير المقروءة + الاشتراك بالبث اللحظي
+    NotificationsBadgeService.instance
+      ..ensureRealtime()
+      ..refresh();
   }
 
   @override
@@ -155,8 +161,13 @@ class _TripSearchState extends State<TripSearch>
                 bottom: false,
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 40.h),
-                  child: Column(
+                  child: Stack(
                     children: [
+                      // العمود بعرض كامل ليبقى اللوغو والعنوان في المنتصف
+                      SizedBox(
+                        width: double.infinity,
+                        child: Column(
+                          children: [
                       // Logo: scale + fade
                       FadeTransition(
                         opacity: _logoFade,
@@ -197,6 +208,15 @@ class _TripSearchState extends State<TripSearch>
                         ),
                       ),
                       SizedBox(height: 8.h),
+                          ],
+                        ),
+                      ),
+                      // جرس الإشعارات — أعلى اليسار (end في RTL)
+                      PositionedDirectional(
+                        end: 0,
+                        top: 0,
+                        child: const _NotificationsBell(),
+                      ),
                     ],
                   ),
                 ),
@@ -601,6 +621,76 @@ class _SeatsChip extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+// جرس الإشعارات مع شارة العدد
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+class _NotificationsBell extends StatelessWidget {
+  const _NotificationsBell();
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<int>(
+      valueListenable: NotificationsBadgeService.instance.unread,
+      builder: (context, unread, _) {
+        return GestureDetector(
+          onTap: () async {
+            await Get.toNamed(RouteName.notifications);
+            // بعد العودة: مزامنة العداد مع السيرفر
+            NotificationsBadgeService.instance.refresh();
+          },
+          child: Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                Icon(
+                  Icons.notifications_none_rounded,
+                  color: MyColors.textOnDark,
+                  size: 24,
+                ),
+                if (unread > 0)
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        color: MyColors.error,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: MyColors.primary, width: 1.5),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 17,
+                        minHeight: 17,
+                      ),
+                      child: Text(
+                        unread > 99 ? '+99' : '$unread',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          height: 1,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

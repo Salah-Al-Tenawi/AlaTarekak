@@ -29,8 +29,16 @@ class ChatSocketService {
   /// listeners must refetch their data when this fires.
   final _reconnectController = StreamController<void>.broadcast();
 
+  // إشعارات النظام اللحظية: قناة private-user.{id} حدث notification.sent
+  // (تعمل فور إصلاح الباك إند للعيب D2 — auth callback للقناة)
+  bool _userChannelSubscribed = false;
+  final _notificationController =
+      StreamController<Map<String, dynamic>>.broadcast();
+
   Stream<int> get unreadStream => _unreadController.stream;
   Stream<void> get reconnectStream => _reconnectController.stream;
+  Stream<Map<String, dynamic>> get notificationStream =>
+      _notificationController.stream;
   int get totalUnread => _unreadCounts.values.fold(0, (a, b) => a + b);
   int unreadFor(int conversationId) => _unreadCounts[conversationId] ?? 0;
 
@@ -98,6 +106,45 @@ class ChatSocketService {
     } catch (e) {
       debugPrint('[Pusher] Auth FAILED: $e');
       rethrow;
+    }
+  }
+
+  /// الاشتراك بقناة المستخدم الخاصة لاستقبال إشعارات النظام لحظياً.
+  /// آمن للاستدعاء المتكرر. إذا رفض السيرفر الاشتراك (403 — العيب D2
+  /// غير مُصلح بعد) يفشل بصمت ويُعاد المحاولة في الاستدعاء التالي.
+  Future<void> subscribeUserChannel() async {
+    if (_userChannelSubscribed) return;
+    final userId = myid();
+    if (userId == null) return;
+
+    try {
+      await connect();
+      await _pusher.subscribe(
+        channelName: 'private-user.$userId',
+        onEvent: _dispatchUserEvent,
+      );
+      _userChannelSubscribed = true;
+      debugPrint('[Pusher] subscribed to private-user.$userId');
+    } catch (e) {
+      debugPrint('[Pusher] user channel subscribe failed (D2?): $e');
+    }
+  }
+
+  void _dispatchUserEvent(dynamic event) {
+    final pusherEvent = event as PusherEvent;
+    if (pusherEvent.eventName != 'notification.sent') return;
+
+    try {
+      final raw = pusherEvent.data;
+      final outer = raw is String
+          ? jsonDecode(raw) as Map<String, dynamic>
+          : raw as Map<String, dynamic>;
+      final notification = outer['notification'] is Map
+          ? outer['notification'] as Map<String, dynamic>
+          : outer;
+      _notificationController.add(notification);
+    } catch (e) {
+      debugPrint('[Pusher] notification parse error: $e');
     }
   }
 
@@ -187,6 +234,7 @@ class ChatSocketService {
     _unreadCounts.clear();
     _unreadController.add(0);
     _wasDisconnected = false;
+    _userChannelSubscribed = false;
     _connectFuture = null;
     try {
       await _pusher.disconnect();

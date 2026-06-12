@@ -51,6 +51,20 @@ static const createwallet = "$baserUrl/wallet/verify-and-create";
  static const message = "$chat/conversations";
  static const deletmessage = "$chat/messages";
 
+  // notifications (§10)
+  static const notifications = "$baserUrl/notifications";
+  static const notificationsUnreadCount = "$notifications/unread-count";
+  static const notificationsReadAll = "$notifications/read-all";
+  static const notificationsBulkAction = "$notifications/bulk-action";
+
+  // score (§5)
+  static const score = "$baserUrl/score";
+  static const scoreHistory = "$score/history";
+
+  // support & complaints
+  static const complaints = "$baserUrl/complaints";
+  static const contact = "$baserUrl/contact";
+
 
 
 }

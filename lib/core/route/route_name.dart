@@ -16,6 +16,8 @@ class RouteName {
   static const verfiyUser = "/verfiyUser";
 
   static const verfiyEmailSingin = "/VerfiyEmailSingin";
+  static const bannedScreen = "/bannedScreen";
+  static const notifications = "/notifications";
   static const verifyOtpForgetPassword = "/VerifyOtpForgetPassword";
   static const resetPassword = "/ResetPassword";
   
@@ -52,7 +54,8 @@ class RouteName {
   static const bookingMeList = "/BookingMeList";
   // pilicy
   static const policy = "/policy"; 
-  // verfiy otp epy 
+  // e-pay wallet
+  static const wallet = "/wallet";
   static const verfiyOtpEpy = "/VerfiyotpEpy";
   
 static const chatListScreen = "/ChatListScreen";

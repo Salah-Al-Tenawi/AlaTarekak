@@ -453,6 +453,12 @@ class _MenuCard extends StatelessWidget {
           ),
           _divider(),
           _MenuItem(
+            icon: Icons.account_balance_wallet_outlined,
+            label: "محفظتي",
+            onTap: () => Get.toNamed(RouteName.wallet),
+          ),
+          _divider(),
+          _MenuItem(
             icon: Icons.directions_car_outlined,
             label: "مركباتي",
             onTap: () async {

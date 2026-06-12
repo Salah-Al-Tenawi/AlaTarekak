@@ -18,12 +18,14 @@ class ComplaintScreen extends StatefulWidget {
 }
 
 class _ComplaintScreenState extends State<ComplaintScreen> {
+  final _titleController = TextEditingController();
   final _descController = TextEditingController();
   final List<XFile> _attachments = [];
   ComplaintType? _selectedType;
 
   @override
   void dispose() {
+    _titleController.dispose();
     _descController.dispose();
     super.dispose();
   }
@@ -46,14 +48,22 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
       AppSnackBar.error('يرجى اختيار نوع الشكوى');
       return;
     }
-    final desc = _descController.text.trim();
-    if (desc.isEmpty) {
-      AppSnackBar.error('يرجى كتابة وصف المشكلة');
+    final title = _titleController.text.trim();
+    if (title.isEmpty) {
+      AppSnackBar.error('يرجى إدخال عنوان الشكوى (بحد أقصى 255 حرفاً)');
       return;
     }
-    context
-        .read<ComplaintCubit>()
-        .submitComplaint(desc, _selectedType!, _attachments);
+    final desc = _descController.text.trim();
+    if (desc.isEmpty) {
+      AppSnackBar.error('يرجى كتابة وصف الشكوى (بحد أقصى 2000 حرف)');
+      return;
+    }
+    context.read<ComplaintCubit>().submitComplaint(
+          title: title,
+          description: desc,
+          type: _selectedType!,
+          attachments: _attachments,
+        );
   }
 
   @override
@@ -62,7 +72,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
       listener: (context, state) {
         if (state is ComplaintSuccess) {
           AppSnackBar.success(
-              'تم إرسال شكواك بنجاح، سيتواصل معك فريق الدعم قريباً');
+              'تم إرسال شكواك بنجاح، سيقوم فريق الدعم بمراجعتها قريباً');
           Get.back();
         } else if (state is ComplaintFailure) {
           AppSnackBar.error(state.message);
@@ -107,7 +117,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
               ),
 
               // تنبيه الأمان
-              if (_selectedType == ComplaintType.safety) ...[
+              if (_selectedType == ComplaintType.tripSafety) ...[
                 SizedBox(height: 10.h),
                 Container(
                   padding: EdgeInsets.all(12.w),
@@ -133,6 +143,32 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
                   ),
                 ),
               ],
+
+              SizedBox(height: 20.h),
+
+              // ━━ عنوان الشكوى ━━
+              Text('عنوان الشكوى', style: AppTextStyles.labelLarge),
+              SizedBox(height: 8.h),
+              Container(
+                decoration: BoxDecoration(
+                  color: MyColors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: MyColors.border),
+                ),
+                child: TextField(
+                  controller: _titleController,
+                  maxLength: 255,
+                  textDirection: TextDirection.rtl,
+                  decoration: InputDecoration(
+                    hintText: 'مثال: السائق تأخر عن الموعد',
+                    hintStyle: AppTextStyles.bodySmall
+                        .copyWith(color: MyColors.textHint),
+                    border: InputBorder.none,
+                    counterText: '',
+                    contentPadding: EdgeInsets.all(14.w),
+                  ),
+                ),
+              ),
 
               SizedBox(height: 20.h),
 

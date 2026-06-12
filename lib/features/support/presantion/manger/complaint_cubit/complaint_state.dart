@@ -3,7 +3,7 @@ part of 'complaint_cubit.dart';
 abstract class ComplaintState extends Equatable {
   const ComplaintState();
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class ComplaintInitial extends ComplaintState {
@@ -15,12 +15,15 @@ class ComplaintSubmitting extends ComplaintState {
 }
 
 class ComplaintSuccess extends ComplaintState {
-  const ComplaintSuccess();
+  final ComplaintEntity complaint;
+  const ComplaintSuccess(this.complaint);
+  @override
+  List<Object?> get props => [complaint.id];
 }
 
 class ComplaintFailure extends ComplaintState {
   final String message;
   const ComplaintFailure(this.message);
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [message];
 }

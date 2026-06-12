@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get_navigation/get_navigation.dart';
-import 'package:get/state_manager.dart';
+import 'package:get/get.dart';
 import 'package:otp_text_field/otp_field.dart';
+import 'package:otp_text_field/otp_field_style.dart';
 import 'package:otp_text_field/style.dart';
-import 'package:alatarekak/core/route/route_name.dart';
+import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
+import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/widgets/custom_text_form.dart';
-
 import 'package:alatarekak/features/e_pay/presantion/manger/cubit/veriyotp_epy_cubit.dart';
 
 class VerifyOtpEPay extends StatefulWidget {
@@ -24,6 +24,10 @@ class _VerifyOtpEPayScreenState extends State<VerifyOtpEPay> {
   final _formKey = GlobalKey<FormState>();
   String _otpCode = '';
 
+  // مرحلة OTP محفوظة محلياً حتى لا ترتد الشاشة لنموذج البداية
+  // إذا فشل التحقق من الرمز (حالة الخطأ ليست SuccInit).
+  bool _otpStage = false;
+
   @override
   void dispose() {
     _phoneController.dispose();
@@ -34,256 +38,305 @@ class _VerifyOtpEPayScreenState extends State<VerifyOtpEPay> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: MyColors.background,
       appBar: AppBar(
-        title: const Text('تفعيل المحفظة الإلكترونية'),
+        backgroundColor: MyColors.surface,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_forward_ios_rounded,
+              color: MyColors.primary, size: 20),
+          onPressed: () => Get.back(),
+        ),
+        title: Text('تفعيل المحفظة', style: AppTextStyles.titleMedium),
         centerTitle: true,
-        backgroundColor: MyColors.primary,
-        foregroundColor: Colors.white,
       ),
       body: BlocConsumer<VeriyotpEpyCubit, VeriyotpEpyState>(
         listener: (context, state) {
           if (state is VeriyotpEpyErorr) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("حدث خطأ ما "),
-                backgroundColor: Colors.red,
-              ),
-            );
+            AppSnackBar.error(state.message);
           } else if (state is VeriyotpEpySuccInit) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('تم إرسال رمز التحقق إلى هاتفك'),
-                backgroundColor: Colors.green,
-              ),
-            );
+            setState(() => _otpStage = true);
+            AppSnackBar.success('تم إرسال رمز التحقق إلى هاتفك');
           } else if (state is VeriyotpEpySuccCreate) {
-            Get.offAllNamed(RouteName.home);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('تم إنشاء المحفظة الإلكترونية بنجاح'),
-                backgroundColor: Colors.green,
-              ),
-            );
+            AppSnackBar.success('تم تفعيل محفظتك الإلكترونية بنجاح');
+            Get.back(result: true);
           }
         },
         builder: (context, state) {
-          return Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: state is VeriyotpEpySuccInit
-                ? _buildOtpVerification(context, state)
-                : _buildInitialForm(context, state),
+          final isLoading = state is VeriyotpEpyLoading;
+          return SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
+            child: _otpStage
+                ? _buildOtpVerification(context, isLoading)
+                : _buildInitialForm(context, isLoading),
           );
         },
       ),
     );
   }
 
-  Widget _buildInitialForm(BuildContext context, VeriyotpEpyState state) {
-    return SingleChildScrollView(
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 20.h),
-            Align(
-              alignment: Alignment.topCenter,
-              child: Icon(
-                Icons.account_balance_wallet,
-                size: 80,
-                color: MyColors.accent,
-              ),
+  // ━━━━━━━━━━━━━━━━━━━━━━━━
+  // المرحلة الأولى: رقم الهاتف + كلمة المرور
+  // ━━━━━━━━━━━━━━━━━━━━━━━━
+  Widget _buildInitialForm(BuildContext context, bool isLoading) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _Header(
+            icon: Icons.account_balance_wallet_outlined,
+            title: 'إنشاء محفظة إلكترونية',
+            subtitle:
+                'أدخل رقم هاتفك وكلمة المرور الخاصة بحسابك لتفعيل المحفظة الإلكترونية',
+          ),
+          SizedBox(height: 24.h),
+          Container(
+            padding: EdgeInsets.symmetric(vertical: 16.h),
+            decoration: BoxDecoration(
+              color: MyColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                    color: MyColors.shadowLight,
+                    blurRadius: 10,
+                    offset: const Offset(0, 2)),
+              ],
             ),
-            SizedBox(height: 20.h),
-            const Text(
-              'إنشاء محفظة إلكترونية',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              textAlign: TextAlign.center,
-              'أدخل رقم هاتفك وكلمة المرور الخاصة بحسابك لتفعيل المحفظة الإلكترونية',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            const SizedBox(height: 30),
-            CustomTextformfild(
-              controller: _phoneController,
-              title: "رقم الهاتف",
-              keyboardType: TextInputType.phone,
-              icon: Icon(
-                Icons.phone,
-                color: MyColors.accent,
-              ),
-              fill: true,
-              fillColor: Colors.grey[50],
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'يرجى إدخال رقم الهاتف';
-                }
-                if (value.length < 10) {
-                  return 'رقم الهاتف يجب أن يكون 10 أرقام على الأقل';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 20),
-            CustomTextformfild(
-              controller: _passwordController,
-              title: "كلمة المرور",
-              icon: Icon(
-                Icons.lock,
-                color: MyColors.accent,
-              ),
-              scureText: true,
-              fill: true,
-              fillColor: Colors.grey[50],
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'يرجى إدخال كلمة المرور';
-                }
-                if (value.length < 6) {
-                  return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 30),
-            if (state is VeriyotpEpyLoading)
-              const Center(child: CircularProgressIndicator())
-            else
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      context.read<VeriyotpEpyCubit>().initialWallet(
-                            _phoneController.text,
-                            _passwordController.text,
-                          );
+            child: Column(
+              children: [
+                CustomTextformfild(
+                  controller: _phoneController,
+                  title: "رقم الهاتف",
+                  keyboardType: TextInputType.phone,
+                  icon: Icon(Icons.phone_rounded, color: MyColors.accent),
+                  fill: true,
+                  fillColor: MyColors.background,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'يرجى إدخال رقم الهاتف';
                     }
+                    if (value.length < 10) {
+                      return 'رقم الهاتف يجب أن يكون 10 أرقام على الأقل';
+                    }
+                    return null;
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: MyColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'تفعيل المحفظة',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
                 ),
-              ),
-          ],
-        ),
+                CustomTextformfild(
+                  controller: _passwordController,
+                  title: "كلمة المرور",
+                  icon: Icon(Icons.lock_rounded, color: MyColors.accent),
+                  scureText: true,
+                  fill: true,
+                  fillColor: MyColors.background,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'يرجى إدخال كلمة المرور';
+                    }
+                    if (value.length < 6) {
+                      return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 24.h),
+          _SubmitButton(
+            label: 'تفعيل المحفظة',
+            isLoading: isLoading,
+            onPressed: () {
+              if (_formKey.currentState!.validate()) {
+                context.read<VeriyotpEpyCubit>().initialWallet(
+                      _phoneController.text,
+                      _passwordController.text,
+                    );
+              }
+            },
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildOtpVerification(BuildContext context, VeriyotpEpyState state) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: 20.h),
-          Align(
-            alignment: Alignment.topCenter,
-            child: Icon(
-              Icons.verified_user,
-              size: 80,
-              color: MyColors.accent,
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'التحقق من الرمز',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 10.h),
-          Text(
-            'تم إرسال رمز التحقق إلى الرقم: ${_phoneController.text}',
-            style: const TextStyle(fontSize: 16, color: Colors.grey),
-          ),
-          SizedBox(height: 30.h),
-          OTPTextField(
-            length: 6,
-            width: MediaQuery.of(context).size.width,
-            fieldWidth: 45,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            textFieldAlignment: MainAxisAlignment.spaceAround,
-            fieldStyle: FieldStyle.box,
-            outlineBorderRadius: 10,
-            onChanged: (pin) {
-              _otpCode = pin;
-            },
-            onCompleted: (pin) {
-              _otpCode = pin;
-              context.read<VeriyotpEpyCubit>().createWallet(
-                    _phoneController.text,
-                    pin,
-                  );
-            },
-          ),
-          const SizedBox(height: 20),
-          const Center(
-            child: Text(
-              'أدخل الرمز المكون من 6 أرقام الذي استلمته على هاتفك',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-          ),
-          const SizedBox(height: 30),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'لم تستلم الرمز؟',
-                style: TextStyle(fontSize: 14, color: MyColors.accent),
-              ),
-              TextButton(
-                onPressed: () {
-                  context.read<VeriyotpEpyCubit>().initialWallet(
-                        _phoneController.text,
-                        _passwordController.text,
-                      );
-                },
-                child: Text(
-                  'إعادة إرسال الرمز',
-                  style: TextStyle(color: MyColors.primary),
-                ),
-              ),
+  // ━━━━━━━━━━━━━━━━━━━━━━━━
+  // المرحلة الثانية: رمز التحقق
+  // ━━━━━━━━━━━━━━━━━━━━━━━━
+  Widget _buildOtpVerification(BuildContext context, bool isLoading) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _Header(
+          icon: Icons.sms_outlined,
+          title: 'التحقق من الرمز',
+          subtitle:
+              'أدخل الرمز المكون من 6 أرقام المرسل إلى الرقم ${_phoneController.text}',
+        ),
+        SizedBox(height: 24.h),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
+          decoration: BoxDecoration(
+            color: MyColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                  color: MyColors.shadowLight,
+                  blurRadius: 10,
+                  offset: const Offset(0, 2)),
             ],
           ),
-          const SizedBox(height: 30),
-          if (state is VeriyotpEpyLoading)
-            const Center(child: CircularProgressIndicator())
-          else
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: _otpCode.length == 6
-                    ? () {
-                        context.read<VeriyotpEpyCubit>().createWallet(
-                              _phoneController.text,
-                              _otpCode,
-                            );
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: MyColors.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'تأكيد الرمز',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: OTPTextField(
+              length: 6,
+              width: MediaQuery.of(context).size.width,
+              fieldWidth: 42,
+              style: AppTextStyles.titleMedium,
+              textFieldAlignment: MainAxisAlignment.spaceAround,
+              fieldStyle: FieldStyle.box,
+              outlineBorderRadius: 12,
+              otpFieldStyle: OtpFieldStyle(
+                backgroundColor: MyColors.background,
+                borderColor: MyColors.border,
+                enabledBorderColor: MyColors.border,
+                focusBorderColor: MyColors.accent,
               ),
+              onChanged: (pin) {
+                setState(() => _otpCode = pin);
+              },
+              onCompleted: (pin) {
+                _otpCode = pin;
+                context.read<VeriyotpEpyCubit>().createWallet(
+                      _phoneController.text,
+                      pin,
+                    );
+              },
             ),
-        ],
+          ),
+        ),
+        SizedBox(height: 16.h),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('لم تستلم الرمز؟',
+                style: AppTextStyles.bodySmall
+                    .copyWith(color: MyColors.textSecondary)),
+            TextButton(
+              onPressed: isLoading
+                  ? null
+                  : () {
+                      context.read<VeriyotpEpyCubit>().initialWallet(
+                            _phoneController.text,
+                            _passwordController.text,
+                          );
+                    },
+              child: Text('إعادة الإرسال',
+                  style: AppTextStyles.labelMedium
+                      .copyWith(color: MyColors.accent)),
+            ),
+          ],
+        ),
+        SizedBox(height: 8.h),
+        _SubmitButton(
+          label: 'تأكيد الرمز',
+          isLoading: isLoading,
+          onPressed: _otpCode.length == 6
+              ? () {
+                  context.read<VeriyotpEpyCubit>().createWallet(
+                        _phoneController.text,
+                        _otpCode,
+                      );
+                }
+              : null,
+        ),
+        SizedBox(height: 8.h),
+        TextButton.icon(
+          onPressed:
+              isLoading ? null : () => setState(() => _otpStage = false),
+          icon: Icon(Icons.edit_rounded, size: 16, color: MyColors.primary),
+          label: Text('تعديل رقم الهاتف',
+              style:
+                  AppTextStyles.labelMedium.copyWith(color: MyColors.primary)),
+        ),
+      ],
+    );
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+// Header (أيقونة + عنوان + وصف)
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+class _Header extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  const _Header(
+      {required this.icon, required this.title, required this.subtitle});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          width: 84,
+          height: 84,
+          decoration: BoxDecoration(
+            color: MyColors.accentLight,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: MyColors.accent, size: 38),
+        ),
+        SizedBox(height: 16.h),
+        Text(title, style: AppTextStyles.titleLarge),
+        SizedBox(height: 8.h),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          child: Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyMedium
+                .copyWith(color: MyColors.textSecondary, height: 1.6),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+// زر الإرسال مع حالة التحميل
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+class _SubmitButton extends StatelessWidget {
+  final String label;
+  final bool isLoading;
+  final VoidCallback? onPressed;
+
+  const _SubmitButton(
+      {required this.label, required this.isLoading, this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 52.h,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: MyColors.primary,
+          disabledBackgroundColor: MyColors.primary.withValues(alpha: 0.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2.5),
+              )
+            : Text(label, style: AppTextStyles.buttonLarge),
       ),
     );
   }

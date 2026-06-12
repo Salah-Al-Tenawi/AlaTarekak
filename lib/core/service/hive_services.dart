@@ -12,6 +12,7 @@ class HiveService {
       Hive.openBox<UserModel>(HiveBoxes.authBoxName),
       Hive.openBox(HiveBoxes.tripBoxName),
       Hive.openBox(HiveBoxes.settingsBoxName),
+      Hive.openBox<String>(HiveBoxes.cacheBoxName),
     ]);
   }
 
@@ -37,6 +38,11 @@ class HiveKeys {
 
   static const String profile = "profile";
   static const String trip = "trip";
+
+  // مفاتيح صندوق الكاش العام
+  static const String score = "score";
+  static const String notifications = "notifications";
+  static const String complaints = "complaints";
 }
 class HiveBoxes {
  
@@ -59,4 +65,9 @@ class HiveBoxes {
   static const String settingsBoxName = 'settingsBox';
   static Box get settingsBox =>
       Hive.box(settingsBoxName);
+
+  // كاش عام للميزات (score, notifications, complaints) — JSON strings.
+  // يُمسح بالكامل عند تسجيل الخروج.
+  static const String cacheBoxName = 'cacheBox';
+  static Box<String> get cacheBox => Hive.box<String>(cacheBoxName);
 }

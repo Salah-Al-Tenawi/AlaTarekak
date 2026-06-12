@@ -1,139 +1,333 @@
-
+/// ترجمة رسائل الباك إند الإنجليزية إلى عربية وفق مستند مواصفات الـ API.
+/// القاعدة: لا تُعرض رسالة الباك إند للمستخدم أبداً — تُطابق برمجياً فقط.
+/// المطابقة بـ contains() على lowercase لأن بعض الرسائل تحتوي أرقاماً متغيرة
+/// (مثل "Your trust score (35) is too low...").
 class HandelErorrMessage {
-  static String login(String message) {
-    switch (message) {
-      case "Invalid credentials":
-        return "كلمة المرور غير صحيحة";
-      default:
-        return "حدث خطأ غير متوقع";
+  // ---------- نصوص عامة مشتركة (§0.6) ----------
+  static const String errValidation = "يرجى التحقق من البيانات المدخلة";
+  static const String errServer = "حدث خطأ غير متوقع، يرجى المحاولة لاحقاً";
+  static const String errNetwork =
+      "تعذر الاتصال بالخادم، تحقق من اتصالك بالإنترنت";
+  static const String errSession =
+      "انتهت الجلسة، يرجى تسجيل الدخول من جديد";
+  static const String errPhoneSyrian =
+      "يجب إدخال رقم هاتف سوري صحيح (09XXXXXXXX)";
+  static const String errOtp6Digits = "يجب أن يتكون الرمز من 6 أرقام";
+  static const String errPasswordMin =
+      "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل";
+  static const String errPasswordConfirm = "كلمتا المرور غير متطابقتين";
+
+  /// الأخطاء العامة المشتركة بين كل النقاط (جلسة، تحقق، OTP...).
+  /// ترجع null إذا لم تطابق شيئاً ليُكمل المستدعي بخريطته الخاصة.
+  static String? _common(String m) {
+    if (m.contains("unauthenticated") || m.contains("invalid token type")) {
+      return errSession;
     }
-  }
-
-  static String singin(String message) {
-    return "";
-  }
-
-  static String forgetPassword(String message) {
-    return "";
-  }
-
-  static String resetPassword(String message) {
-    return "";
-  }
-
-  static String initialWallet(String message) {
-    return "";
-  }
-
-  static String createWallet(String message) {
-    return "";
-  }
-
-  static String checkbalance(String message) {
-    return "";
-  }
-
-  static String showProfile(String message) {
-    return "";
-  }
-
-  static String updateProfile(String message) {
-    return "";
-  }
-
-  static String commet(String message) {
-    return "";
-  }
-
-  static String verfiyPassanger(String message) {
-    return "";
-  }
-
-  static String verfiyDriver(String message) {
-    return "";
-  }
-
-  static String rateUser(String message) {
-    return "";
-  }
-
-  static String showAllride(String message) {
-    return "";
-  }
-
-  static String showOneRide(String message) {
-    return "";
-  }
-
-  static String bookAset(String message) {
-    switch (message) {
-      case "You have already booked this ride":
-        return "لقد قمت بالحجز فعلا";
-      default:
-        return "حدث خطأ غير متوقع";
+    if (m.contains("validation failed") || m.contains("validation error")) {
+      return errValidation;
     }
-  }
-
-  static String search(String message) {
-    return "";
-  }
-
-  static String createWithRoute(String message) {
-    String lowerCaseMessage = message.toLowerCase();
-
-    if (lowerCaseMessage.contains("missing required verification documents")) {
-      return "يجب عليك توثيق حسابك لضمان الأمان";
-    } else if (lowerCaseMessage
-        .contains("you must be verified as a driver to create rides")) {
-      return "يجب عليك توثيق حسابك لضمان الأمان";
-    } else if (lowerCaseMessage.contains("insufficient wallet balance")) {
-      return "لا يوجد رصيد كافي في المحفظة";
-    } else if (lowerCaseMessage.contains("departure_time")) {
-      return "لا يمكنك انشاء رحلة بتوقيت قريب اقل من 5 دقائق";
-    } else {
-      return "حدث خطأ غير متوقع";
+    if (m.contains("invalid or expired verification code") ||
+        m.contains("invalid or expired otp")) {
+      return "الرمز غير صحيح أو منتهي الصلاحية";
     }
-  }
-
-
-  static String finishRide(String message) {
-    switch (message) {
-      case "No confirmed bookings found for this ride":
-        return "لا يوجد حجوزات في هذه الرحلة يمكنك الغائها بدلا من ذلك";
-      default:
-        return "حدث خطأ غير متوقع";
+    if (m.contains("expired or exceeded maximum attempts")) {
+      return "انتهت صلاحية الرمز أو تجاوزت عدد المحاولات المسموح";
     }
-  }
-
-  static String bookingMe(String message) {
-    switch (message) {
-      case "You must be verified as a passenger to view bookings":
-        return "لم يتم توثيق الحساب ";
-
-
-      case " Ride is not in confirmation state":
-
-        return "لم يتم توثيق انهاء الرحلة من قبل السائق بعد  ";
-
-
-      default:
-        return "حدث خطأ غير متوقع";
+    if (m.contains("too many") &&
+        (m.contains("request") || m.contains("otp"))) {
+      return "عدد كبير من المحاولات، يرجى الانتظار بضع دقائق ثم إعادة المحاولة";
     }
+    if (m.contains("password confirmation does not match")) {
+      return errPasswordConfirm;
+    }
+    if (m.contains("valid syrian mobile number")) return errPhoneSyrian;
+    return null;
   }
 
-  static String driverConfirm(String message) {
-    return "";
+  static String _match(String message, Map<String, String> map,
+      {String fallback = errServer}) {
+    final m = message.toLowerCase().trim();
+    final common = _common(m);
+    if (common != null) return common;
+    for (final entry in map.entries) {
+      if (m.contains(entry.key.toLowerCase())) return entry.value;
+    }
+    return fallback;
   }
 
-  static String passangerConfirm(String message) {
-    return "";
-  }
+  // =====================================================================
+  // §1 المصادقة
+  // =====================================================================
 
-  static String acceptPassanger(String message) {
-    return "";
-  }
+  static String login(String message) => _match(message, {
+        "invalid credentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+      });
 
-  static String rejectPassanger(String message) {
-    return "";
-  }
+  static String singin(String message) => _match(message, {
+        "already registered":
+            "هذا البريد الإلكتروني مسجل مسبقاً، يرجى تسجيل الدخول",
+        "could not send verification email":
+            "تعذر إرسال رمز التحقق إلى بريدك، يرجى المحاولة مرة أخرى",
+        "registration failed": errServer,
+      });
+
+  // =====================================================================
+  // §2 استعادة كلمة المرور
+  // =====================================================================
+
+  static String forgetPassword(String message) => _match(message, {
+        "no account found": "لا يوجد حساب مسجل بهذا البريد الإلكتروني",
+        "failed to send": "تعذر إرسال رمز التحقق، يرجى المحاولة مرة أخرى",
+      });
+
+  static String verifyOtpForgetPassword(String message) => _match(message, {
+        "no account found": "لا يوجد حساب بهذا البريد",
+      });
+
+  static String resetPassword(String message) => _match(message, {
+        "expired or has already been used":
+            "انتهت صلاحية رمز إعادة التعيين، يرجى طلب رمز جديد",
+        "account not found": "تعذر العثور على الحساب",
+      });
+
+  // =====================================================================
+  // §3 تأكيد البريد الإلكتروني
+  // =====================================================================
+
+  static String emailVerification(String message) => _match(message, {
+        "no account found": "لا يوجد حساب بهذا البريد",
+        "already verified": "هذا البريد مؤكد مسبقاً، يمكنك تسجيل الدخول",
+        "failed to send": "تعذر إرسال البريد، حاول مجدداً",
+      });
+
+  // =====================================================================
+  // §6 الملف الشخصي
+  // =====================================================================
+
+  static String showProfile(String message) => _match(message, {
+        "profile not found": "الملف الشخصي غير موجود",
+      });
+
+  static String updateProfile(String message) => _match(message, {
+        "image": "يجب أن تكون الصورة بصيغة JPG أو PNG وبحجم أقصى 2 ميغابايت",
+      });
+
+  static String commet(String message) => _match(message, {
+        "comment": "التعليق مطلوب (بحد أقصى 500 حرف)",
+      });
+
+  static String rateUser(String message) => _match(message, {
+        "rating": "يرجى اختيار تقييم من 1 إلى 5",
+      });
+
+  static String uploadDocument(String message) => _match(message, {
+        "cannot modify documents while verification is pending":
+            "لا يمكن تعديل المستندات أثناء مراجعة طلب التوثيق",
+        "image": "يرجى اختيار نوع المستند وصورة صالحة (JPG/PNG، بحد أقصى 2MB)",
+      });
+
+  static String verfiyPassanger(String message) => _match(message, {
+        "pending verification request": "لديك طلب توثيق قيد المراجعة بالفعل",
+        "image": "يجب أن تكون الصورة بصيغة JPG أو PNG وبحجم أقصى 2 ميغابايت",
+      });
+
+  static String verfiyDriver(String message) => verfiyPassanger(message);
+
+  // =====================================================================
+  // §7 الرحلات
+  // =====================================================================
+
+  static String search(String message) => _match(message, {
+        "search failed": "فشل البحث، يرجى المحاولة مرة أخرى",
+        "departure_date": "يرجى اختيار تاريخ اليوم أو تاريخ لاحق",
+      }, fallback: "فشل البحث، يرجى المحاولة مرة أخرى");
+
+  static String routeOptions(String message) => _match(message, {
+        "failed to get route options": "تعذر حساب المسار، حاول مجدداً",
+      }, fallback: "تعذر حساب المسار، حاول مجدداً");
+
+  static String createWithRoute(String message) => _match(message, {
+        "must be verified as a driver":
+            "يجب توثيق حسابك كسائق قبل إنشاء الرحلات",
+        "missing required verification documents":
+            "يجب توثيق حسابك كسائق قبل إنشاء الرحلات",
+        "driver profile not found": "يرجى إكمال ملفك الشخصي أولاً",
+        "trust score":
+            "نقاط الثقة لديك غير كافية لإنشاء رحلات (الحد الأدنى 50)",
+        "at least 5 minutes":
+            "يجب أن يكون موعد الانطلاق بعد 5 دقائق على الأقل من الآن",
+        "departure_time":
+            "يجب أن يكون موعد الانطلاق بعد 5 دقائق على الأقل من الآن",
+        "more than 30 days": "لا يمكن جدولة رحلة بعد أكثر من 30 يوماً",
+        "insufficient wallet balance": "لا يوجد رصيد كافٍ في المحفظة",
+        "price": "يرجى إدخال سعر صحيح",
+      });
+
+  static String showAllride(String message) => _match(message, {});
+
+  static String showOneRide(String message) => _match(message, {
+        "ride not found": "الرحلة غير موجودة",
+      });
+
+  static String cancelRide(String message) => _match(message, {
+        "only the ride creator": "لا يمكنك إلغاء رحلة لم تقم بإنشائها",
+        "cannot cancel a ride with status":
+            "لا يمكن إلغاء الرحلة في حالتها الحالية",
+        "less than 1 hour":
+            "لا يمكن إلغاء الرحلة قبل أقل من ساعة من موعد الانطلاق",
+      });
+
+  static String bookAset(String message) => _match(message, {
+        "must be verified as a passenger":
+            "يجب توثيق حسابك كراكب قبل حجز الرحلات",
+        "trust score":
+            "نقاط الثقة لديك غير كافية لحجز الرحلات (الحد الأدنى 40)",
+        "cannot book their own rides": "لا يمكنك حجز مقعد في رحلتك الخاصة",
+        "already have an active booking":
+            "لديك حجز فعّال في هذه الرحلة بالفعل",
+        "already booked this ride": "لديك حجز فعّال في هذه الرحلة بالفعل",
+        "at least 1 seat": "يجب حجز مقعد واحد على الأقل",
+        "more than 8 seats": "لا يمكن حجز أكثر من 8 مقاعد",
+        "not enough seats": "عدد المقاعد المتاحة غير كافٍ",
+        "wallet balance": "رصيد محفظتك غير كافٍ لإتمام الحجز",
+      }, fallback: "تعذر إتمام الحجز، حاول مجدداً");
+
+  static String finishRide(String message) => _match(message, {
+        "only the ride driver": "هذا الإجراء متاح لسائق الرحلة فقط",
+        "can only finish an active or full ride":
+            "لا يمكن إنهاء الرحلة في حالتها الحالية",
+        "before its departure time":
+            "لا يمكن إنهاء الرحلة قبل موعد انطلاقها",
+        "no confirmed bookings found":
+            "لا يوجد حجوزات في هذه الرحلة، يمكنك إلغاؤها بدلاً من ذلك",
+      });
+
+  static String driverConfirm(String message) => _match(message, {
+        "only the ride driver": "هذا الإجراء متاح للسائق فقط",
+        "not awaiting confirmation": "الرحلة ليست بانتظار التأكيد",
+        "already confirmed": "قمت بتأكيد هذه الرحلة مسبقاً",
+      });
+
+  static String driverNoShow(String message) => _match(message, {
+        "before the departure time": "لا يمكن الإبلاغ قبل موعد الانطلاق",
+        "no confirmed booking found": "لا يوجد لديك حجز مؤكد في هذه الرحلة",
+      });
+
+  // =====================================================================
+  // §8 الحجوزات
+  // =====================================================================
+
+  static String bookingMe(String message) => _match(message, {
+        "must be verified as a passenger": "لم يتم توثيق الحساب",
+        "not in confirmation state":
+            "لم يتم تأكيد إنهاء الرحلة من قبل السائق بعد",
+      });
+
+  static String acceptPassanger(String message) => _match(message, {
+        "only the ride driver": "متاح لسائق الرحلة فقط",
+        "only request-type": "هذا الحجز لا يتطلب موافقة",
+        "only pending bookings": "لا يمكن قبول هذا الحجز في حالته الحالية",
+      });
+
+  static String rejectPassanger(String message) => _match(message, {
+        "only the ride driver": "متاح لسائق الرحلة فقط",
+        "only request-type": "هذا الحجز لا يتطلب موافقة",
+        "only pending bookings": "لا يمكن رفض هذا الحجز في حالته الحالية",
+      });
+
+  static String cancelBooking(String message) => _match(message, {
+        "only cancel your own": "لا يمكنك إلغاء حجز لا يخصك",
+        "less than 2 hours":
+            "لا يمكن إلغاء الحجز قبل أقل من ساعتين من موعد الانطلاق",
+        "cannot be partially cancelled": "لا يمكن الإلغاء الجزئي لهذا الحجز",
+      });
+
+  static String passangerConfirm(String message) => _match(message, {
+        "only the booking passenger": "متاح لصاحب الحجز فقط",
+        "not awaiting confirmation": "الرحلة ليست بانتظار التأكيد",
+        "only confirmed bookings": "لا يمكن تأكيد هذا الحجز",
+        "already confirmed": "قمت بالتأكيد مسبقاً",
+      });
+
+  static String passengerNoShow(String message) => _match(message, {
+        "only the ride driver": "متاح لسائق الرحلة فقط",
+        "for confirmed bookings": "الحجز غير مؤكد",
+        "before the departure time": "لا يمكن الإبلاغ قبل موعد الانطلاق",
+      });
+
+  // =====================================================================
+  // §9 المحادثات
+  // =====================================================================
+
+  static String chat(String message) => _match(message, {
+        "conversation not found": "المحادثة غير موجودة",
+        "not a participant": "لا يمكنك إرسال رسائل في هذه المحادثة",
+        "invalid message type": "نوع الرسالة غير مدعوم",
+        "invalid message data": "محتوى الرسالة غير صالح",
+        "invalid image file": "الصورة غير صالحة",
+        "failed to send message": "تعذر إرسال الرسالة، حاول مجدداً",
+        "message not found": "تعذر حذف الرسالة",
+      });
+
+  // =====================================================================
+  // §11 المحفظة
+  // =====================================================================
+
+  static String checkbalance(String message) => _match(message, {
+        "wallet not found": "لا تملك محفظة بعد، أنشئ واحدة الآن",
+      });
+
+  static String initialWallet(String message) => _match(message, {
+        "invalid password": "كلمة المرور غير صحيحة",
+        "wallet already exists": "لديك محفظة بالفعل",
+        "phone_number": "هذا الرقم مستخدم في محفظة أخرى",
+        "failed to send otp": "تعذر إرسال الرمز، حاول مجدداً",
+        "no api key": "الخدمة غير متاحة حالياً",
+      });
+
+  static String createWallet(String message) => _match(message, {
+        "wallet already exists": "لديك محفظة بالفعل",
+      });
+
+  static String requestCharge(String message) => _match(message, {
+        "do not have a wallet": "أنشئ محفظة أولاً",
+        "pending charge request": "لديك طلب شحن قيد المراجعة بالفعل",
+        "amount": "يرجى إدخال مبلغ صحيح",
+      });
+
+  static String requestWithdraw(String message) => _match(message, {
+        "do not have a wallet": "أنشئ محفظة أولاً",
+        "insufficient balance": "الرصيد غير كافٍ",
+        "pending withdraw requests":
+            "لديك طلبات سحب معلقة، هذا الطلب يتجاوز رصيدك",
+        "amount": "يرجى إدخال مبلغ صحيح",
+      });
+
+  // =====================================================================
+  // §12-13 الشكاوى والدعم
+  // =====================================================================
+
+  static String complaint(String message) => _match(message, {
+        "complaint not found": "الشكوى غير موجودة",
+        "title": "عنوان الشكوى مطلوب",
+        "description": "وصف الشكوى مطلوب",
+        "type": "يرجى اختيار نوع الشكوى",
+        "attachments":
+            "المرفقات: حتى 3 ملفات (صورة أو PDF) بحجم أقصى 5MB لكل ملف",
+      });
+
+  static String contactSupport(String message) => _match(message, {
+        "no support agents": "الدعم غير متاح حالياً، يرجى المحاولة لاحقاً",
+        "currently unavailable": "الدعم غير متاح حالياً، يرجى المحاولة لاحقاً",
+        "cannot open support chat": "تعذر فتح محادثة الدعم",
+      });
+
+  // =====================================================================
+  // §10 الإشعارات
+  // =====================================================================
+
+  static String notifications(String message) => _match(message, {
+        "notification not found": "الإشعار غير موجود",
+        "no notifications found": "لا توجد إشعارات",
+      });
 }

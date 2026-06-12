@@ -25,6 +25,8 @@ class HomeDrawer extends StatelessWidget {
         children: [
           _buildProfileTile(),
           _buildDivider(),
+          _buildWalletTile(),
+          _buildDivider(),
           _buildVerificationTile(),
           _buildDivider(),
           _buildPolicyTile(),
@@ -43,6 +45,20 @@ class HomeDrawer extends StatelessWidget {
       onTap: () => Get.toNamed(RouteName.profile, arguments: myid()),
       trailing: Icon(
         Icons.person_pin_sharp,
+        color: MyColors.accent,
+        size: 30,
+      ),
+    );
+  }
+
+  Widget _buildWalletTile() {
+    return CustomListTile(
+      title: "محفظتي",
+      padding: EdgeInsets.symmetric(horizontal: 15.w),
+      titleTextStyle: font15ggreyw600,
+      onTap: () => Get.toNamed(RouteName.wallet),
+      trailing: Icon(
+        Icons.account_balance_wallet_rounded,
         color: MyColors.accent,
         size: 30,
       ),

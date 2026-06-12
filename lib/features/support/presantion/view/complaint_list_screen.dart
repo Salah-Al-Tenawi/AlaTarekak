@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/features/support/domain/entity/complaint_entity.dart';
 import 'package:alatarekak/features/support/presantion/manger/complaint_list_cubit/complaint_list_cubit.dart';
-import 'package:alatarekak/features/support/presantion/view/complaint_status_helper.dart';
 
 class ComplaintListScreen extends StatefulWidget {
   const ComplaintListScreen({super.key});
@@ -84,22 +84,22 @@ class _ComplaintCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sCfg = complaintStatusConfig(complaint.status);
+    final status = complaint.status;
     final type = complaint.type;
-    final isUnread = complaint.status == 'unread';
 
     return InkWell(
-      onTap: () => Get.toNamed(RouteName.complaintDetail, arguments: complaint),
+      // نمرر id فقط — شاشة التفاصيل تجلب النسخة الحديثة من السيرفر
+      onTap: () =>
+          Get.toNamed(RouteName.complaintDetail, arguments: complaint.id),
       borderRadius: BorderRadius.circular(14),
       child: Container(
         padding: EdgeInsets.all(14.w),
         decoration: BoxDecoration(
           color: MyColors.surface,
           borderRadius: BorderRadius.circular(14),
-          border: isUnread
+          border: status.isOpen
               ? Border.all(
-                  color: Color(0xFF1565C0).withValues(alpha: 0.3),
-                  width: 1)
+                  color: status.color.withValues(alpha: 0.3), width: 1)
               : null,
           boxShadow: [
             BoxShadow(
@@ -126,9 +126,17 @@ class _ComplaintCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // نوع الشكوى
+                  // عنوان الشكوى
+                  Text(
+                    complaint.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.labelMedium
+                        .copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  SizedBox(height: 2.h),
                   Text(type.label,
-                      style: AppTextStyles.labelMedium
+                      style: AppTextStyles.labelSmall
                           .copyWith(color: type.color)),
                   SizedBox(height: 3.h),
                   // معاينة الوصف
@@ -138,7 +146,6 @@ class _ComplaintCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.bodySmall
                         .copyWith(color: MyColors.textSecondary),
-                    textDirection: TextDirection.rtl,
                   ),
                   SizedBox(height: 8.h),
                   Row(
@@ -148,28 +155,31 @@ class _ComplaintCard extends StatelessWidget {
                         padding: EdgeInsets.symmetric(
                             horizontal: 7.w, vertical: 3.h),
                         decoration: BoxDecoration(
-                          color: sCfg.bg,
+                          color: status.bgColor,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(sCfg.icon, size: 11, color: sCfg.color),
+                            Icon(status.icon,
+                                size: 11, color: status.color),
                             SizedBox(width: 3.w),
-                            Text(sCfg.label,
+                            Text(status.label,
                                 style: AppTextStyles.labelSmall.copyWith(
-                                    color: sCfg.color,
+                                    color: status.color,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 10.sp)),
                           ],
                         ),
                       ),
                       const Spacer(),
-                      Text(
-                        complaint.createdAt,
-                        style: AppTextStyles.labelSmall
-                            .copyWith(color: MyColors.textHint),
-                      ),
+                      if (complaint.submittedAt != null)
+                        Text(
+                          DateFormat('d MMM yyyy', 'ar')
+                              .format(complaint.submittedAt!.toLocal()),
+                          style: AppTextStyles.labelSmall
+                              .copyWith(color: MyColors.textHint),
+                        ),
                     ],
                   ),
                 ],
@@ -201,7 +211,7 @@ class _EmptyView extends StatelessWidget {
               size: 64,
               color: MyColors.textHint.withValues(alpha: 0.5)),
           SizedBox(height: 16.h),
-          Text('لا توجد شكاوى بعد',
+          Text('لا توجد شكاوى سابقة',
               style: AppTextStyles.titleMedium
                   .copyWith(color: MyColors.textSecondary)),
           SizedBox(height: 6.h),
@@ -213,6 +223,7 @@ class _EmptyView extends StatelessWidget {
     );
   }
 }
+
 
 class _ErrorView extends StatelessWidget {
   final String message;
