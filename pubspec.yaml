@@ -11,11 +11,14 @@ environment:
 dependencies:
   badges: any
   cached_network_image: any
+  connectivity_plus: any
   cupertino_icons: ^1.0.8
   dartz: any
   dio: any
   dropdown_search: any
   equatable: any
+  firebase_core: any
+  firebase_messaging: any
   flutter:
     sdk: flutter
   flutter_localizations:
@@ -26,6 +29,7 @@ dependencies:
   flutter_otp_text_field: any
   flutter_rating_bar: any
   flutter_screenutil: any
+  flutter_secure_storage: any
   flutter_svg: any
   font_awesome_flutter: ^10.12.0
   geocoding: any
@@ -55,6 +59,7 @@ flutter_launcher_icons:
     generate: false
 
 dev_dependencies:
+  bloc_test: any
   build_runner: any
   flutter_launcher_icons: any
 
@@ -62,6 +67,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   hive_generator: any
+  integration_test:
+    sdk: flutter
+  mocktail: any
 
 flutter:
   uses-material-design: true
