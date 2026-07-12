@@ -15,11 +15,17 @@ final class SearchSucces extends SearchState {
   final List<TripModel> trips;
 
   const SearchSucces({required this.trips});
+
+  @override
+  List<Object> get props => [trips];
 }
 
 final class SearchErorr extends SearchState {
   final String error;
 
   const SearchErorr({required this.error});
+
+  @override
+  List<Object> get props => [error];
 }
 

@@ -15,6 +15,9 @@ final class BookingUserInTripErorr extends BookingUserInTripState {
   final String message;
 
   const BookingUserInTripErorr({required this.message});
+
+  @override
+  List<Object> get props => [message];
 }
 
 final class BookingUserInTripUpdated extends BookingUserInTripState {

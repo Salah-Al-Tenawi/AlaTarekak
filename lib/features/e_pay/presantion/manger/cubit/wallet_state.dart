@@ -27,4 +27,7 @@ final class WalletLoaded extends WalletState {
   final BalanceModel balance;
 
   const WalletLoaded({required this.balance});
+
+  @override
+  List<Object> get props => [balance.walletNumber, balance.balance];
 }

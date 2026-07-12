@@ -17,6 +17,9 @@ class LoginError extends LoginState {
   final String message;
 
   const LoginError(this.message);
+
+  @override
+  List<Object> get props => [message];
 }
 
 class LoginNavigateToSignup extends LoginState {}

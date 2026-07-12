@@ -18,42 +18,62 @@ final class BookingMeErorr extends BookingMeState {
   final String message;
 
   const BookingMeErorr({required this.message});
+
+  @override
+  List<Object> get props => [message];
 }
 
 final class BookingMeListLoaded extends BookingMeState {
   final List<BookingMe> bookings;
   const BookingMeListLoaded({required this.bookings});
+
+  @override
+  List<Object> get props => [bookings];
 }
 
 final class BookingMeCanceled extends BookingMeState {
-  final CancelBookingModel cancelModel ;
+  final CancelBookingModel cancelModel;
 
   const BookingMeCanceled({required this.cancelModel});
+
+  @override
+  List<Object> get props => [cancelModel];
 }
 
 final class BookingMeWholeCanceled extends BookingMeState {
   final String message;
 
   const BookingMeWholeCanceled({required this.message});
+
+  @override
+  List<Object> get props => [message];
 }
 
 final class BookingMeDriverNoShowReported extends BookingMeState {
   final String message;
 
   const BookingMeDriverNoShowReported({required this.message});
+
+  @override
+  List<Object> get props => [message];
 }
 
 final class BookingMeFinish extends BookingMeState {
   final String message;
 
   const BookingMeFinish({required this.message});
-}
 
+  @override
+  List<Object> get props => [message];
+}
 
 final class BookingMeRated extends BookingMeState {
   final double rate;
 
   const BookingMeRated({required this.rate});
+
+  @override
+  List<Object> get props => [rate];
 }
 
 final class BookingMeCommented extends BookingMeState {}
