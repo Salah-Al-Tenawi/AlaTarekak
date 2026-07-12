@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="utf-8">
+<title>تقرير تنفيذ المتطلبات غير الوظيفية — تطبيق عطريقك</title>
+<style>
+  body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; direction: rtl; font-size: 12pt; color: #1a1a2e; line-height: 1.7; }
+  h1 { color: #0d3b66; font-size: 22pt; border-bottom: 3px solid #0d3b66; padding-bottom: 8px; }
+  h2 { color: #0d3b66; font-size: 16pt; margin-top: 28px; border-bottom: 1px solid #c9d6e3; padding-bottom: 4px; }
+  h3 { color: #14507a; font-size: 13pt; margin-top: 18px; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 10.5pt; }
+  th { background: #0d3b66; color: #ffffff; padding: 7px 9px; border: 1px solid #0d3b66; text-align: right; }
+  td { padding: 6px 9px; border: 1px solid #b8c6d4; vertical-align: top; }
+  tr:nth-child(even) td { background: #f2f6fa; }
+  code { font-family: Consolas, monospace; background: #eef2f7; padding: 1px 5px; font-size: 10pt; direction: ltr; unicode-bidi: embed; }
+  .ok { color: #1b7a3d; font-weight: bold; }
+  .warn { color: #b26a00; font-weight: bold; }
+  .muted { color: #5a6b7b; font-size: 10.5pt; }
+  .box { background: #f2f6fa; border-right: 4px solid #0d3b66; padding: 10px 14px; margin: 12px 0; }
+  li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<h1>تقرير تنفيذ المتطلبات غير الوظيفية (NFRs) — تطبيق عطريقك (Flutter)</h1>
+<p class="muted">وثيقة مرجعية لما نُفّذ في تطبيق الجوال وفق وثيقة توصيف المتطلبات (SRS) الإصدار 1.0 — تاريخ الإعداد: 11 تموز/يوليو 2026</p>
+
+<div class="box">
+<b>الملخص التنفيذي:</b> نُفّذت ثلاثة متطلبات غير وظيفية كاملة في تطبيق Flutter:
+<b>NFR-02</b> (الاختبارات: 105 اختبارات آلية ناجحة تغطي الوحدات والواجهات والتكامل)،
+<b>NFR-14</b> (التخزين الآمن: تشفير AES-256 لتوكنات الجلسة بمفتاح في Keystore/Keychain مع ترحيل تلقائي)،
+و<b>NFR-17</b> (موثوقية الشبكة: إعادة محاولة تلقائية، مهلات صريحة، شريط انقطاع اتصال عام، وتوثيق الكاش الموجود).
+جميع الاختبارات تعمل بنجاح، وتم التحقق من سلامة البناء بإنتاج APK فعلي.
+</div>
+
+<h2>أولاً — NFR-02: اختبار تطبيق الجوال (Testing)</h2>
+
+<h3>1. البنية التحتية للاختبار</h3>
+<ul>
+<li>أضيفت حزم التطوير: <code>bloc_test</code> (اختبار الـ Cubits بنمط معياري)، <code>mocktail</code> (محاكاة الـ Repositories بلا شبكة)، <code>integration_test</code> (اختبارات الجهاز الحقيقي).</li>
+<li>حُذف ملف <code>test/widget_test.dart</code> الافتراضي المكسور (كان يختبر تطبيق عدّاد غير موجود).</li>
+<li>أُنشئ ملف تجهيزات مشترك <code>test/helpers/fixtures.dart</code> يبني نموذج رحلة كامل عبر <code>TripModel.fromMap</code> لتغطية مسار التحويل الحقيقي من JSON.</li>
+</ul>
+
+<h3>2. اختبارات الوحدات — منطق الأعمال (Unit Tests)</h3>
+<p>غُطيت <b>12 وحدة إدارة حالة (Cubit) من أصل 30</b>، وهي كل الوحدات ذات منطق الأعمال الحرج، مع طبقة الأخطاء كاملة:</p>
+<table>
+<tr><th>الملف</th><th>عدد الاختبارات</th><th>ما يغطيه</th></tr>
+<tr><td><code>test/core/errors/filuar_test.dart</code></td><td>11</td><td>تحليل كائن الفشل الموحّد لكل أشكال أخطاء الباك إند: المغلف A، المغلف B مع code، شكل Laravel 422، أخطاء الحقول، معلومات الحظر المؤقت/الدائم، والرسالة الاحتياطية العربية.</td></tr>
+<tr><td><code>test/core/errors/handel_erorr_message_test.dart</code></td><td>14</td><td>تعريب رسائل الباك إند: انتهاء الجلسة، بيانات دخول خاطئة، نقاط الثقة (مع أرقام متغيرة)، قواعد الإلغاء الزمنية، رسائل المحفظة، وعدم حساسية حالة الأحرف.</td></tr>
+<tr><td><code>test/features/auth/login_cubit_test.dart</code></td><td>5</td><td>تسجيل الدخول: نجاح/فشل، حالات التنقل، والتحقق من استدعاء الـ repository مرة واحدة.</td></tr>
+<tr><td><code>test/features/auth/singin_cubit_test.dart</code></td><td>6</td><td>إنشاء الحساب: الانتقال لشاشة OTP، بريد مكرر، رفض OTP الأقصر من 6 أرقام <b>دون إرسال أي طلب</b>، نجاح/فشل التحقق، تغيير الجنس.</td></tr>
+<tr><td><code>test/features/auth/forget_password_cubit_test.dart</code></td><td>7</td><td>استعادة كلمة المرور بخطواتها الثلاث: إرسال البريد، تحقق OTP مع resetToken، إعادة التعيين، رمز منتهي، وتبديل إظهار كلمتي المرور.</td></tr>
+<tr><td><code>test/features/trip_booking/booking_me_cubit_test.dart</code></td><td>10</td><td>حجوزاتي: الجلب، الإلغاء الجزئي مع نسبة الاسترداد، الإلغاء الكامل، تأكيد إنهاء الرحلة، بلاغ عدم حضور السائق، التقييم، والتعليق — بحالات نجاح وفشل معرّبة.</td></tr>
+<tr><td><code>test/features/booking_user_in_trip/booking_user_in_trip_cubit_test.dart</code></td><td>5</td><td>إدارة ركاب الرحلة (للسائق): قبول/رفض الراكب، بلاغ عدم حضور الراكب، وصلاحيات "متاح لسائق الرحلة فقط".</td></tr>
+<tr><td><code>test/features/trip_details/trip_details_cubit_test.dart</code></td><td>9</td><td>تفاصيل الرحلة: حجز مقعد، منع حجز الرحلة الخاصة، قاعدة العرض myView/otherView حسب هوية السائق (بجلسة Hive حقيقية مؤقتة)، إنهاء الرحلة، وسلسلة الإنهاء+التأكيد بفرعيها.</td></tr>
+<tr><td><code>test/features/trip_me/trip_me_cubit_test.dart</code></td><td>4</td><td>رحلات السائق: الجلب، رحلة واحدة، والإلغاء مع <b>إعادة التحميل التلقائي</b> للقائمة، وقاعدة "لا إلغاء قبل أقل من ساعة".</td></tr>
+<tr><td><code>test/features/trip_search/search_cubit_test.dart</code></td><td>3</td><td>البحث عن رحلات: نتائج، قائمة فارغة (ليست خطأ)، وفشل البحث.</td></tr>
+<tr><td><code>test/features/e_pay/wallet_cubit_test.dart</code></td><td>3</td><td>المحفظة: عرض الرصيد من رد الخادم فقط (انسجاماً مع SAF-04)، وتمييز "لا محفظة" (شاشة تفعيل) عن الخطأ الفعلي.</td></tr>
+<tr><td><code>test/features/score/score_cubit_test.dart</code></td><td>5</td><td>نقاط الثقة: حارس الأزرار (إنشاء ≥ 50، حجز ≥ 40 — قاعدة العمل BR)، نمط الكاش-ثم-الشبكة، وسجل التغيرات.</td></tr>
+<tr><td><code>test/features/notifications/notifications_cubit_test.dart</code></td><td>6</td><td>الإشعارات: الكاش الفوري ثم التحديث الشبكي، <b>التحديث التفاؤلي</b> (تعليم كمقروء/حذف فوري ثم مزامنة)، تعليم الكل، وحفظ الكاش بعد كل تعديل.</td></tr>
+</table>
+
+<h3>3. اختبارات الواجهات (Widget Tests)</h3>
+<table>
+<tr><th>الملف</th><th>عدد الاختبارات</th><th>ما يغطيه</th></tr>
+<tr><td><code>test/core/widgets/my_button_test.dart</code></td><td>3</td><td>الزر المشترك: عرض المحتوى، تنفيذ الضغط، حالة التعطيل، والحواف الدائرية — داخل بيئة ScreenUtil مطابقة للتطبيق (375×812 مع RTL).</td></tr>
+<tr><td><code>test/core/widgets/custom_text_form_test.dart</code></td><td>3</td><td>حقل الإدخال المشترك: العنوان والكتابة في الـ controller، إخفاء كلمة المرور، وعرض رسالة الـ validator عند فشل التحقق.</td></tr>
+<tr><td><code>test/features/trip_booking/booking_me_list_view_test.dart</code></td><td>2</td><td>شاشة "حجوزاتي" كاملة بكيوبت وهمي (MockCubit): حالة التحميل تعرض المؤشر، والقائمة الفارغة تعرض "لا توجد حجوزات" — دون أي اتصال بالشبكة.</td></tr>
+<tr><td><code>test/core/widgets/offline_banner_test.dart</code></td><td>1</td><td>شريط انقطاع الاتصال (NFR-17): يظهر عند الانقطاع ويختفي عند العودة دون حجب المحتوى.</td></tr>
+</table>
+
+<h3>4. اختبارات الأمان والبنية (Infrastructure Tests)</h3>
+<table>
+<tr><th>الملف</th><th>عدد الاختبارات</th><th>ما يغطيه</th></tr>
+<tr><td><code>test/core/service/hive_secure_auth_box_test.dart</code></td><td>3</td><td>NFR-14: التوكن لا يظهر نصاً صريحاً في ملف القرص، ترحيل الجلسات القديمة غير المشفرة دون فقدانها، وإعادة الفتح بنفس المفتاح.</td></tr>
+<tr><td><code>test/core/api/retry_interceptor_test.dart</code></td><td>5</td><td>NFR-17: إعادة محاولة GET حتى النجاح، استنفاد الحد الأقصى، <b>عدم تكرار POST أبداً</b> (حماية SAF-04)، إعادة عند 503 العابر، وعدم الإعادة عند 404 المنطقي.</td></tr>
+</table>
+
+<h3>5. اختبار التكامل (Integration Test)</h3>
+<p>ملف <code>integration_test/app_test.dart</code>: يُقلع التطبيق كاملاً (Hive + حاقن التبعيات + الثيم) على جهاز/محاكي حقيقي ويتحقق من الوصول للواجهة بالعربية واتجاه RTL دون أعطال. يُشغَّل بالأمر:
+<code>flutter test integration_test/app_test.dart -d &lt;device&gt;</code></p>
+
+<h3>6. النتائج والأرقام</h3>
+<table>
+<tr><th>المؤشر</th><th>القيمة</th></tr>
+<tr><td>إجمالي الاختبارات</td><td class="ok">105 — كلها ناجحة</td></tr>
+<tr><td>تغطية أسطر وحدات الحالة (Cubits) المختبَرة</td><td class="ok">77.7%</td></tr>
+<tr><td>تغطية طبقة الأخطاء</td><td>46.7%</td></tr>
+<tr><td>Cubits المغطاة</td><td>12 من 30 (كل منطق الأعمال الحرج)</td></tr>
+<tr><td>زمن تشغيل المجموعة كاملة</td><td>≈ 16 ثانية</td></tr>
+</table>
+<p class="muted">الـ 18 Cubit غير المغطاة: 5 تافهة (تنقل/شاشات تمهيدية)، 5 تتطلب منصة أو سوكيت حقيقي (خرائط/محادثات)، و8 متوسطة الأولوية تتبع النمط الجاهز نفسه (أهمها إنشاء الرحلة PushRideCubit).</p>
+
+<h2>ثانياً — NFR-14: التخزين الآمن للجوال (Secure Storage)</h2>
+
+<h3>1. المشكلة قبل التعديل</h3>
+<p>كانت توكنات الجلسة (<code>access_token</code> و<code>refresh_token</code>) تُخزن داخل صندوق Hive <b>غير مشفر</b> على القرص — أي يمكن قراءتها نصاً صريحاً من ملف التطبيق على جهاز مكشوف (root/backup extraction)، وهو ما يخالف NFR-14 صراحة.</p>
+
+<h3>2. الحل المنفّذ</h3>
+<ul>
+<li><b>ملف جديد</b> <code>lib/core/service/secure_key_service.dart</code>: يولّد مفتاح تشفير AES-256 مرة واحدة عبر <code>Hive.generateSecureKey()</code> ويحفظه في التخزين الآمن للمنصة (Android Keystore / iOS Keychain) عبر حزمة <code>flutter_secure_storage</code> — المفتاح لا يُكتب أبداً في ملفات عادية أو SharedPreferences.</li>
+<li><b>تعديل</b> <code>lib/core/service/hive_services.dart</code>: صندوق الجلسة <code>authBox</code> يُفتح الآن مشفراً بـ <code>HiveAesCipher</code>. أُبقيت قراءة التوكن متزامنة كما هي (<code>mytoken()</code>) فلم يتغير أي سطر آخر في التطبيق.</li>
+<li><b>ترحيل تلقائي:</b> عند أول تشغيل بعد التحديث تُنقل جلسة المستخدم من الصندوق القديم غير المشفر إلى الصندوق المشفر ثم يُحذف القديم من القرص — <b>لا يفقد أي مستخدم حالي تسجيل دخوله</b>.</li>
+<li><b>مقاومة الأعطال:</b> إن تعذر الوصول للتخزين الآمن (عطل Keystore نادر) يفتح التطبيق الصندوق بلا تشفير مع تسجيل التحذير، بدل الانهيار عند الإقلاع.</li>
+</ul>
+
+<h3>3. الإثبات</h3>
+<p>3 اختبارات في <code>test/core/service/hive_secure_auth_box_test.dart</code> تقرأ <b>بايتات الملف الفعلية من القرص</b> وتثبت أن التوكن كان مكشوفاً قبل الترحيل ولم يعد يظهر بعده، وأن الجلسة تبقى سليمة. كما تم التحقق من توافق الحزمة (الإصدار 10.3.1 يتطلب Android minSdk 23، والمشروع على 24) وبناء APK كامل بنجاح.</p>
+
+<h2>ثالثاً — NFR-17: موثوقية الشبكة للجوال (Network Reliability)</h2>
+
+<h3>1. آلية إعادة المحاولة (Retry Mechanism)</h3>
+<ul>
+<li><b>ملف جديد</b> <code>lib/core/api/retry_interceptor.dart</code>: interceptor مخصص على Dio يعيد المحاولة تلقائياً حتى مرتين بتراجع تصاعدي (ثانية ثم ثانيتان) عند الأخطاء العابرة: انقطاع الاتصال، المهلات، وأعطال البوابة 502/503/504.</li>
+<li><b>قرار تصميمي مرتبط بالسلامة (SAF-04):</b> تُعاد طلبات <code>GET</code> فقط. طلبات الكتابة (حجز، دفع، إلغاء) لا تُكرر تلقائياً أبداً حتى لا تُنفَّذ العملية المالية مرتين. الأخطاء المنطقية (404، 422، 500) لا تُعاد لأنها ليست عابرة.</li>
+</ul>
+
+<h3>2. المهلات الصريحة (Timeouts)</h3>
+<p>في <code>lib/core/api/dio_consumer.dart</code>: قبل التعديل لم تكن هناك أي مهلة مضبوطة — الطلب قد يعلق إلى ما لا نهاية على شبكة سيئة. أُضيفت: مهلة اتصال 15 ثانية ومهلة استلام 25 ثانية، وعندها تتحول لرسالة عربية واضحة عبر طبقة الأخطاء الموجودة.</p>
+
+<h3>3. رسائل واضحة عند فقدان الاتصال</h3>
+<ul>
+<li><b>ملف جديد</b> <code>lib/core/service/connectivity_service.dart</code>: خدمة تراقب حالة الشبكة عبر حزمة <code>connectivity_plus</code> وتُصدر <code>ValueNotifier</code> بحالة الاتصال.</li>
+<li><b>ملف جديد</b> <code>lib/core/utils/widgets/offline_banner.dart</code>: شريط أحمر بأيقونة ورسالة "لا يوجد اتصال بالإنترنت، تحقق من الشبكة" يظهر <b>فوق كل شاشات التطبيق</b> فور الانقطاع ويختفي بحركة سلسة عند العودة — رُكّب مرة واحدة في <code>main.dart</code> عبر <code>builder</code> في GetMaterialApp.</li>
+<li>هذا يُكمل الرسائل الموجودة أصلاً في <code>excptions.dart</code> ("لا يوجد اتصال بالشبكة"، "تحقق من اتصال الإنترنت") التي تظهر عند فشل طلب معين.</li>
+</ul>
+
+<h3>4. دعم الكاش (Caching) — موجود مسبقاً وتم توثيقه</h3>
+<ul>
+<li><code>cacheBox</code> في Hive: كاش نقاط الثقة والإشعارات والشكاوى بنمط "اعرض الكاش فوراً ثم حدّث من الشبكة" (مُثبت الآن بالاختبارات).</li>
+<li><code>cached_network_image</code>: كاش صور الملفات الشخصية والمركبات على القرص.</li>
+<li>كاش الجلسة والملف الشخصي في صناديق Hive (المشفرة الآن للجلسة).</li>
+</ul>
+
+<h2>رابعاً — حالة المتطلبات غير الوظيفية للجوال بعد هذا العمل</h2>
+<table>
+<tr><th>المتطلب</th><th>الحالة</th><th>ملاحظات</th></tr>
+<tr><td>NFR-02 اختبار التطبيق</td><td class="ok">منجز</td><td>105 اختبارات: وحدات + واجهات + تكامل</td></tr>
+<tr><td>NFR-14 التخزين الآمن</td><td class="ok">منجز</td><td>AES-256 + Keystore/Keychain + ترحيل</td></tr>
+<tr><td>NFR-17 موثوقية الشبكة</td><td class="ok">منجز</td><td>Retry + مهلات + شريط انقطاع + كاش</td></tr>
+<tr><td>NFR-24 المعمارية (Clean + Cubit)</td><td class="ok">منجز سابقاً</td><td>data / domain / presentation لكل ميزة</td></tr>
+<tr><td>NFR-26 العربية و RTL</td><td class="ok">منجز سابقاً</td><td>التطبيق عربي كامل مع RTL</td></tr>
+<tr><td>NFR-21 حالات التحميل/الخطأ/النجاح</td><td class="ok">منجز سابقاً</td><td>عبر حالات الـ Cubit في الشاشات</td></tr>
+<tr><td>NFR-23 توافق الأجهزة</td><td class="ok">منجز سابقاً</td><td>ScreenUtil + بناء Android/iOS</td></tr>
+<tr><td>NFR-15 اتصال HTTPS فقط</td><td class="warn">جزئي</td><td>رابط الإنتاج https؛ يلزم حذف بقايا روابط http التجريبية</td></tr>
+<tr><td>NFR-04 خط CI/CD</td><td class="warn">التالي</td><td>GitHub Actions: analyze + test عند كل PR</td></tr>
+<tr><td>NFR-16 مراقبة الأخطاء (Sentry)</td><td class="warn">التالي</td><td>إضافة sentry_flutter مع سياق المستخدم</td></tr>
+<tr><td>NFR-19/20 الأداء والبطارية</td><td class="warn">متبقٍ</td><td>يتطلب جلسة قياس بـ DevTools وتوثيق الأرقام</td></tr>
+<tr><td>NFR-22 إمكانية الوصول</td><td class="warn">متبقٍ</td><td>Semantics + أحجام لمس + تكبير خط</td></tr>
+<tr><td>SAF-01/02 مشاركة الرحلة وزر الطوارئ</td><td class="warn">متبقٍ</td><td>ميزتان وظيفيتان في التطبيق</td></tr>
+</table>
+
+<h2>خامساً — كيفية التشغيل والتحقق</h2>
+<ul>
+<li>كل الاختبارات: <code>flutter test</code></li>
+<li>مع تقرير التغطية: <code>flutter test --coverage</code> (ينتج <code>coverage/lcov.info</code>)</li>
+<li>اختبار التكامل على جهاز: <code>flutter test integration_test/app_test.dart -d &lt;device&gt;</code></li>
+<li>التحقق من البناء: <code>flutter build apk --debug</code> (تم بنجاح — 160MB debug APK)</li>
+</ul>
+
+<p class="muted">أُعد هذا التقرير آلياً من سجل العمل الفعلي على المستودع. كل المسارات المذكورة موجودة في المشروع ويمكن مراجعتها مباشرة.</p>
+
+</body>
+</html>
