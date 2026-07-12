@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_core/get_core.dart';
 import 'package:get/get_navigation/get_navigation.dart';
-import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/utils/functions/my_dilaog.dart';
@@ -34,9 +33,8 @@ class _BookingMeListState extends State<BookingMeList> {
               title: "تم إلغاء الحجز",
             );
           } else if (state is BookingMeErorr) {
-            final message = HandelErorrMessage.bookingMe(state.message);
-            
-            showMySnackBar(context, message);
+            // الرسالة معرّبة مسبقاً في الكيوبت حسب نوع العملية
+            showMySnackBar(context, state.message);
           }
         },
         builder: (context, state) {

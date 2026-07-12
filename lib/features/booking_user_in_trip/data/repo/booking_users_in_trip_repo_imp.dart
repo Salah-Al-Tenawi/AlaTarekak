@@ -29,4 +29,14 @@ class BookingUsersInTripRepoImp extends BookingUserInTripRepo {
       return left(e.error);
     }
   }
+
+  @override
+  Future<Either<Filuar, dynamic>> passengerNoShow(int bookingId) async {
+    try {
+      final response = await remoteData.passengerNoShow(bookingId);
+      return right(response);
+    } on ServerExpcptions catch (e) {
+      return left(e.error);
+    }
+  }
 }

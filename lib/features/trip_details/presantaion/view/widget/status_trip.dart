@@ -15,22 +15,25 @@ StatusInfo getStatusInfo(String? status) {
     case 'pending':
       return StatusInfo('قيد الانتظار', MyColors.accent);
     case 'awaiting_confirmation':
-      return StatusInfo('بانظار تأكيد الوصول', Colors.amber.shade700);
-
+      return StatusInfo('بانظار تأكيد الوصول', MyColors.warning);
+    case 'accepted':
+      return StatusInfo('مقبول', MyColors.success);
+    case 'rejected':
+      return StatusInfo('مرفوض', MyColors.error);
     case 'confirmed':
       return StatusInfo('مؤكد', MyColors.primary);
     case 'cancelled':
-      return StatusInfo('ملغي', Colors.red);
+      return StatusInfo('ملغي', MyColors.error);
     case 'no_show':
       return StatusInfo('لم يحضر', MyColors.textSecondary);
     case 'completed':
-      return StatusInfo('تم', Colors.blue.shade200);
+      return StatusInfo('تم', MyColors.blue);
     case 'full':
       return StatusInfo('ممتلئة', MyColors.textSecondary);
     case 'active':
-      return StatusInfo('متاح', const Color(0xFF28A745));
+      return StatusInfo('متاح', MyColors.success);
     case 'finished':
-      return StatusInfo('انتهت الرحلة', Colors.blue.shade200);
+      return StatusInfo('انتهت الرحلة', MyColors.blue);
 
     default:
       return StatusInfo('غير معروف', MyColors.textPrimary);

@@ -33,6 +33,15 @@ class BookingMeRepo {
     }
   }
 
+  Future<Either<Filuar, dynamic>> cancelWholeBooking(int bookingId) async {
+    try {
+      final response = await _remoteDataSource.cancelWholeBooking(bookingId);
+      return right(response);
+    } on ServerExpcptions catch (e) {
+      return left(e.error);
+    }
+  }
+
   Future<Either<Filuar, dynamic>> finshTrip(int bookingId) async {
     try {
       final response = await _remoteDataSource.finishRide(bookingId);
@@ -40,7 +49,17 @@ class BookingMeRepo {
     } on ServerExpcptions catch (e) {
       return left(e.error);
     }
-  } 
+  }
+
+  Future<Either<Filuar, dynamic>> driverNoShow(int rideId) async {
+    try {
+      final response = await _remoteDataSource.driverNoShow(rideId);
+      return right(response);
+    } on ServerExpcptions catch (e) {
+      return left(e.error);
+    }
+  }
+
   Future<Either<Filuar, CommentEntity>> addcommit(
       String commit, int userid) async {
     try {

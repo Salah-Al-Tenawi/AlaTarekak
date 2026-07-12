@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/trip_booking/data/model/booking_me_model.dart';
 import 'package:alatarekak/features/trip_booking/data/model/cancel_booking_model.dart';
 import 'package:alatarekak/features/trip_booking/data/repo/booking_me_repo.dart';
@@ -17,7 +18,8 @@ class BookingMeCubit extends Cubit<BookingMeState> {
     final response = await _repo.getMeBooking();
 
     response.fold(
-      (error) => emit(BookingMeErorr(message: error.message)),
+      (error) => emit(
+          BookingMeErorr(message: HandelErorrMessage.bookingMe(error.message))),
       (listBooking) => emit(BookingMeListLoaded(bookings: listBooking)),
     );
   }
@@ -26,9 +28,35 @@ class BookingMeCubit extends Cubit<BookingMeState> {
     emit(BookingMeloading());
     final response = await _repo.cancelBooking(bookingId, seats);
     response.fold((erorr) {
-      emit(BookingMeErorr(message: erorr.message));
+      emit(BookingMeErorr(
+          message: HandelErorrMessage.cancelBooking(erorr.message)));
     }, (cancel) {
       emit(BookingMeCanceled(cancelModel: cancel));
+    });
+  }
+
+  /// إلغاء الحجز بالكامل (كل المقاعد دفعة واحدة)
+  Future<void> cancelWholeBooking(int bookingId) async {
+    emit(BookingMeloading());
+    final response = await _repo.cancelWholeBooking(bookingId);
+    response.fold((erorr) {
+      emit(BookingMeErorr(
+          message: HandelErorrMessage.cancelBooking(erorr.message)));
+    }, (_) {
+      emit(const BookingMeWholeCanceled(message: "تم إلغاء الحجز بالكامل"));
+    });
+  }
+
+  /// بلاغ أن السائق لم يحضر
+  Future<void> reportDriverNoShow(int rideId) async {
+    emit(BookingMeButtonloading());
+    final response = await _repo.driverNoShow(rideId);
+    response.fold((erorr) {
+      emit(BookingMeErorr(
+          message: HandelErorrMessage.driverNoShow(erorr.message)));
+    }, (_) {
+      emit(const BookingMeDriverNoShowReported(
+          message: "تم تسجيل البلاغ، سيُعالج من فريق الدعم"));
     });
   }
 
@@ -36,7 +64,8 @@ class BookingMeCubit extends Cubit<BookingMeState> {
     emit(BookingMeButtonloading());
     final response = await _repo.finshTrip(bookingId);
     response.fold((erorr) {
-      emit(BookingMeErorr(message: erorr.message));
+      emit(BookingMeErorr(
+          message: HandelErorrMessage.passangerConfirm(erorr.message)));
     }, (sucess) {
       emit(const BookingMeFinish(message: "تم التأكيد"));
     });

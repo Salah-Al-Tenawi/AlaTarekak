@@ -55,20 +55,36 @@ class BookingData {
     this.rideDetails,
   });
 
+  /// يدعم شكل BookingResource المتداخل (passenger/ride/driver) والشكل القديم
   factory BookingData.fromJson(Map<String, dynamic> json) {
+    final ride = json['ride'] is Map<String, dynamic>
+        ? json['ride'] as Map<String, dynamic>
+        : const <String, dynamic>{};
+    final driver = ride['driver'] is Map<String, dynamic>
+        ? ride['driver'] as Map<String, dynamic>
+        : const <String, dynamic>{};
+    final passenger = json['passenger'] is Map<String, dynamic>
+        ? json['passenger'] as Map<String, dynamic>
+        : const <String, dynamic>{};
+
+    int toInt(dynamic v) =>
+        v is num ? v.toInt() : int.tryParse(v?.toString() ?? '') ?? 0;
+
     return BookingData(
-      id: json['id'],
-      rideId: json['ride_id'],
-      driverId: json['driver_id'],
-      passengerId: json['passenger_id'],
-      seats: json['seats'],
-      status: json['status'],
-      communicationNumber: json['communication_number'],
-      totalPrice: json['total_price'],
-      bookingDate: DateTime.parse(json['booking_date']),
+      id: toInt(json['id']),
+      rideId: toInt(json['ride_id'] ?? ride['id']),
+      driverId: toInt(json['driver_id'] ?? driver['id']),
+      passengerId: toInt(json['passenger_id'] ?? passenger['id']),
+      seats: toInt(json['seats']),
+      status: json['status']?.toString() ?? '',
+      communicationNumber: json['communication_number']?.toString() ?? '',
+      totalPrice: toInt(json['total_price']),
+      bookingDate: DateTime.tryParse(
+              (json['booking_date'] ?? json['created_at'] ?? '').toString()) ??
+          DateTime.now(),
       rideDetails: json['ride_details'] != null
           ? RideDetails.fromJson(json['ride_details'])
-          : null,
+          : (ride.isNotEmpty ? RideDetails.fromJson(ride) : null),
     );
   }
 
@@ -101,9 +117,11 @@ class RideDetails {
 
   factory RideDetails.fromJson(Map<String, dynamic> json) {
     return RideDetails(
-      pickupAddress: json['pickup_address'],
-      destinationAddress: json['destination_address'],
-      departureTime: DateTime.parse(json['departure_time']),
+      pickupAddress: json['pickup_address']?.toString() ?? '',
+      destinationAddress: json['destination_address']?.toString() ?? '',
+      departureTime:
+          DateTime.tryParse((json['departure_time'] ?? '').toString()) ??
+              DateTime.now(),
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/utils/functions/get_userid.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_details/data/model/booking_model.dart';
@@ -19,7 +20,9 @@ class TripDetailsCubit extends Cubit<TripDetailsState> {
     final response =
         await tripDetailsRepoIM.booking(seats, tripId, communicationNumber);
     response.fold((error) {
-      emit(TripDetailsError(message: error.message));
+      // الرسالة الخام تُترجم هنا — الواجهة تعرضها كما هي
+      emit(TripDetailsError(
+          message: HandelErorrMessage.bookAset(error.message)));
     }, (booking) {
       emit(TripDetailsRequestBooking(booking: booking));
     });
@@ -29,7 +32,8 @@ class TripDetailsCubit extends Cubit<TripDetailsState> {
     emit(TripDetailsLoading());
     final response = await tripDetailsRepoIM.featchTrip(tripId);
     response.fold((error) {
-      emit(TripDetailsError(message: error.message));
+      emit(TripDetailsError(
+          message: HandelErorrMessage.showOneRide(error.message)));
     }, (trip) {
       if (trip.driver.id == myid()) {
         emit(TripDetailsLoaded(trip: trip, mode: TripDetailsMode.myView));
@@ -51,7 +55,8 @@ class TripDetailsCubit extends Cubit<TripDetailsState> {
     emit(TripDetailsLoading());
     final response = await tripDetailsRepoIM.finishTrip(tripId);
     response.fold((erorr) {
-      emit(TripDetailsError(message: erorr.message));
+      emit(TripDetailsError(
+          message: HandelErorrMessage.finishRide(erorr.message)));
     }, (response) {
       emit(TripDetailsFinishTrip());
     });
@@ -61,11 +66,13 @@ class TripDetailsCubit extends Cubit<TripDetailsState> {
     emit(TripDetailsLoading());
     final response = await tripDetailsRepoIM.finishTrip(tripId);
     response.fold((erorr) {
-      emit(TripDetailsError(message: erorr.message));
+      emit(TripDetailsError(
+          message: HandelErorrMessage.finishRide(erorr.message)));
     }, (response) async {
       final response = await tripDetailsRepoIM.confirmTrip(tripId);
       response.fold((erorr) {
-        emit(TripDetailsError(message: erorr.message));
+        emit(TripDetailsError(
+            message: HandelErorrMessage.driverConfirm(erorr.message)));
       }, (succ) {
         emit(TripDetailsFinishTrip());
       });

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:alatarekak/core/constant/imagesUrl.dart';
 import 'package:alatarekak/core/route/route_name.dart';
+import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/features/booking_user_in_trip/presantion/manger/cubit/booking_user_in_trip_cubit.dart';
 import 'package:alatarekak/features/trip_create/data/model/booking_model.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
@@ -45,7 +46,14 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
         title: Text("الحجوزات", style: AppTextStyles.titleMedium),
         centerTitle: true,
       ),
-      body: usersBooking.isEmpty
+      // الأخطاء (رفض السيرفر لقبول/رفض/بلاغ) كانت صامتة — نعرضها كسناك بار معرّب
+      body: BlocListener<BookingUserInTripCubit, BookingUserInTripState>(
+        listener: (context, state) {
+          if (state is BookingUserInTripErorr) {
+            showMySnackBar(context, state.message);
+          }
+        },
+        child: usersBooking.isEmpty
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -74,6 +82,7 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
               itemBuilder: (context, index) =>
                   buildBookingCard(usersBooking[index]),
             ),
+      ),
     );
   }
 
@@ -293,7 +302,7 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
                         .rejectPassanger(booking.id);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: MyColors.accent,
+                    backgroundColor: MyColors.error,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -305,10 +314,63 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
             );
 
           case "confirmed":
-            return _statusChip("تم القبول", MyColors.success);
+          case "accepted":
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // بلاغ عدم حضور الراكب — الباك إند يتحقق من التوقيت ويرد برسالة
+                TextButton.icon(
+                  onPressed: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (dialogContext) => AlertDialog(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
+                        title: const Text("تأكيد",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        content: const Text(
+                            "هل أنت متأكد أن الراكب لم يحضر؟ سيتم تسجيل بلاغ بحقه."),
+                        actionsAlignment: MainAxisAlignment.center,
+                        actions: [
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.of(dialogContext).pop(false),
+                            child: Text("لا",
+                                style:
+                                    TextStyle(color: MyColors.textPrimary)),
+                          ),
+                          ElevatedButton(
+                            onPressed: () =>
+                                Navigator.of(dialogContext).pop(true),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: MyColors.error,
+                                foregroundColor: MyColors.textOnDark),
+                            child: const Text("نعم"),
+                          ),
+                        ],
+                      ),
+                    );
+                    if ((confirm ?? false) && context.mounted) {
+                      context
+                          .read<BookingUserInTripCubit>()
+                          .passengerNoShow(booking.id);
+                    }
+                  },
+                  icon: Icon(Icons.report_problem,
+                      size: 18, color: MyColors.error),
+                  label: Text("الراكب لم يحضر",
+                      style: TextStyle(color: MyColors.error, fontSize: 13)),
+                ),
+                _statusChip("تم القبول", MyColors.success),
+              ],
+            );
 
           case "Booking rejected":
-            return _statusChip("تم رفض الحجز", MyColors.accent);
+          case "rejected":
+            return _statusChip("تم رفض الحجز", MyColors.error);
+
+          case "passenger_no_show":
+            return _statusChip("تم تسجيل عدم الحضور", MyColors.warning);
 
           case "cancelled":
             return _statusChip("ملغاة", MyColors.error);

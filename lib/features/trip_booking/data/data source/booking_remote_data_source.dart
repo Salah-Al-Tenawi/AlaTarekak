@@ -20,9 +20,9 @@ class BookingRemoteDataSource {
     return bookingModel.data;
   }
 
-// todo Modleing
+  /// إلغاء جزء من المقاعد — POST /bookings/{id}/cancel-seats
   Future<CancelBookingModel> cancelBooking(int bookingId, int seats) async {
-    final url = "${ApiEndPoint.baserUrl}/bookings/$bookingId/cancel-seats";
+    final url = "${ApiEndPoint.bookings}/$bookingId/cancel-seats";
 
     final response = await _api.post(
       url,
@@ -34,15 +34,34 @@ class BookingRemoteDataSource {
       },
     );
 
+    return CancelBookingModel.fromJson(response as Map<String, dynamic>);
+  }
+
+  /// إلغاء الحجز بالكامل — POST /bookings/{id}/cancel
+  Future<dynamic> cancelWholeBooking(int bookingId) async {
+    final response = await _api.post(
+      "${ApiEndPoint.bookings}/$bookingId/cancel",
+      header: {ApiKey.authorization: "Bearer ${mytoken()}"},
+    );
     return response;
   }
 
+  /// تأكيد الراكب لاكتمال الرحلة — POST /bookings/{id}/passenger-confirm
   Future<dynamic> finishRide(int bookingid) async {
     final response = await _api.post(
-      "${ApiEndPoint.rides}/$bookingid/passenger-confirm",
+      "${ApiEndPoint.bookings}/$bookingid/passenger-confirm",
       header: {
         ApiKey.authorization: "Bearer ${mytoken()}",
       },
+    );
+    return response;
+  }
+
+  /// بلاغ الراكب أن السائق لم يحضر — POST /rides/{rideId}/driver-no-show
+  Future<dynamic> driverNoShow(int rideId) async {
+    final response = await _api.post(
+      "${ApiEndPoint.rides}/$rideId/driver-no-show",
+      header: {ApiKey.authorization: "Bearer ${mytoken()}"},
     );
     return response;
   }

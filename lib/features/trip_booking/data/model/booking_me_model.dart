@@ -74,37 +74,64 @@ class BookingMe {
     required this.userDriver,
   });
 
+  /// يدعم شكلين: BookingResource المتداخل (GET /bookings الحالي:
+  /// ride{driver{...}}) والشكل المسطّح القديم من /my-bookings.
   factory BookingMe.fromJson(Map<String, dynamic> json) {
+    final ride =
+        json['ride'] is Map<String, dynamic> ? json['ride'] as Map<String, dynamic> : const <String, dynamic>{};
+    final driver = ride['driver'] is Map<String, dynamic>
+        ? ride['driver'] as Map<String, dynamic>
+        : const <String, dynamic>{};
+
+    double toDouble(dynamic v) =>
+        v is num ? v.toDouble() : double.tryParse(v?.toString() ?? '') ?? 0.0;
+    int toInt(dynamic v) =>
+        v is num ? v.toInt() : int.tryParse(v?.toString() ?? '') ?? 0;
+    DateTime? toDate(dynamic v) =>
+        v == null ? null : DateTime.tryParse(v.toString())?.toLocal();
+
     return BookingMe(
-      userDriver: json['driver_id'],
-      bookingId: json['booking_id'] ?? 0,
-      status: json['status'] ?? "",
-      seats: json['seats'] ?? 0,
-      totalPrice: json['total_price'] ?? 0,
+      userDriver: toInt(json['driver_id'] ?? driver['id']),
+      bookingId: toInt(json['booking_id'] ?? json['id']),
+      status: json['status']?.toString() ?? "",
+      seats: toInt(json['seats']),
+      totalPrice: toInt(json['total_price']),
       bookingDate:
-          DateTime.tryParse(json['booking_date'] ?? "") ?? DateTime.now(),
+          toDate(json['booking_date'] ?? json['created_at']) ?? DateTime.now(),
       passengerCommunicationNumber:
-          json['passenger_communication_number'] ?? "",
-      driverCommunicationNumber: json['driver_communication_number'] ?? "",
-      rideId: json['ride_id'] ?? 0,
-      pickupAddress: json['pickup_address'] ?? "",
-      destinationAddress: json['destination_address'] ?? "",
-      departureTime: DateTime.parse(json['departure_time'] ?? "").toLocal(),
-      distanceKm: (json['distance_km'] is num)
-          ? (json['distance_km'] as num).toDouble()
-          : 0.0,
-      durationMinutes: json['duration_minutes'] ?? 0,
-      pricePerSeat: (json['price_per_seat'] is num)
-          ? (json['price_per_seat'] as num).toDouble()
-          : double.tryParse(json['price_per_seat']?.toString() ?? "0") ?? 0.0,
-      paymentMethod: json['payment_method'] ?? "",
-      vehicleType: json['vehicle_type'] ?? "",
-      rideStatus: json['ride_status'] ?? "",
-      driverName: json['driver_name'] ?? "",
-      driverRating: (json['driver_rating'] is num)
-          ? (json['driver_rating'] as num).toDouble()
-          : 0.0,
-      driverAvatar: json['driver_avatar'] ?? "",
+          (json['passenger_communication_number'] ??
+                  json['communication_number'] ??
+                  "")
+              .toString(),
+      driverCommunicationNumber: (json['driver_communication_number'] ??
+              driver['communication_number'] ??
+              "")
+          .toString(),
+      rideId: toInt(json['ride_id'] ?? ride['id']),
+      pickupAddress:
+          (json['pickup_address'] ?? ride['pickup_address'] ?? "").toString(),
+      destinationAddress: (json['destination_address'] ??
+              ride['destination_address'] ??
+              "")
+          .toString(),
+      departureTime:
+          toDate(json['departure_time'] ?? ride['departure_time']) ??
+              DateTime.now(),
+      distanceKm: toDouble(json['distance_km'] ?? ride['distance_km']),
+      durationMinutes:
+          toInt(json['duration_minutes'] ?? ride['duration_minutes']),
+      pricePerSeat:
+          toDouble(json['price_per_seat'] ?? ride['price_per_seat']),
+      paymentMethod:
+          (json['payment_method'] ?? ride['payment_method'] ?? "").toString(),
+      vehicleType:
+          (json['vehicle_type'] ?? ride['vehicle_type'] ?? "").toString(),
+      rideStatus:
+          (json['ride_status'] ?? ride['status'] ?? "").toString(),
+      driverName: (json['driver_name'] ?? driver['name'] ?? "").toString(),
+      driverRating: toDouble(json['driver_rating'] ?? driver['rating']),
+      driverAvatar:
+          (json['driver_avatar'] ?? driver['avatar'] ?? "").toString(),
     );
   }
 

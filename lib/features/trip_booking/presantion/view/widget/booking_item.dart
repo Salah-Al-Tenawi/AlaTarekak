@@ -57,7 +57,7 @@ class _BookingItemState extends State<BookingItem> {
               SizedBox(height: 16.h),
               _buildTripDetails(),
               SizedBox(height: 16.h),
-              const Divider(height: 1, color: Color(0xFFE5E7EB)),
+              Divider(height: 1, color: MyColors.divider),
               SizedBox(height: 16.h),
               _buildPricingInfo(),
               SizedBox(height: 16.h),
@@ -82,6 +82,16 @@ class _BookingItemState extends State<BookingItem> {
                       itemCount: 5,
                       itemSize: 20.0,
                       direction: Axis.horizontal,
+                    );
+                  } else if (state is BookingMeWholeCanceled) {
+                    return MyButton(
+                      onPressed: () {},
+                      child: const Text("تم الغاء الحجز بالكامل"),
+                    );
+                  } else if (state is BookingMeDriverNoShowReported) {
+                    return MyButton(
+                      onPressed: () {},
+                      child: const Text("تم تسجيل بلاغ عدم حضور السائق"),
                     );
                   } else if (state is BookingMeFinish) {
                     return _buildFeedBackButton(
@@ -124,7 +134,7 @@ class _BookingItemState extends State<BookingItem> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: MyColors.shadowLight,
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -157,7 +167,7 @@ class _BookingItemState extends State<BookingItem> {
                   color: statusInfobooking.color,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Colors.white,
+                    color: MyColors.surface,
                     width: 2,
                   ),
                 ),
@@ -262,10 +272,10 @@ class _BookingItemState extends State<BookingItem> {
             const SizedBox(width: 8),
             Text(
               _formatDate(widget.booking.bookingDate),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: Colors.red,
+                color: MyColors.accent,
               ),
             ),
             const SizedBox(width: 16),
@@ -273,8 +283,10 @@ class _BookingItemState extends State<BookingItem> {
             const SizedBox(width: 8),
             Text(
               _formatTime(widget.booking.departureTime),
-              style: const TextStyle(
-                  fontSize: 13, color: Colors.red, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontSize: 13,
+                  color: MyColors.accent,
+                  fontWeight: FontWeight.bold),
             ),
             SizedBox(
               width: 30.w,
@@ -284,7 +296,8 @@ class _BookingItemState extends State<BookingItem> {
         Center(
           child: Card(
             margin: const EdgeInsets.all(10),
-            color: MyColors.textHint,
+            elevation: 0,
+            color: MyColors.accentLight,
             child: Padding(
               padding: const EdgeInsetsGeometry.all(8),
               child: Text(
@@ -292,7 +305,7 @@ class _BookingItemState extends State<BookingItem> {
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
-                    color: MyColors.textHint),
+                    color: MyColors.accent),
               ),
             ),
           ),
@@ -357,13 +370,13 @@ class _BookingItemState extends State<BookingItem> {
   Widget _buildAdditionalInfoItem(String title, String value, IconData icon) {
     return Column(
       children: [
-        Icon(icon, size: 16, color: MyColors.textLight),
+        Icon(icon, size: 16, color: MyColors.textHint),
         const SizedBox(height: 4),
         Text(
           title,
           style: TextStyle(
             fontSize: 11,
-            color: MyColors.textLight,
+            color: MyColors.textHint,
           ),
         ),
         const SizedBox(height: 2),
@@ -372,7 +385,7 @@ class _BookingItemState extends State<BookingItem> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: MyColors.textLight,
+            color: MyColors.textSecondary,
           ),
         ),
       ],
@@ -392,9 +405,8 @@ class _BookingItemState extends State<BookingItem> {
               child: ElevatedButton.icon(
                 onPressed: () => _showRatingDialog(context, userId),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      Colors.blue.shade100, 
-                  foregroundColor: Colors.white,
+                  backgroundColor: MyColors.accent,
+                  foregroundColor: MyColors.textOnDark,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
@@ -415,19 +427,13 @@ class _BookingItemState extends State<BookingItem> {
               child: ElevatedButton.icon(
                 onPressed: () async {},
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: MyColors.accent,
-                  foregroundColor: Colors.white,
+                  backgroundColor: MyColors.error,
+                  foregroundColor: MyColors.textOnDark,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                   elevation: 4,
-                ).copyWith(
-                  backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                    (states) => states.contains(WidgetState.pressed)
-                        ? Colors.red
-                        : Colors.red,
-                  ),
                 ),
                 icon: const Icon(Icons.cancel, size: 20),
                 label: const Text(
@@ -445,10 +451,7 @@ class _BookingItemState extends State<BookingItem> {
                       "هل أنت متأكد انك تريد الغاء حجز مقعد  $seatsToCancel .",
                     );
                     if (confirm ?? false) {
-                      context.read<BookingMeCubit>().cancelBooking(
-                            widget.booking.bookingId,
-                            seatsToCancel,
-                          );
+                      _cancelSeats(seatsToCancel);
                     }
                   }
                 },
@@ -478,8 +481,8 @@ class _BookingItemState extends State<BookingItem> {
               child: ElevatedButton.icon(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
+                  backgroundColor: MyColors.success,
+                  foregroundColor: MyColors.textOnDark,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -501,8 +504,8 @@ class _BookingItemState extends State<BookingItem> {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                  foregroundColor: Colors.white,
+                  backgroundColor: MyColors.error,
+                  foregroundColor: MyColors.textOnDark,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -554,6 +557,35 @@ class _BookingItemState extends State<BookingItem> {
                         ),
                       ),
                     ),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          final confirm = await _showConfirmationDialog(
+                            "هل أنت متأكد أن السائق لم يحضر؟ سيتم تسجيل بلاغ ومراجعته من فريق الدعم.",
+                          );
+                          if (confirm ?? false) {
+                            context
+                                .read<BookingMeCubit>()
+                                .reportDriverNoShow(widget.booking.rideId);
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: MyColors.error,
+                          foregroundColor: MyColors.textOnDark,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 4,
+                        ),
+                        icon: const Icon(Icons.report_problem, size: 20),
+                        label: const Text(
+                          "السائق لم يحضر",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
                   ]),
                 )
               : Expanded(
@@ -565,10 +597,7 @@ class _BookingItemState extends State<BookingItem> {
                           "هل أنت متأكد من إلغاء $seatsToCancel مقعد(مقاعد)؟ قد يتم خصم جزء من المبلغ أو كامل المبلغ.",
                         );
                         if (confirm ?? false) {
-                          context.read<BookingMeCubit>().cancelBooking(
-                                widget.booking.bookingId,
-                                seatsToCancel,
-                              );
+                          _cancelSeats(seatsToCancel);
                         }
                       }
                     },
@@ -597,6 +626,16 @@ class _BookingItemState extends State<BookingItem> {
         }
       ],
     );
+  }
+
+  /// إلغاء كل المقاعد يمر عبر إلغاء الحجز الكامل، والجزئي عبر cancel-seats
+  void _cancelSeats(int seatsToCancel) {
+    final cubit = context.read<BookingMeCubit>();
+    if (seatsToCancel >= widget.booking.seats) {
+      cubit.cancelWholeBooking(widget.booking.bookingId);
+    } else {
+      cubit.cancelBooking(widget.booking.bookingId, seatsToCancel);
+    }
   }
 
   String _formatDate(DateTime date) {
@@ -671,7 +710,7 @@ class _BookingItemState extends State<BookingItem> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 elevation: 10,
-                backgroundColor: Colors.white,
+                backgroundColor: MyColors.cardBg,
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Column(
@@ -707,7 +746,7 @@ class _BookingItemState extends State<BookingItem> {
                       const SizedBox(height: 20),
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
+                          color: MyColors.surfaceAlt,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         padding: const EdgeInsets.symmetric(
@@ -720,7 +759,7 @@ class _BookingItemState extends State<BookingItem> {
                               icon: Icon(
                                 Icons.remove_circle_outline,
                                 color: selectedSeats <= 1
-                                    ? Colors.grey
+                                    ? MyColors.textHint
                                     : MyColors.accent,
                               ),
                               onPressed: selectedSeats <= 1
@@ -747,7 +786,7 @@ class _BookingItemState extends State<BookingItem> {
                               icon: Icon(
                                 Icons.add_circle_outline,
                                 color: selectedSeats >= maxSeats
-                                    ? Colors.grey
+                                    ? MyColors.textHint
                                     : MyColors.accent,
                               ),
                               onPressed: selectedSeats >= maxSeats
@@ -858,14 +897,14 @@ class _BookingItemState extends State<BookingItem> {
             child: ElevatedButton(
               onPressed: () => Navigator.of(context).pop(false),
               style: ElevatedButton.styleFrom(
-                backgroundColor: MyColors.textPrimary,
+                backgroundColor: MyColors.surfaceAlt,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 "لا",
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: MyColors.textPrimary),
               ),
             ),
           ),
@@ -881,9 +920,9 @@ class _BookingItemState extends State<BookingItem> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 "نعم",
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: MyColors.textOnDark),
               ),
             ),
           ),
@@ -916,7 +955,8 @@ class _BookingItemState extends State<BookingItem> {
       elevation: 0,
       shadowColor: Colors.transparent,
     ).copyWith(
-      overlayColor: WidgetStateProperty.all(Colors.amber.withOpacity(0.3)),
+      overlayColor:
+          WidgetStateProperty.all(MyColors.accent.withOpacity(0.3)),
     );
 
     return Padding(
@@ -924,14 +964,14 @@ class _BookingItemState extends State<BookingItem> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30),
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+          gradient: LinearGradient(
+            colors: [MyColors.warning, MyColors.accent],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.amber.withOpacity(0.5),
+              color: MyColors.accent.withOpacity(0.5),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -1015,8 +1055,8 @@ class _BookingItemState extends State<BookingItem> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber,
-                    foregroundColor: Colors.white,
+                    backgroundColor: MyColors.accent,
+                    foregroundColor: MyColors.textOnDark,
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   ),

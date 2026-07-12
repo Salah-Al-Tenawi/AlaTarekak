@@ -55,8 +55,8 @@ class _TripDetailsState extends State<TripDetails> {
             if (state is TripDetailsLoading) {
               return const Center(child: LoadingWidgetSize150());
             } else if (state is TripDetailsError) {
-              if (state.message.contains(
-                  "You must be verified as a passenger to book rides")) {
+              // الرسالة أصبحت معرّبة في الكيوبت — نطابق الترجمة العربية
+              if (state.message.contains("توثيق حسابك كراكب")) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   Get.toNamed(RouteName.verfiyUser, arguments: "passanger");
                   showMySnackBar(context, "يجب عليك توثيق حسابك");

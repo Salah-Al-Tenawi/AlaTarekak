@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_me/data/repo/trip_me_repo_im.dart';
 
@@ -13,7 +14,7 @@ class TripMeCubit extends Cubit<TripMeState> {
     emit(TripMeLoading());
     final response = await _tripMeRepoIm.showAllTrip();
     response.fold((erorr) {
-      emit(TripMeErorr(message: erorr.message));
+      emit(TripMeErorr(message: HandelErorrMessage.showAllride(erorr.message)));
     }, (trips) {
       emit(TripMeListLoaded(trips: trips));
     });
@@ -23,7 +24,7 @@ class TripMeCubit extends Cubit<TripMeState> {
     emit(TripMeLoading());
     final response = await _tripMeRepoIm.showOneTrip(tripId);
     response.fold((erorr) {
-      emit(TripMeErorr(message: erorr.message));
+      emit(TripMeErorr(message: HandelErorrMessage.showOneRide(erorr.message)));
     }, (trip) {
       emit(TripMeOneLoaded(trip: trip));
     });
@@ -33,7 +34,7 @@ class TripMeCubit extends Cubit<TripMeState> {
     emit(TripMeLoading());
     final response = await _tripMeRepoIm.cancelTrip(tripId);
     response.fold((erorr) {
-      emit(TripMeErorr(message: erorr.message));
+      emit(TripMeErorr(message: HandelErorrMessage.cancelRide(erorr.message)));
     }, (response) {
       emit(const TripMeCancel(message: "تم الغاء الرحلة بنجاح"));
       getMeTrips();

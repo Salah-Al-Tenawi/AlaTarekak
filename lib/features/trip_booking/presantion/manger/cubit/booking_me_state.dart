@@ -31,6 +31,18 @@ final class BookingMeCanceled extends BookingMeState {
   const BookingMeCanceled({required this.cancelModel});
 }
 
+final class BookingMeWholeCanceled extends BookingMeState {
+  final String message;
+
+  const BookingMeWholeCanceled({required this.message});
+}
+
+final class BookingMeDriverNoShowReported extends BookingMeState {
+  final String message;
+
+  const BookingMeDriverNoShowReported({required this.message});
+}
+
 final class BookingMeFinish extends BookingMeState {
   final String message;
 

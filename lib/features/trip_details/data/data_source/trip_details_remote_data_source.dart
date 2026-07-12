@@ -1,6 +1,7 @@
 import 'package:alatarekak/core/api/api_end_points.dart';
 import 'package:alatarekak/core/api/dio_consumer.dart';
 import 'package:alatarekak/core/utils/functions/get_token.dart';
+import 'package:alatarekak/core/utils/functions/uuid_v4.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_details/data/model/booking_model.dart';
 
@@ -24,7 +25,9 @@ class TripDetailsRemoteDataSource {
         },
         data: {
           ApiKey.seats: seats,
-          ApiKey.communicationNumber: communicationNumber
+          ApiKey.communicationNumber: communicationNumber,
+          // مفتاح جديد لكل ضغطة — الباك إند يتجاهل الطلب المكرر بنفس المفتاح
+          'idempotency_key': uuidV4(),
         });
     return BookingResponse.fromJson(response);
   }

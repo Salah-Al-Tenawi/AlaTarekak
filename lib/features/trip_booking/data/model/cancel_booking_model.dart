@@ -10,10 +10,12 @@ class CancelBookingModel {
   });
 
   factory CancelBookingModel.fromJson(Map<String, dynamic> json) {
+    // الباك إند يرجع هنا {"status": "success"} وليس {"success": true}
     return CancelBookingModel(
-      success: json['success'] as bool,
-      message: json['message'] as String,
-      data: CancelBookingData.fromJson(json['data']),
+      success: json['success'] == true || json['status'] == 'success',
+      message: json['message']?.toString() ?? '',
+      data: CancelBookingData.fromJson(
+          json['data'] is Map<String, dynamic> ? json['data'] : const {}),
     );
   }
 
@@ -43,11 +45,14 @@ class CancelBookingData {
 
   factory CancelBookingData.fromJson(Map<String, dynamic> json) {
     return CancelBookingData(
-      bookingId: json['booking_id'] as int,
-      seatsCancelled: json['seats_cancelled'] as int,
-      remainingSeats: json['remaining_seats'] as int,
-      refundPolicy: RefundPolicy.fromJson(json['refund_policy']),
-      bookingStatus: json['booking_status'] as String,
+      bookingId: (json['booking_id'] as num?)?.toInt() ?? 0,
+      seatsCancelled: (json['seats_cancelled'] as num?)?.toInt() ?? 0,
+      remainingSeats: (json['remaining_seats'] as num?)?.toInt() ?? 0,
+      refundPolicy: RefundPolicy.fromJson(
+          json['refund_policy'] is Map<String, dynamic>
+              ? json['refund_policy']
+              : const {}),
+      bookingStatus: json['booking_status']?.toString() ?? '',
     );
   }
 
@@ -83,13 +88,15 @@ class RefundPolicy {
 
   factory RefundPolicy.fromJson(Map<String, dynamic> json) {
     return RefundPolicy(
-      timeElapsedPercentage: (json['time_elapsed_percentage'] as num).toDouble(),
-      refundPercentage: (json['refund_percentage'] as num).toDouble(),
-      policyTier: json['policy_tier'] as String,
-      totalSeatPrice: (json['total_seat_price'] as num).toDouble(),
-      refundAmount: (json['refund_amount'] as num).toDouble(),
-      nonRefundableAmount: (json['non_refundable_amount'] as num).toDouble(),
-      refundProcessed: json['refund_processed'] as bool,
+      timeElapsedPercentage:
+          (json['time_elapsed_percentage'] as num?)?.toDouble() ?? 0,
+      refundPercentage: (json['refund_percentage'] as num?)?.toDouble() ?? 0,
+      policyTier: json['policy_tier']?.toString() ?? '',
+      totalSeatPrice: (json['total_seat_price'] as num?)?.toDouble() ?? 0,
+      refundAmount: (json['refund_amount'] as num?)?.toDouble() ?? 0,
+      nonRefundableAmount:
+          (json['non_refundable_amount'] as num?)?.toDouble() ?? 0,
+      refundProcessed: json['refund_processed'] == true,
     );
   }
 
