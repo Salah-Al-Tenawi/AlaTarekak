@@ -12,7 +12,6 @@ class BookingUserInTripCubit extends Cubit<BookingUserInTripState> {
 
   Future<void> acceptPassanger(int bookingId) async {
     emit(BookingUserInTripLoading());
-    await Future.delayed(const Duration(seconds: 2));
 
     final response = await repo.acceptPassanger(bookingId);
     response.fold(
@@ -29,16 +28,16 @@ class BookingUserInTripCubit extends Cubit<BookingUserInTripState> {
 
   Future<void> rejectPassanger(int bookingId) async {
     emit(BookingUserInTripLoading());
-    await Future.delayed(const Duration(seconds: 2));
 
     final response = await repo.rejectPassanger(bookingId);
     response.fold(
       (error) => emit(BookingUserInTripErorr(
           message: HandelErorrMessage.rejectPassanger(error.message))),
-      (succ) {
+      (_) {
+        // استجابة الرفض لا تعيد حالة رحلة — الحجز أصبح مرفوضاً
         emit(BookingUserInTripUpdated(
           bookingId: bookingId,
-          statusRide: "succ.statusRide",
+          statusRide: "rejected",
         ));
       },
     );

@@ -52,6 +52,20 @@ void main() {
 
   group('BookingUserInTripCubit — رفض راكب', () {
     blocTest<BookingUserInTripCubit, BookingUserInTripState>(
+      'نجاح الرفض: يحدّث الحجز إلى rejected (تعرضه الواجهة "مرفوض")',
+      build: () {
+        when(() => repo.rejectPassanger(7))
+            .thenAnswer((_) async => right(null));
+        return BookingUserInTripCubit(repo);
+      },
+      act: (cubit) => cubit.rejectPassanger(7),
+      expect: () => [
+        isA<BookingUserInTripLoading>(),
+        const BookingUserInTripUpdated(bookingId: 7, statusRide: 'rejected'),
+      ],
+    );
+
+    blocTest<BookingUserInTripCubit, BookingUserInTripState>(
       'فشل الرفض لحجز غير معلق: رسالة معرّبة',
       build: () {
         when(() => repo.rejectPassanger(any())).thenAnswer((_) async => left(
