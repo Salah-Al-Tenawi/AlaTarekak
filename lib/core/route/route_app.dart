@@ -4,7 +4,6 @@ import 'package:alatarekak/features/chat/data/data_source/chat_remote_data_sourc
 import 'package:alatarekak/features/chat/data/repo/chat_repo_impl.dart';
 import 'package:alatarekak/features/chat/presentation/manager/conversation_cubit/conversation_cubit.dart';
 import 'package:alatarekak/features/chat/presentation/manager/message_cubit/message_cubit.dart';
-import 'package:alatarekak/features/chat/presentation/view/chat_api_test_screen.dart';
 import 'package:alatarekak/features/chat/presentation/view/chat_list_screen.dart';
 import 'package:alatarekak/features/chat/presentation/view/chat_screen.dart';
 
@@ -18,11 +17,6 @@ import 'package:alatarekak/features/booking_user_in_trip/data/repo/booking_users
 import 'package:alatarekak/features/booking_user_in_trip/presantion/manger/cubit/booking_user_in_trip_cubit.dart';
 import 'package:alatarekak/features/booking_user_in_trip/presantion/view/booking_user_in_trip.dart';
 
-// import 'package:alatarekak/features/chat/domain/repo/chat_repo.dart';
-// import 'package:alatarekak/features/chat/presentation/manger/conversation_cubit/conversation_cubit.dart';
-// import 'package:alatarekak/features/chat/presentation/manger/messages_cubit/message_cubit.dart';
-// import 'package:alatarekak/features/chat/presentation/view/page/chat_list_screen.dart';
-// import 'package:alatarekak/features/chat/presentation/view/page/chat_screen.dart';
 import 'package:alatarekak/features/e_pay/data/data_source/e_pay_remote_data_source.dart';
 import 'package:alatarekak/features/e_pay/data/repo/e_pay_repo_im.dart';
 import 'package:alatarekak/features/e_pay/presantion/manger/cubit/veriyotp_epy_cubit.dart';
@@ -45,7 +39,6 @@ import 'package:alatarekak/features/profiles/data/date_source/profile_local_data
 import 'package:alatarekak/features/profiles/data/date_source/profile_remote_date_source.dart';
 import 'package:alatarekak/features/profiles/domain/entity/profile_entity.dart';
 import 'package:alatarekak/features/splash_view/presentaion/manger/cubit/splash_view_cubit.dart';
-import 'package:alatarekak/features/test/my_test.dart';
 import 'package:alatarekak/features/auth/data/repo/auth_repo_im.dart';
 import 'package:alatarekak/features/auth/presentation/manger/forget_password_cubit/forget_password_cubit.dart';
 import 'package:alatarekak/features/auth/presentation/manger/login_cubit/login_cubit.dart';
@@ -138,7 +131,6 @@ List<GetPage<dynamic>> appRoute = [
               mapsDataSource: MapsDataSourceIm(api: getit.get<DioConSumer>()))),
           child: const PickLocation())),
 
-  GetPage(name: RouteName.test, page: () => const MyTest()),
   GetPage(name: RouteName.bannedScreen, page: () => const BannedScreen()),
   GetPage(
     name: RouteName.notifications,
@@ -529,8 +521,4 @@ List<GetPage<dynamic>> appRoute = [
     },
   ),
 
-  GetPage(
-    name: RouteName.chatApiTest,
-    page: () => const ChatApiTestScreen(),
-  ),
 ];

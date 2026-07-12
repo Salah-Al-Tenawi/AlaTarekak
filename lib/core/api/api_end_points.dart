@@ -3,7 +3,6 @@ class ApiEndPoint {
   static const serverRoot = "https://api.onwayride.me";
   static const baserUrl = "$serverRoot/api";
   static const broadcastAuth = "$serverRoot/broadcasting/auth";
-  static const baseUrlGoogle ="http://192.168.43.81:8000";
 
   static const mapsOpenRouteServices =
       "https://api.openrouteservice.org/v2/directions/driving-car/geojson";
@@ -41,12 +40,8 @@ static const createwallet = "$baserUrl/wallet/verify-and-create";
   // bookings — حجوزاتي كراكب + إجراءات الحجز (cancel / cancel-seats / passenger-confirm / accept / reject)
   static const bookings = "$baserUrl/bookings";
   static const bookingme = bookings;
-  // google auth 
 
-  static const googleAuth ="http://localhost:8000/auth/google/redirect/auth/google/redirect";
-
-  static const googleCallback ="http://localhost:8000/auth/google/redirect/auth/google/callback?state=VgC5uvadDY7gzcpxrCAXiUIXT04LicXffXYgMA1A&code=4%2F0AVMBsJjYOIqet_hAntC8MPQ5MEQ4ZeJdUJHtThpTStPFXm_y7zJDD4DkzRXT-pPc1vekQg&scope=email+profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+openid&authuser=0&prompt=consent";
-// chat 
+// chat
 
    static const chat = "$baserUrl/chat";
    static const conversation = "$chat/conversations";

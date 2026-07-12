@@ -22,16 +22,5 @@ void locatorService() {
   );
   getit.registerSingleton<TripMeCubit>(TripMeCubit(TripMeRepoIm(
       tripMeRemoteDataSource:
-          TripMeRemoteDataSource(api: getit.get<DioConSumer>())))); 
-
-
-
-//           getit.registerSingleton<ConversationsRemoteDataSource>(
-//     ConversationsRemoteDataSourceIM 
-// (api: getit.get<DioConSumer>()),
-//   );
-
-//   getit.registerSingleton<ChatRepo>(
-//     ChatRepoImpl(remoteDataSource: getit.get<ConversationsRemoteDataSource>()),
-//   );
+          TripMeRemoteDataSource(api: getit.get<DioConSumer>()))));
 }

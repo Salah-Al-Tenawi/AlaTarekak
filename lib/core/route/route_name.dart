@@ -5,7 +5,6 @@ class RouteName {
 
   static const onboarding = "/OnboardingScreen";
 
-  static const test = "/test";
   static const splashView = "/splashView";
   static const singin = "/singin";
   static const login = "/login";
@@ -60,7 +59,6 @@ class RouteName {
   
 static const chatListScreen = "/ChatListScreen";
 static const chatScreen = "/ChatScreen";
-static const chatApiTest = "/ChatApiTest";
 
   // profile sub-screens
   static const profilePersonalInfo = "/profilePersonalInfo";
