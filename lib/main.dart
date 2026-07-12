@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart' hide Transition;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
+import 'package:get/get_navigation/src/routes/transitions_type.dart';
 import 'package:alatarekak/core/route/route_app.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/service/connectivity_service.dart';
@@ -39,11 +40,14 @@ class MyApp extends StatelessWidget {
         valueListenable: ThemeController.instance.isDark,
         builder: (context, isDark, _) {
           return GetMaterialApp(
-            title: "state mangment with cubit and navigation by getx",
+            title: "عطريقك",
             initialRoute: RouteName.splashView,
             getPages: appRoute,
             theme: isDark ? ThemApp.darkThem : ThemApp.lightThem,
             debugShowCheckedModeBanner: false,
+            // انتقال ناعم موحد بين كل الشاشات (خفيف ومحايد للاتجاه RTL)
+            defaultTransition: Transition.fadeIn,
+            transitionDuration: const Duration(milliseconds: 260),
             // NFR-17: شريط انقطاع الاتصال فوق كل الشاشات
             builder: (context, child) => OfflineBanner(
               isOffline: ConnectivityService.instance.isOffline,
@@ -56,10 +60,7 @@ class MyApp extends StatelessWidget {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: const [
-              Locale('ar'),
-              Locale('en'),
-            ],
+            supportedLocales: const [Locale('ar'), Locale('en')],
           );
         },
       ),

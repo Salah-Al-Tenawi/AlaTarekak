@@ -9,6 +9,7 @@ import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
+import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
 import 'package:alatarekak/features/e_pay/data/model/balance_model.dart';
 import 'package:alatarekak/features/e_pay/presantion/manger/cubit/wallet_cubit.dart';
@@ -24,8 +25,11 @@ class WalletView extends StatelessWidget {
         backgroundColor: MyColors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_forward_ios_rounded,
-              color: MyColors.primary, size: 20),
+          icon: Icon(
+            Icons.arrow_forward_ios_rounded,
+            color: MyColors.primary,
+            size: 20,
+          ),
           onPressed: () => Get.back(),
         ),
         title: Text("محفظتي", style: AppTextStyles.titleMedium),
@@ -44,13 +48,13 @@ class WalletView extends StatelessWidget {
             return const Center(child: LoadingWidgetSize150());
           }
           if (state is WalletNotActivated) {
-            return const _ActivateWalletView();
+            return const FadeSlideIn(child: _ActivateWalletView());
           }
           if (state is WalletErorr) {
             return _WalletErrorView(message: state.message);
           }
           final balance = (state as WalletLoaded).balance;
-          return _WalletLoadedView(balance: balance);
+          return FadeSlideIn(child: _WalletLoadedView(balance: balance));
         },
       ),
     );
@@ -110,9 +114,10 @@ class _BalanceCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-              color: MyColors.shadowMedium,
-              blurRadius: 12,
-              offset: const Offset(0, 4)),
+            color: MyColors.shadowMedium,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
@@ -127,14 +132,18 @@ class _BalanceCard extends StatelessWidget {
                   color: MyColors.accent.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.account_balance_wallet_rounded,
-                    color: MyColors.accent, size: 20),
+                child: Icon(
+                  Icons.account_balance_wallet_rounded,
+                  color: MyColors.accent,
+                  size: 20,
+                ),
               ),
               SizedBox(width: 10.w),
               Text(
                 'المحفظة الإلكترونية',
-                style: AppTextStyles.labelMedium
-                    .copyWith(color: Colors.white70),
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: Colors.white70,
+                ),
               ),
             ],
           ),
@@ -150,8 +159,10 @@ class _BalanceCard extends StatelessWidget {
               Flexible(
                 child: Text(
                   balance.balance,
-                  style: AppTextStyles.displayLarge
-                      .copyWith(color: Colors.white, fontSize: 34.sp),
+                  style: AppTextStyles.displayLarge.copyWith(
+                    color: Colors.white,
+                    fontSize: 34.sp,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -175,24 +186,29 @@ class _BalanceCard extends StatelessWidget {
                 children: [
                   Text(
                     'رقم المحفظة',
-                    style: AppTextStyles.labelSmall
-                        .copyWith(color: Colors.white60),
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: Colors.white60,
+                    ),
                   ),
                   SizedBox(height: 2.h),
                   Text(
                     balance.walletNumber,
                     style: AppTextStyles.bodyMedium.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1.2),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.2,
+                    ),
                   ),
                 ],
               ),
               const Spacer(),
               IconButton(
                 onPressed: _copyWalletNumber,
-                icon: Icon(Icons.copy_rounded,
-                    color: MyColors.accent, size: 20),
+                icon: Icon(
+                  Icons.copy_rounded,
+                  color: MyColors.accent,
+                  size: 20,
+                ),
                 tooltip: 'نسخ رقم المحفظة',
               ),
             ],
@@ -226,9 +242,10 @@ class _RechargeCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-              color: MyColors.shadowLight,
-              blurRadius: 10,
-              offset: const Offset(0, 2)),
+            color: MyColors.shadowLight,
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Column(
@@ -245,8 +262,11 @@ class _RechargeCard extends StatelessWidget {
                     color: MyColors.accentLight,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.add_card_rounded,
-                      color: MyColors.accent, size: 17),
+                  child: Icon(
+                    Icons.add_card_rounded,
+                    color: MyColors.accent,
+                    size: 17,
+                  ),
                 ),
                 SizedBox(width: 8.w),
                 Text('شحن الرصيد', style: AppTextStyles.labelLarge),
@@ -261,8 +281,9 @@ class _RechargeCard extends StatelessWidget {
               children: [
                 Text(
                   'لشحن محفظتك تواصل معنا عبر إحدى القنوات التالية:',
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: MyColors.textSecondary),
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: MyColors.textSecondary,
+                  ),
                 ),
                 SizedBox(height: 12.h),
                 _ContactTile(
@@ -334,14 +355,20 @@ class _ContactTile extends StatelessWidget {
                 children: [
                   Text(title, style: AppTextStyles.bodyMedium),
                   SizedBox(height: 2.h),
-                  Text(subtitle,
-                      style: AppTextStyles.labelSmall
-                          .copyWith(color: MyColors.textSecondary)),
+                  Text(
+                    subtitle,
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: MyColors.textSecondary,
+                    ),
+                  ),
                 ],
               ),
             ),
-            Icon(Icons.arrow_back_ios_rounded,
-                size: 14, color: MyColors.textHint),
+            Icon(
+              Icons.arrow_back_ios_rounded,
+              size: 14,
+              color: MyColors.textHint,
+            ),
           ],
         ),
       ),
@@ -377,17 +404,25 @@ class _ActivateWalletView extends StatelessWidget {
                 color: MyColors.accentLight,
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.account_balance_wallet_outlined,
-                  color: MyColors.accent, size: 44),
+              child: Icon(
+                Icons.account_balance_wallet_outlined,
+                color: MyColors.accent,
+                size: 44,
+              ),
             ),
             SizedBox(height: 20.h),
-            Text('فعّل محفظتك الإلكترونية',
-                style: AppTextStyles.titleLarge, textAlign: TextAlign.center),
+            Text(
+              'فعّل محفظتك الإلكترونية',
+              style: AppTextStyles.titleLarge,
+              textAlign: TextAlign.center,
+            ),
             SizedBox(height: 8.h),
             Text(
               'بمحفظتك الإلكترونية يمكنك دفع تكاليف الرحلات واستلام أرباحك بسهولة وأمان من داخل التطبيق',
-              style: AppTextStyles.bodyMedium
-                  .copyWith(color: MyColors.textSecondary, height: 1.6),
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: MyColors.textSecondary,
+                height: 1.6,
+              ),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 28.h),
@@ -402,10 +437,15 @@ class _ActivateWalletView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                icon: const Icon(Icons.lock_open_rounded,
-                    color: Colors.white, size: 20),
-                label: Text('تفعيل المحفظة الآن',
-                    style: AppTextStyles.buttonLarge),
+                icon: const Icon(
+                  Icons.lock_open_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                label: Text(
+                  'تفعيل المحفظة الآن',
+                  style: AppTextStyles.buttonLarge,
+                ),
               ),
             ),
           ],
@@ -437,17 +477,24 @@ class _WalletErrorView extends StatelessWidget {
                 color: MyColors.errorLight,
                 shape: BoxShape.circle,
               ),
-              child:
-                  Icon(Icons.wifi_off_rounded, color: MyColors.error, size: 40),
+              child: Icon(
+                Icons.wifi_off_rounded,
+                color: MyColors.error,
+                size: 40,
+              ),
             ),
             SizedBox(height: 20.h),
-            Text('تعذر تحميل المحفظة',
-                style: AppTextStyles.titleMedium, textAlign: TextAlign.center),
+            Text(
+              'تعذر تحميل المحفظة',
+              style: AppTextStyles.titleMedium,
+              textAlign: TextAlign.center,
+            ),
             SizedBox(height: 8.h),
             Text(
               message,
-              style: AppTextStyles.bodyMedium
-                  .copyWith(color: MyColors.textSecondary),
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: MyColors.textSecondary,
+              ),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 24.h),
@@ -456,8 +503,7 @@ class _WalletErrorView extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 foregroundColor: MyColors.primary,
                 side: BorderSide(color: MyColors.primary),
-                padding:
-                    EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),

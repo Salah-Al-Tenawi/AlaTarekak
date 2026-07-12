@@ -9,6 +9,7 @@ import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/service/notifications_badge_service.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
+import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/features/notifications/domain/entity/notification_entity.dart';
 import 'package:alatarekak/features/notifications/presantion/manger/cubit/notifications_cubit.dart';
 
@@ -36,8 +37,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     _scroll.addListener(_onScroll);
 
     // إشعار لحظي والشاشة مفتوحة ← أعد تحميل القائمة
-    _realtimeSub =
-        ChatSocketService.instance.notificationStream.listen((_) {
+    _realtimeSub = ChatSocketService.instance.notificationStream.listen((_) {
       if (!mounted) return;
       _markedRead = false; // ليُعلَّم الجديد كمقروء بعد التحميل
       NotificationsBadgeService.instance.clear();
@@ -55,8 +55,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   void _onScroll() {
-    if (_scroll.position.pixels >=
-        _scroll.position.maxScrollExtent - 200) {
+    if (_scroll.position.pixels >= _scroll.position.maxScrollExtent - 200) {
       context.read<NotificationsCubit>().loadMore();
     }
   }
@@ -79,8 +78,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         backgroundColor: MyColors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_forward_ios_rounded,
-              color: MyColors.primary, size: 20),
+          icon: Icon(
+            Icons.arrow_forward_ios_rounded,
+            color: MyColors.primary,
+            size: 20,
+          ),
           onPressed: () => Get.back(),
         ),
         title: Text('الإشعارات', style: AppTextStyles.titleMedium),
@@ -97,10 +99,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           }
         },
         builder: (context, state) {
-          if (state is NotificationsLoading ||
-              state is NotificationsInitial) {
+          if (state is NotificationsLoading || state is NotificationsInitial) {
             return Center(
-                child: CircularProgressIndicator(color: MyColors.primary));
+              child: CircularProgressIndicator(color: MyColors.primary),
+            );
           }
           if (state is NotificationsError) {
             return _ErrorView(
@@ -125,8 +127,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             child: ListView.separated(
               controller: _scroll,
               physics: const AlwaysScrollableScrollPhysics(),
-              padding:
-                  EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
               itemCount: items.length + (isLoadingMore ? 1 : 0),
               separatorBuilder: (context, i) => SizedBox(height: 8.h),
               itemBuilder: (context, i) {
@@ -138,31 +139,38 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         width: 22,
                         height: 22,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: MyColors.primary),
+                          strokeWidth: 2,
+                          color: MyColors.primary,
+                        ),
                       ),
                     ),
                   );
                 }
                 final n = items[i];
-                return Dismissible(
-                  key: ValueKey('notification_${n.id}'),
-                  direction: DismissDirection.endToStart,
-                  onDismissed: (_) => context
-                      .read<NotificationsCubit>()
-                      .deleteNotification(n.id),
-                  background: Container(
-                    alignment: AlignmentDirectional.centerEnd,
-                    padding: EdgeInsetsDirectional.only(end: 20.w),
-                    decoration: BoxDecoration(
-                      color: MyColors.error,
-                      borderRadius: BorderRadius.circular(14),
+                return StaggeredItem(
+                  index: i,
+                  child: Dismissible(
+                    key: ValueKey('notification_${n.id}'),
+                    direction: DismissDirection.endToStart,
+                    onDismissed: (_) => context
+                        .read<NotificationsCubit>()
+                        .deleteNotification(n.id),
+                    background: Container(
+                      alignment: AlignmentDirectional.centerEnd,
+                      padding: EdgeInsetsDirectional.only(end: 20.w),
+                      decoration: BoxDecoration(
+                        color: MyColors.error,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(
+                        Icons.delete_outline_rounded,
+                        color: Colors.white,
+                      ),
                     ),
-                    child: const Icon(Icons.delete_outline_rounded,
-                        color: Colors.white),
-                  ),
-                  child: _NotificationCard(
-                    notification: n,
-                    time: _relativeTime(n.createdAt),
+                    child: _NotificationCard(
+                      notification: n,
+                      time: _relativeTime(n.createdAt),
+                    ),
                   ),
                 );
               },
@@ -186,14 +194,19 @@ class _NotificationCard extends StatelessWidget {
   void _onTap() {
     if (notification.conversationId != null) {
       // إشعار chat_message: العنوان الخام = اسم المرسل (من الباك إند)
-      Get.toNamed(RouteName.chatScreen, arguments: {
-        'conversationId': notification.conversationId,
-        'title': notification.title,
-        'avatar': null,
-      });
+      Get.toNamed(
+        RouteName.chatScreen,
+        arguments: {
+          'conversationId': notification.conversationId,
+          'title': notification.title,
+          'avatar': null,
+        },
+      );
     } else if (notification.complaintId != null) {
-      Get.toNamed(RouteName.complaintDetail,
-          arguments: notification.complaintId);
+      Get.toNamed(
+        RouteName.complaintDetail,
+        arguments: notification.complaintId,
+      );
     } else if (notification.rideId != null) {
       Get.toNamed(RouteName.tripDetails, arguments: notification.rideId);
     } else if (notification.category == 'chat') {
@@ -239,100 +252,109 @@ class _NotificationCard extends StatelessWidget {
     return GestureDetector(
       onTap: _onTap,
       child: Container(
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: MyColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: unread
-            ? Border.all(color: MyColors.accent.withValues(alpha: 0.4))
-            : null,
-        boxShadow: [
-          BoxShadow(
+        padding: EdgeInsets.all(12.w),
+        decoration: BoxDecoration(
+          color: MyColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: unread
+              ? Border.all(color: MyColors.accent.withValues(alpha: 0.4))
+              : null,
+          boxShadow: [
+            BoxShadow(
               color: MyColors.shadowLight,
               blurRadius: 8,
-              offset: Offset(0, 2)),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: _color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(11),
+              offset: Offset(0, 2),
             ),
-            child: Icon(_icon, color: _color, size: 21),
-          ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        // عنوان عربي حسب type (الباك إند يخزنها إنجليزية)
-                        notification.displayTitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.labelMedium.copyWith(
-                          fontWeight:
-                              unread ? FontWeight.w700 : FontWeight.w600,
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: _color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(11),
+              ),
+              child: Icon(_icon, color: _color, size: 21),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          // عنوان عربي حسب type (الباك إند يخزنها إنجليزية)
+                          notification.displayTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.labelMedium.copyWith(
+                            fontWeight: unread
+                                ? FontWeight.w700
+                                : FontWeight.w600,
+                          ),
                         ),
                       ),
+                      if (unread)
+                        Container(
+                          width: 8,
+                          height: 8,
+                          margin: EdgeInsetsDirectional.only(start: 6.w),
+                          decoration: BoxDecoration(
+                            color: MyColors.accent,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                    ],
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    notification.message,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: MyColors.textSecondary,
+                      height: 1.4,
                     ),
-                    if (unread)
+                  ),
+                  SizedBox(height: 6.h),
+                  Row(
+                    children: [
                       Container(
-                        width: 8,
-                        height: 8,
-                        margin: EdgeInsetsDirectional.only(start: 6.w),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 7.w,
+                          vertical: 2.h,
+                        ),
                         decoration: BoxDecoration(
-                          color: MyColors.accent,
-                          shape: BoxShape.circle,
+                          color: _color.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          notification.categoryLabel,
+                          style: AppTextStyles.labelSmall.copyWith(
+                            color: _color,
+                            fontSize: 10.sp,
+                          ),
                         ),
                       ),
-                  ],
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  notification.message,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: MyColors.textSecondary, height: 1.4),
-                ),
-                SizedBox(height: 6.h),
-                Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 7.w, vertical: 2.h),
-                      decoration: BoxDecoration(
-                        color: _color.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(20),
+                      const Spacer(),
+                      Text(
+                        time,
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: MyColors.textHint,
+                        ),
                       ),
-                      child: Text(
-                        notification.categoryLabel,
-                        style: AppTextStyles.labelSmall
-                            .copyWith(color: _color, fontSize: 10.sp),
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      time,
-                      style: AppTextStyles.labelSmall
-                          .copyWith(color: MyColors.textHint),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
@@ -350,22 +372,28 @@ class _EmptyView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.notifications_off_outlined,
-              size: 64, color: MyColors.textHint.withValues(alpha: 0.5)),
+          Icon(
+            Icons.notifications_off_outlined,
+            size: 64,
+            color: MyColors.textHint.withValues(alpha: 0.5),
+          ),
           SizedBox(height: 16.h),
-          Text('لا توجد إشعارات',
-              style: AppTextStyles.titleMedium
-                  .copyWith(color: MyColors.textSecondary)),
+          Text(
+            'لا توجد إشعارات',
+            style: AppTextStyles.titleMedium.copyWith(
+              color: MyColors.textSecondary,
+            ),
+          ),
           SizedBox(height: 6.h),
-          Text('ستظهر إشعارات رحلاتك وحجوزاتك هنا',
-              style: AppTextStyles.bodySmall
-                  .copyWith(color: MyColors.textHint)),
+          Text(
+            'ستظهر إشعارات رحلاتك وحجوزاتك هنا',
+            style: AppTextStyles.bodySmall.copyWith(color: MyColors.textHint),
+          ),
         ],
       ),
     );
   }
 }
-
 
 class _ErrorView extends StatelessWidget {
   final String message;
@@ -380,25 +408,29 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline_rounded,
-                size: 52, color: MyColors.error),
+            Icon(Icons.error_outline_rounded, size: 52, color: MyColors.error),
             SizedBox(height: 12.h),
-            Text(message,
-                style: AppTextStyles.bodyMedium
-                    .copyWith(color: MyColors.textSecondary),
-                textAlign: TextAlign.center),
+            Text(
+              message,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: MyColors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
             SizedBox(height: 16.h),
             ElevatedButton(
               onPressed: onRetry,
               style: ElevatedButton.styleFrom(
                 backgroundColor: MyColors.primary,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 elevation: 0,
               ),
-              child: Text('إعادة المحاولة',
-                  style: AppTextStyles.labelMedium
-                      .copyWith(color: Colors.white)),
+              child: Text(
+                'إعادة المحاولة',
+                style: AppTextStyles.labelMedium.copyWith(color: Colors.white),
+              ),
             ),
           ],
         ),

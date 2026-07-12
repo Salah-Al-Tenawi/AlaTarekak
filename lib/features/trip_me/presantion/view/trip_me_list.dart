@@ -7,6 +7,7 @@ import 'package:get/get_navigation/get_navigation.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
+import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
@@ -55,9 +56,7 @@ class TripMeList extends StatelessWidget {
                         height: MediaQuery.of(context).size.height,
                         child: Column(
                           children: [
-                            SizedBox(
-                              height: 80.h,
-                            ),
+                            SizedBox(height: 80.h),
                             Image.asset(
                               'assets/images/Empty.png',
                               width: 300.w,
@@ -83,92 +82,112 @@ class TripMeList extends StatelessWidget {
                       itemBuilder: (context, index) {
                         final trip = trips[index];
 
-                        return ItemTrip(
-                          trip: trip,
-                          onTap: () {
-                            Get.toNamed(RouteName.tripDetails,
-                                arguments: trip.id);
-                          },
-                          onCancel: () async {
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                backgroundColor: MyColors.surface,
-                                title: Row(
-                                  children: [
-                                    Icon(Icons.warning_amber_rounded,
-                                        color: MyColors.error, size: 28),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'تأكيد',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 20,
-                                        color: MyColors.textPrimary,
+                        return StaggeredItem(
+                          index: index,
+                          child: ItemTrip(
+                            trip: trip,
+                            onTap: () {
+                              Get.toNamed(
+                                RouteName.tripDetails,
+                                arguments: trip.id,
+                              );
+                            },
+                            onCancel: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  backgroundColor: MyColors.surface,
+                                  title: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.warning_amber_rounded,
+                                        color: MyColors.error,
+                                        size: 28,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'تأكيد',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20,
+                                          color: MyColors.textPrimary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  content: Text(
+                                    'هل أنت متأكد من إلغاء الرحلة؟',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: MyColors.textPrimary,
+                                    ),
+                                  ),
+                                  actionsPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  actions: [
+                                    ElevatedButton(
+                                      onPressed: () =>
+                                          Navigator.pop(ctx, false),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: MyColors.surfaceAlt,
+                                        foregroundColor: MyColors.textPrimary,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 24,
+                                          vertical: 12,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'لا',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: MyColors.textPrimary,
+                                        ),
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () => Navigator.pop(ctx, true),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: MyColors.error,
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 24,
+                                          vertical: 12,
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'نعم',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
                                       ),
                                     ),
                                   ],
                                 ),
-                                content: Text(
-                                  'هل أنت متأكد من إلغاء الرحلة؟',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      color: MyColors.textPrimary),
-                                ),
-                                actionsPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
-                                actions: [
-                                  ElevatedButton(
-                                    onPressed: () => Navigator.pop(ctx, false),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: MyColors.surfaceAlt,
-                                      foregroundColor: MyColors.textPrimary,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 24, vertical: 12),
-                                    ),
-                                    child: Text(
-                                      'لا',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: MyColors.textPrimary,
-                                      ),
-                                    ),
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: () => Navigator.pop(ctx, true),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: MyColors.error,
-                                      foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 24, vertical: 12),
-                                    ),
-                                    child: const Text(
-                                      'نعم',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white, 
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
+                              );
 
-                            if (confirm == true) {
-                              await context
-                                  .read<TripMeCubit>()
-                                  .cancelTrip(trip.id);
-                            }
-                          },
+                              if (confirm == true) {
+                                await context.read<TripMeCubit>().cancelTrip(
+                                  trip.id,
+                                );
+                              }
+                            },
+                          ),
                         );
                       },
                     ),

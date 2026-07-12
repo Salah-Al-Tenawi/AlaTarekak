@@ -7,6 +7,7 @@ import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/utils/functions/my_dilaog.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
+import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
 import 'package:alatarekak/features/trip_booking/presantion/manger/cubit/booking_me_cubit.dart';
 import 'package:alatarekak/features/trip_booking/presantion/view/widget/booking_item.dart';
@@ -19,7 +20,6 @@ class BookingMeList extends StatefulWidget {
 }
 
 class _BookingMeListState extends State<BookingMeList> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,9 +51,7 @@ class _BookingMeListState extends State<BookingMeList> {
                         height: MediaQuery.of(context).size.height,
                         child: Column(
                           children: [
-                            SizedBox(
-                              height: 80.h,
-                            ),
+                            SizedBox(height: 80.h),
                             Image.asset(
                               'assets/images/Empty.png',
                               width: 300.w,
@@ -77,12 +75,17 @@ class _BookingMeListState extends State<BookingMeList> {
                       itemCount: state.bookings.length,
                       itemBuilder: (context, index) {
                         final booking = state.bookings[index];
-                        return BookingItem(
-                          booking: booking,
-                          onTapDetails: () {
-                            Get.toNamed(RouteName.tripDetails,
-                                arguments: state.bookings[index].rideId);
-                          },
+                        return StaggeredItem(
+                          index: index,
+                          child: BookingItem(
+                            booking: booking,
+                            onTapDetails: () {
+                              Get.toNamed(
+                                RouteName.tripDetails,
+                                arguments: state.bookings[index].rideId,
+                              );
+                            },
+                          ),
                         );
                       },
                     ),
@@ -110,9 +113,7 @@ class _BookingMeListState extends State<BookingMeList> {
                             size: 50,
                           ),
                         ),
-                        SizedBox(
-                          height: 70.h,
-                        )
+                        SizedBox(height: 70.h),
                       ],
                     ),
                   ),
@@ -120,24 +121,23 @@ class _BookingMeListState extends State<BookingMeList> {
               ),
             );
           } else {
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    final cubit = context.read<BookingMeCubit>();
-    if (cubit.state is! BookingMeFinish &&
-        cubit.state is! BookingMeCanceled &&
-        cubit.state is! BookingMeRated) {
-      cubit.getMyBooking();
-    }
-  });
-  
-  return const SizedBox.shrink();
-}
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              final cubit = context.read<BookingMeCubit>();
+              if (cubit.state is! BookingMeFinish &&
+                  cubit.state is! BookingMeCanceled &&
+                  cubit.state is! BookingMeRated) {
+                cubit.getMyBooking();
+              }
+            });
 
+            return const SizedBox.shrink();
+          }
         },
       ),
     );
-  } 
-    Future<void> _refreshData() async {
-    await context.read<BookingMeCubit>().getMyBooking();
   }
 
+  Future<void> _refreshData() async {
+    await context.read<BookingMeCubit>().getMyBooking();
+  }
 }

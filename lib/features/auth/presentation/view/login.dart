@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/features/auth/presentation/view/widget/buttons_login.dart';
@@ -45,56 +46,60 @@ class _LoginState extends State<Login> {
             ),
             child: SafeArea(
               bottom: false,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // ━━ اللوغو ━━
-                  Container(
-                    width: 72.w,
-                    height: 72.w,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.3),
-                        width: 2.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: MyColors.accent.withValues(alpha: 0.25),
-                          blurRadius: 20,
-                          spreadRadius: 2,
+              // دخول الترويسة: انزلاق خفيف من الأعلى مع ظهور تدريجي
+              child: FadeSlideIn(
+                slideFrom: -0.15,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // ━━ اللوغو ━━
+                    Container(
+                      width: 72.w,
+                      height: 72.w,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.3),
+                          width: 2.5,
                         ),
-                      ],
-                    ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/images/logo.jpg',
-                        fit: BoxFit.cover,
+                        boxShadow: [
+                          BoxShadow(
+                            color: MyColors.accent.withValues(alpha: 0.25),
+                            blurRadius: 20,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/images/logo.jpg',
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
-                  ),
 
-                  SizedBox(height: 16.h),
+                    SizedBox(height: 16.h),
 
-                  Text(
-                    'مرحباً بعودتك',
-                    style: TextStyle(
-                      fontSize: 24.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                    Text(
+                      'مرحباً بعودتك',
+                      style: TextStyle(
+                        fontSize: 24.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
 
-                  SizedBox(height: 6.h),
+                    SizedBox(height: 6.h),
 
-                  Text(
-                    'سعداء بعودتك، لنكمل رحلتك معنا',
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      color: Colors.white.withValues(alpha: 0.7),
+                    Text(
+                      'سعداء بعودتك، لنكمل رحلتك معنا',
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        color: Colors.white.withValues(alpha: 0.7),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -104,8 +109,7 @@ class _LoginState extends State<Login> {
             child: Container(
               decoration: BoxDecoration(
                 color: MyColors.surface,
-                borderRadius:
-                    BorderRadius.vertical(top: Radius.circular(32.r)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(32.r)),
                 boxShadow: const [
                   BoxShadow(
                     color: Colors.black12,
@@ -121,29 +125,34 @@ class _LoginState extends State<Login> {
                   24.w,
                   MediaQuery.of(context).viewInsets.bottom + 24.h,
                 ),
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('تسجيل الدخول', style: AppTextStyles.titleLarge),
-                      SizedBox(height: 4.h),
-                      Text(
-                        'أدخل بياناتك للمتابعة',
-                        style: AppTextStyles.bodySmall
-                            .copyWith(color: MyColors.textSecondary),
-                      ),
-                      SizedBox(height: 24.h),
+                // دخول النموذج بعد الترويسة بلحظة — تتابع ناعم
+                child: FadeSlideIn(
+                  delay: Duration(milliseconds: 140),
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('تسجيل الدخول', style: AppTextStyles.titleLarge),
+                        SizedBox(height: 4.h),
+                        Text(
+                          'أدخل بياناتك للمتابعة',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: MyColors.textSecondary,
+                          ),
+                        ),
+                        SizedBox(height: 24.h),
 
-                      TextFiledsLogin(email: email, password: password),
-                      SizedBox(height: 24.h),
+                        TextFiledsLogin(email: email, password: password),
+                        SizedBox(height: 24.h),
 
-                      ColumnButtonsLogin(
-                        phone: email,
-                        password: password,
-                        formKey: formKey,
-                      ),
-                    ],
+                        ColumnButtonsLogin(
+                          phone: email,
+                          password: password,
+                          formKey: formKey,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
