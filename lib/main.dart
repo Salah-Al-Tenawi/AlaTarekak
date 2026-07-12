@@ -5,12 +5,14 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:alatarekak/core/route/route_app.dart';
 import 'package:alatarekak/core/route/route_name.dart';
+import 'package:alatarekak/core/service/connectivity_service.dart';
 import 'package:alatarekak/core/service/cubit_observer.dart';
 import 'package:alatarekak/core/service/hive_services.dart';
 import 'package:alatarekak/core/service/locator_ser.dart';
 import 'package:alatarekak/core/service/push_token_service.dart';
 import 'package:alatarekak/core/them/theme_controller.dart';
 import 'package:alatarekak/core/them/them_app.dart';
+import 'package:alatarekak/core/utils/widgets/offline_banner.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +20,8 @@ void main() async {
   locatorService();
   await HiveService.init();
   ThemeController.instance.load();
+  // NFR-17: مراقبة الاتصال — تغذي شريط "لا يوجد اتصال" العام
+  ConnectivityService.instance.init();
   // FCM: يسجل التوكن إن كان المستخدم مسجلاً دخوله، ويعطل نفسه إن لم يُهيأ Firebase
   PushTokenService.instance.init();
   runApp(const MyApp());
@@ -40,6 +44,11 @@ class MyApp extends StatelessWidget {
             getPages: appRoute,
             theme: isDark ? ThemApp.darkThem : ThemApp.lightThem,
             debugShowCheckedModeBanner: false,
+            // NFR-17: شريط انقطاع الاتصال فوق كل الشاشات
+            builder: (context, child) => OfflineBanner(
+              isOffline: ConnectivityService.instance.isOffline,
+              child: child ?? const SizedBox.shrink(),
+            ),
             textDirection: TextDirection.rtl,
             locale: const Locale('ar'),
             localizationsDelegates: const [

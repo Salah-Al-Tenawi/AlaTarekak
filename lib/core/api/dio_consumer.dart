@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:alatarekak/core/api/api_consumer.dart';
 import 'package:alatarekak/core/api/api_end_points.dart';
 import 'package:alatarekak/core/api/api_interceptor.dart';
+import 'package:alatarekak/core/api/retry_interceptor.dart';
 import 'package:alatarekak/core/errors/excptions.dart';
 
 class DioConSumer extends ApiConSumer {
@@ -10,7 +11,12 @@ class DioConSumer extends ApiConSumer {
   DioConSumer() {
     dio = Dio();
     dio.options.baseUrl = ApiEndPoint.baserUrl;
+    // NFR-17: مهلات صريحة حتى لا يعلق أي طلب إلى ما لا نهاية
+    dio.options.connectTimeout = const Duration(seconds: 15);
+    dio.options.receiveTimeout = const Duration(seconds: 25);
 
+    // NFR-17: إعادة محاولة تلقائية لطلبات GET عند أخطاء الشبكة العابرة
+    dio.interceptors.add(RetryInterceptor(dio: dio));
     dio.interceptors.add(ApiInterCeptor());
     dio.interceptors.add(LogInterceptor(
         request: true,
