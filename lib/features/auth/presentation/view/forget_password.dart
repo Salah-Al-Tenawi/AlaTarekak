@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
@@ -41,7 +42,7 @@ class _ForgetPasswordScreenState extends State<ForgetPassword> {
           );
         }
         if (state is ForgetPasswordErorr) {
-          AppSnackBar.error(state.message);
+          AppSnackBar.error(HandelErorrMessage.forgetPassword(state.message));
         }
       },
       builder: (context, state) {

@@ -1,5 +1,6 @@
 class ApiEndPoint {
-  static const serverRoot = "http://192.168.0.110:8000";
+  // الإنتاج — للتطوير المحلي بدّل إلى عنوان جهازك: http://192.168.0.110:8000
+  static const serverRoot = "https://api.onwayride.me";
   static const baserUrl = "$serverRoot/api";
   static const broadcastAuth = "$serverRoot/broadcasting/auth";
   static const baseUrlGoogle ="http://192.168.43.81:8000";
@@ -37,7 +38,9 @@ class ApiEndPoint {
   static const initialwallet = "$baserUrl/wallet/initiate";
 static const createwallet = "$baserUrl/wallet/verify-and-create";
 
-  static const bookingme = "$baserUrl/my-bookings"; 
+  // bookings — حجوزاتي كراكب + إجراءات الحجز (cancel / cancel-seats / passenger-confirm / accept / reject)
+  static const bookings = "$baserUrl/bookings";
+  static const bookingme = bookings;
   // google auth 
 
   static const googleAuth ="http://localhost:8000/auth/google/redirect/auth/google/redirect";
@@ -56,6 +59,11 @@ static const createwallet = "$baserUrl/wallet/verify-and-create";
   static const notificationsUnreadCount = "$notifications/unread-count";
   static const notificationsReadAll = "$notifications/read-all";
   static const notificationsBulkAction = "$notifications/bulk-action";
+  static const notificationsCategories = "$notifications/categories";
+
+  // FCM push tokens
+  static const pushRegister = "$baserUrl/push/register";
+  static const pushRemove = "$baserUrl/push/remove";
 
   // score (§5)
   static const score = "$baserUrl/score";

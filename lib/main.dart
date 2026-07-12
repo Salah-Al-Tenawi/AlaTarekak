@@ -8,6 +8,7 @@ import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/service/cubit_observer.dart';
 import 'package:alatarekak/core/service/hive_services.dart';
 import 'package:alatarekak/core/service/locator_ser.dart';
+import 'package:alatarekak/core/service/push_token_service.dart';
 import 'package:alatarekak/core/them/theme_controller.dart';
 import 'package:alatarekak/core/them/them_app.dart';
 
@@ -17,6 +18,8 @@ void main() async {
   locatorService();
   await HiveService.init();
   ThemeController.instance.load();
+  // FCM: يسجل التوكن إن كان المستخدم مسجلاً دخوله، ويعطل نفسه إن لم يُهيأ Firebase
+  PushTokenService.instance.init();
   runApp(const MyApp());
 }
 

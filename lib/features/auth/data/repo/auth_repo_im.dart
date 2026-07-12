@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:alatarekak/core/errors/excptions.dart';
 import 'package:alatarekak/core/errors/filuar.dart';
+import 'package:alatarekak/core/service/push_token_service.dart';
 import 'package:alatarekak/features/auth/data/data_source/auth_local_data_source.dart';
 import 'package:alatarekak/features/auth/data/data_source/auth_remote_data_source.dart';
 import 'package:alatarekak/features/auth/data/model/user_model.dart';
@@ -128,6 +129,8 @@ class AuthRepoIm extends AuthRepo {
   @override
   Future<Either<Filuar, Unit>> logout() async {
     try {
+      // إزالة توكن FCM قبل إبطال الجلسة — الطلب يحتاج JWT صالحاً
+      await PushTokenService.instance.removeToken();
       await authRemoteDataSource.logout();
       await authLocalDataSourceIm.clearAll();
       return right(unit);

@@ -24,9 +24,15 @@ class NotificationsBadgeService {
   void ensureRealtime() {
     ChatSocketService.instance.subscribeUserChannel();
     _realtimeSub ??=
-        ChatSocketService.instance.notificationStream.listen((_) {
-      // إشعار جديد وصل والتطبيق مفتوح ← +1 فوراً
-      unread.value = unread.value + 1;
+        ChatSocketService.instance.notificationStream.listen((event) {
+      final name = event['_event']?.toString() ?? 'NotificationSent';
+      if (name == 'NotificationSent' || name == 'notification.sent') {
+        // إشعار جديد وصل والتطبيق مفتوح ← +1 فوراً
+        unread.value = unread.value + 1;
+      } else {
+        // أحداث الرحلات (RideBooked, RideCancelled...) ← العدد الدقيق من السيرفر
+        refresh();
+      }
     });
   }
 

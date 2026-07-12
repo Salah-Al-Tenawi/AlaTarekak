@@ -130,9 +130,21 @@ class ChatSocketService {
     }
   }
 
+  /// الأحداث التي يبثها الباك إند على private-user.{id}
+  /// (مع أو بدون بادئة App\Events\ حسب broadcastAs)
+  static const _userEvents = {
+    'notification.sent',
+    'NotificationSent',
+    'RideCreated',
+    'RideBooked',
+    'RideCancelled',
+    'UserVerified',
+  };
+
   void _dispatchUserEvent(dynamic event) {
     final pusherEvent = event as PusherEvent;
-    if (pusherEvent.eventName != 'notification.sent') return;
+    final name = pusherEvent.eventName.split('\\').last;
+    if (!_userEvents.contains(name)) return;
 
     try {
       final raw = pusherEvent.data;
@@ -142,7 +154,8 @@ class ChatSocketService {
       final notification = outer['notification'] is Map
           ? outer['notification'] as Map<String, dynamic>
           : outer;
-      _notificationController.add(notification);
+      // نمرر اسم الحدث حتى يستطيع المستمعون التمييز (تحديث حجوزات، شارة...)
+      _notificationController.add({...notification, '_event': name});
     } catch (e) {
       debugPrint('[Pusher] notification parse error: $e');
     }
