@@ -1,4 +1,4 @@
-package com.example.alatarekak
+package me.onwayride.app
 
 import io.flutter.embedding.android.FlutterActivity
 
