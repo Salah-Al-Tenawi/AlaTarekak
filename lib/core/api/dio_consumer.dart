@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:alatarekak/core/api/api_consumer.dart';
 import 'package:alatarekak/core/api/api_end_points.dart';
 import 'package:alatarekak/core/api/api_interceptor.dart';
@@ -18,13 +19,17 @@ class DioConSumer extends ApiConSumer {
     // NFR-17: إعادة محاولة تلقائية لطلبات GET عند أخطاء الشبكة العابرة
     dio.interceptors.add(RetryInterceptor(dio: dio));
     dio.interceptors.add(ApiInterCeptor());
-    dio.interceptors.add(LogInterceptor(
-        request: true,
-        responseBody: true,
-        requestBody: true,
-        requestHeader: true,
-        responseHeader: true,
-        error: true));
+    // في وضع التطوير فقط — الترويسات تحوي توكن الجلسة والأجساد تحوي
+    // بيانات المستخدم، وطباعتها في release تسرّبها لسجل النظام.
+    if (kDebugMode) {
+      dio.interceptors.add(LogInterceptor(
+          request: true,
+          responseBody: true,
+          requestBody: true,
+          requestHeader: true,
+          responseHeader: true,
+          error: true));
+    }
   }
 
   @override
