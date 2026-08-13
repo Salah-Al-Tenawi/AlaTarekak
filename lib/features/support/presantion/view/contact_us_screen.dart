@@ -26,6 +26,7 @@ class ContactUsScreen extends StatelessWidget {
               'conversationId': state.conversationId,
               'title': 'الدعم الفني',
               'avatar': null,
+              'isSupport': true,
             },
           );
         } else if (state is ContactSupportFailure) {

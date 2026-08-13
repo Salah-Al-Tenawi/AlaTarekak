@@ -10,6 +10,7 @@ import 'package:alatarekak/core/utils/functions/get_userid.dart';
 import 'package:alatarekak/features/chat/domain/entity/message_entity.dart';
 import 'package:alatarekak/features/chat/domain/entity/quick_messages.dart';
 import 'package:alatarekak/features/chat/presentation/manager/message_cubit/message_cubit.dart';
+import 'package:alatarekak/features/support/domain/entity/support_conversation.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -26,6 +27,9 @@ class _ChatScreenState extends State<ChatScreen> {
   late final int conversationId;
   late final String title;
   String? avatar;
+
+  /// محادثة الدعم: أيقونة سمّاعة بدل صورة شخصية، ولا رسائل تنسيق لقاء.
+  late final bool isSupport;
   bool _didInitialScroll = false;
 
   @override
@@ -35,6 +39,9 @@ class _ChatScreenState extends State<ChatScreen> {
     conversationId = args['conversationId'] as int;
     title = args['title'] as String? ?? 'محادثة';
     avatar = args['avatar'] as String?;
+    isSupport =
+        args['isSupport'] as bool? ??
+        SupportConversation.rememberedId == conversationId;
     // رسالة مقترحة تُكتب في الحقل ولا تُرسَل — القرار للمستخدم
     _controller.text = args['draft'] as String? ?? '';
     _scrollController.addListener(_onScroll);
@@ -59,8 +66,7 @@ class _ChatScreenState extends State<ChatScreen> {
         if (!mounted || !_scrollController.hasClients) return;
         final delta = _scrollController.position.maxScrollExtent - before;
         if (delta > 0) {
-          _scrollController
-              .jumpTo(_scrollController.position.pixels + delta);
+          _scrollController.jumpTo(_scrollController.position.pixels + delta);
         }
       });
     });
@@ -116,7 +122,8 @@ class _ChatScreenState extends State<ChatScreen> {
               builder: (context, state) {
                 if (state is MessageLoading) {
                   return Center(
-                      child: CircularProgressIndicator(color: MyColors.primary));
+                    child: CircularProgressIndicator(color: MyColors.primary),
+                  );
                 }
 
                 List<MessageEntity> messages = [];
@@ -132,8 +139,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
                 return ListView.builder(
                   controller: _scrollController,
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 12.h,
+                  ),
                   itemCount: messages.length,
                   itemBuilder: (_, i) => _MessageBubble(
                     message: messages[i],
@@ -148,21 +157,22 @@ class _ChatScreenState extends State<ChatScreen> {
           // ── Quick replies ──
           // تُعرض في بداية المحادثة فقط — حين يكون التنسيق على نقطة اللقاء
           // هو الغرض، ثم تختفي لتفسح المجال للمحادثة الطبيعية.
-          BlocBuilder<MessageCubit, MessageState>(
-            builder: (context, state) {
-              final count = switch (state) {
-                MessageLoaded(:final messages) => messages.length,
-                MessageSent(:final messages) => messages.length,
-                MessageSending(:final messages) => messages.length,
-                _ => -1,
-              };
-              if (count < 0 || count > 4) return const SizedBox.shrink();
-              return _QuickReplies(
-                onTap: (text) =>
-                    context.read<MessageCubit>().sendText(text),
-              );
-            },
-          ),
+          // لا معنى لها في محادثة الدعم: نصوصها كلها عن لقاء السائق.
+          if (!isSupport)
+            BlocBuilder<MessageCubit, MessageState>(
+              builder: (context, state) {
+                final count = switch (state) {
+                  MessageLoaded(:final messages) => messages.length,
+                  MessageSent(:final messages) => messages.length,
+                  MessageSending(:final messages) => messages.length,
+                  _ => -1,
+                };
+                if (count < 0 || count > 4) return const SizedBox.shrink();
+                return _QuickReplies(
+                  onTap: (text) => context.read<MessageCubit>().sendText(text),
+                );
+              },
+            ),
 
           // ── Input Bar ──
           _InputBar(
@@ -184,8 +194,11 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: MyColors.primary,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_forward_ios_rounded,
-            color: Colors.white, size: 20),
+        icon: const Icon(
+          Icons.arrow_forward_ios_rounded,
+          color: Colors.white,
+          size: 20,
+        ),
         onPressed: () => Get.back(),
       ),
       title: Row(
@@ -193,10 +206,13 @@ class _ChatScreenState extends State<ChatScreen> {
           CircleAvatar(
             radius: 18.r,
             backgroundColor: Colors.white24,
-            backgroundImage:
-                avatar != null ? NetworkImage(avatar!) : null,
+            backgroundImage: avatar != null ? NetworkImage(avatar!) : null,
             child: avatar == null
-                ? const Icon(Icons.person, color: Colors.white, size: 18)
+                ? Icon(
+                    isSupport ? Icons.support_agent_rounded : Icons.person,
+                    color: Colors.white,
+                    size: 18,
+                  )
                 : null,
           ),
           SizedBox(width: 10.w),
@@ -217,23 +233,29 @@ class _ChatScreenState extends State<ChatScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: Text('حذف الرسالة', style: AppTextStyles.titleMedium),
-        content: Text('هل تريد حذف هذه الرسالة؟',
-            style: AppTextStyles.bodyMedium),
+        content: Text(
+          'هل تريد حذف هذه الرسالة؟',
+          style: AppTextStyles.bodyMedium,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('إلغاء',
-                style: AppTextStyles.labelMedium
-                    .copyWith(color: MyColors.textSecondary)),
+            child: Text(
+              'إلغاء',
+              style: AppTextStyles.labelMedium.copyWith(
+                color: MyColors.textSecondary,
+              ),
+            ),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               context.read<MessageCubit>().deleteMessage(messageId);
             },
-            child: Text('حذف',
-                style: AppTextStyles.labelMedium
-                    .copyWith(color: MyColors.error)),
+            child: Text(
+              'حذف',
+              style: AppTextStyles.labelMedium.copyWith(color: MyColors.error),
+            ),
           ),
         ],
       ),
@@ -260,8 +282,9 @@ class _MessageBubble extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(bottom: 8.h),
       child: Row(
-        mainAxisAlignment:
-            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[
@@ -272,8 +295,7 @@ class _MessageBubble extends StatelessWidget {
                   ? NetworkImage(message.sender.avatar!)
                   : null,
               child: message.sender.avatar == null
-                  ? Icon(Icons.person,
-                      size: 14, color: MyColors.textHint)
+                  ? Icon(Icons.person, size: 14, color: MyColors.textHint)
                   : null,
             ),
             SizedBox(width: 6.w),
@@ -285,17 +307,18 @@ class _MessageBubble extends StatelessWidget {
               child: Container(
                 padding: message.isImage
                     ? EdgeInsets.zero
-                    : EdgeInsets.symmetric(
-                        horizontal: 14.w, vertical: 10.h),
+                    : EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
                 decoration: BoxDecoration(
                   color: isMe ? MyColors.primary : MyColors.surface,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(16.r),
                     topRight: Radius.circular(16.r),
-                    bottomLeft:
-                        isMe ? Radius.circular(16.r) : Radius.circular(4.r),
-                    bottomRight:
-                        isMe ? Radius.circular(4.r) : Radius.circular(16.r),
+                    bottomLeft: isMe
+                        ? Radius.circular(16.r)
+                        : Radius.circular(4.r),
+                    bottomRight: isMe
+                        ? Radius.circular(4.r)
+                        : Radius.circular(16.r),
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -324,9 +347,7 @@ class _MessageBubble extends StatelessWidget {
                           Text(
                             _formatTime(message.createdAt),
                             style: AppTextStyles.labelSmall.copyWith(
-                              color: isMe
-                                  ? Colors.white60
-                                  : MyColors.textHint,
+                              color: isMe ? Colors.white60 : MyColors.textHint,
                               fontSize: 10.sp,
                             ),
                           ),
@@ -358,8 +379,11 @@ class _ImageBubble extends StatelessWidget {
   final String? caption;
   final bool isMe;
 
-  const _ImageBubble(
-      {required this.imageUrl, this.caption, required this.isMe});
+  const _ImageBubble({
+    required this.imageUrl,
+    this.caption,
+    required this.isMe,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -376,8 +400,10 @@ class _ImageBubble extends StatelessWidget {
               width: 0.6.sw,
               height: 120.h,
               color: MyColors.surfaceAlt,
-              child: Icon(Icons.broken_image_outlined,
-                  color: MyColors.textHint),
+              child: Icon(
+                Icons.broken_image_outlined,
+                color: MyColors.textHint,
+              ),
             ),
           ),
           if (caption != null && caption!.isNotEmpty)
@@ -449,14 +475,19 @@ class _InputBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.fromLTRB(
-          12.w, 8.h, 12.w, MediaQuery.of(context).viewInsets.bottom + 12.h),
+        12.w,
+        8.h,
+        12.w,
+        MediaQuery.of(context).viewInsets.bottom + 12.h,
+      ),
       decoration: BoxDecoration(
         color: MyColors.surface,
         boxShadow: [
           BoxShadow(
-              color: MyColors.shadowLight,
-              blurRadius: 8,
-              offset: Offset(0, -2))
+            color: MyColors.shadowLight,
+            blurRadius: 8,
+            offset: Offset(0, -2),
+          ),
         ],
       ),
       child: Row(
@@ -481,11 +512,14 @@ class _InputBar extends StatelessWidget {
               style: AppTextStyles.bodyMedium,
               decoration: InputDecoration(
                 hintText: 'اكتب رسالة...',
-                hintStyle: AppTextStyles.bodySmall
-                    .copyWith(color: MyColors.textHint),
+                hintStyle: AppTextStyles.bodySmall.copyWith(
+                  color: MyColors.textHint,
+                ),
                 isDense: true,
                 contentPadding: EdgeInsets.symmetric(
-                    horizontal: 14.w, vertical: 10.h),
+                  horizontal: 14.w,
+                  vertical: 10.h,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24.r),
                   borderSide: BorderSide.none,
@@ -508,8 +542,11 @@ class _InputBar extends StatelessWidget {
                 color: MyColors.accent,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.send_rounded,
-                  color: Colors.white, size: 20),
+              child: const Icon(
+                Icons.send_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
           ),
         ],
@@ -528,12 +565,14 @@ class _EmptyMessages extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.waving_hand_rounded,
-              size: 48, color: MyColors.accent),
+          Icon(Icons.waving_hand_rounded, size: 48, color: MyColors.accent),
           SizedBox(height: 12.h),
-          Text('ابدأ المحادثة!',
-              style: AppTextStyles.titleMedium
-                  .copyWith(color: MyColors.textSecondary)),
+          Text(
+            'ابدأ المحادثة!',
+            style: AppTextStyles.titleMedium.copyWith(
+              color: MyColors.textSecondary,
+            ),
+          ),
         ],
       ),
     );

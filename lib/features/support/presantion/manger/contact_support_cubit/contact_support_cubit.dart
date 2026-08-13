@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
+import 'package:alatarekak/features/support/domain/entity/support_conversation.dart';
 import 'package:alatarekak/features/support/domain/repo/support_repo.dart';
 
 part 'contact_support_state.dart';
@@ -17,13 +18,18 @@ class ContactSupportCubit extends Cubit<ContactSupportState> {
     final result = await _repo.openSupportChat();
     if (isClosed) return;
 
-    result.fold(
-      (failure) => emit(ContactSupportFailure(
+    await result.fold(
+      (failure) async => emit(ContactSupportFailure(
           HandelErorrMessage.contactSupport(failure.message))),
-      (chat) => emit(ContactSupportReady(
-        conversationId: chat.conversationId,
-        agentName: chat.agentName,
-      )),
+      (chat) async {
+        // نحفظ المعرّف لتمييزها في قائمة المحادثات لاحقاً
+        await SupportConversation.remember(chat.conversationId);
+        if (isClosed) return;
+        emit(ContactSupportReady(
+          conversationId: chat.conversationId,
+          agentName: chat.agentName,
+        ));
+      },
     );
   }
 }

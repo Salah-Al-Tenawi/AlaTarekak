@@ -10,6 +10,7 @@ import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/features/chat/domain/entity/conversation_entity.dart';
 import 'package:alatarekak/features/chat/presentation/manager/conversation_cubit/conversation_cubit.dart';
+import 'package:alatarekak/features/support/domain/entity/support_conversation.dart';
 
 class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});
@@ -78,6 +79,12 @@ class _ConversationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // محادثة الدعم تُعرض باسم الموظف الشخصي وبلا أي تمييز، فتضيع بين
+    // محادثات الرحلات — نميّزها بالاسم والأيقونة والإطار.
+    final isSupport = SupportConversation.matches(conv);
+    final displayName =
+        isSupport ? SupportConversation.displayName : conv.otherParticipant.name;
+
     // Backend has no unread count yet — track it locally via the socket
     // service. max() keeps this future-proof: when the backend adds
     // unread_count we won't double-count.
@@ -93,16 +100,22 @@ class _ConversationCard extends StatelessWidget {
             RouteName.chatScreen,
             arguments: {
               'conversationId': conv.id,
-              'title': conv.otherParticipant.name,
-              'avatar': conv.otherParticipant.avatar,
+              'title': displayName,
+              'avatar': isSupport ? null : conv.otherParticipant.avatar,
+              'isSupport': isSupport,
             },
           ),
           borderRadius: BorderRadius.circular(16.r),
           child: Container(
             padding: EdgeInsets.all(14.w),
             decoration: BoxDecoration(
-              color: MyColors.surface,
+              color: isSupport
+                  ? MyColors.primary.withValues(alpha: 0.05)
+                  : MyColors.surface,
               borderRadius: BorderRadius.circular(16.r),
+              border: isSupport
+                  ? Border.all(color: MyColors.primary.withValues(alpha: 0.25))
+                  : null,
               boxShadow: [
                 BoxShadow(
                     color: MyColors.shadowLight,
@@ -113,14 +126,22 @@ class _ConversationCard extends StatelessWidget {
             child: Row(
               children: [
                 // ── Avatar ──
-                CircleAvatar(
-                  radius: 26.r,
-                  backgroundColor: MyColors.background,
-                  backgroundImage: conv.otherParticipant.avatar != null
-                      ? NetworkImage(conv.otherParticipant.avatar!)
-                          as ImageProvider
-                      : const AssetImage(ImagesUrl.profileImage),
-                ),
+                if (isSupport)
+                  CircleAvatar(
+                    radius: 26.r,
+                    backgroundColor: MyColors.primary,
+                    child: Icon(Icons.support_agent_rounded,
+                        color: MyColors.textOnDark, size: 28.sp),
+                  )
+                else
+                  CircleAvatar(
+                    radius: 26.r,
+                    backgroundColor: MyColors.background,
+                    backgroundImage: conv.otherParticipant.avatar != null
+                        ? NetworkImage(conv.otherParticipant.avatar!)
+                            as ImageProvider
+                        : const AssetImage(ImagesUrl.profileImage),
+                  ),
 
                 SizedBox(width: 12.w),
 
@@ -129,14 +150,27 @@ class _ConversationCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        conv.otherParticipant.name,
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          fontWeight:
-                              unread > 0 ? FontWeight.w700 : FontWeight.w500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              displayName,
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                color: isSupport ? MyColors.primary : null,
+                                fontWeight: unread > 0 || isSupport
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (isSupport) ...[
+                            SizedBox(width: 5.w),
+                            Icon(Icons.verified_rounded,
+                                size: 15.sp, color: MyColors.primary),
+                          ],
+                        ],
                       ),
                       if (conv.lastMessage != null) ...[
                         SizedBox(height: 3.h),
