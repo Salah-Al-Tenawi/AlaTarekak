@@ -3,7 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/route_manager.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
+import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
+import 'package:alatarekak/features/trip_search/presantion/view/widget/empty_trips_content.dart';
 import 'package:alatarekak/features/trip_search/presantion/view/widget/item_search_trip.dart';
 
 class TripSearchList extends StatefulWidget {
@@ -48,52 +50,23 @@ class _TripSearchListState extends State<TripSearchList> {
         ),
       ),
       body: trips.isEmpty
-          ? _EmptyState()
+          ? FadeSlideIn(
+              child: Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 32.w),
+                  child: const EmptyTripsContent(),
+                ),
+              ),
+            )
           : ListView.builder(
               padding: EdgeInsets.only(top: 12.h, bottom: 24.h),
               itemCount: trips.length,
-              itemBuilder: (context, index) =>
-                  ItemSearchTrip(trip: trips[index]),
-            ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 32.w),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 80.w,
-              height: 80.w,
-              decoration: BoxDecoration(
-                color: MyColors.primary.withValues(alpha: 0.08),
-                shape: BoxShape.circle,
+              // دخول متدرّج كبقية قوائم التطبيق (رحلاتي، حجوزاتي، الإشعارات)
+              itemBuilder: (context, index) => StaggeredItem(
+                index: index,
+                child: ItemSearchTrip(trip: trips[index]),
               ),
-              child: Icon(Icons.airport_shuttle_outlined,
-                  size: 40, color: MyColors.primary),
             ),
-            SizedBox(height: 20.h),
-            Text(
-              'لا توجد رحلات متاحة حالياً',
-              style: AppTextStyles.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              'حاول تغيير التاريخ أو الموقع للعثور على رحلات أخرى',
-              style: AppTextStyles.bodySmall
-                  .copyWith(color: MyColors.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

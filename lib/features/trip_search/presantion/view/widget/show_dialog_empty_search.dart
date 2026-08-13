@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
+import 'package:alatarekak/core/them/text_style_app.dart';
+import 'package:alatarekak/features/trip_search/presantion/view/widget/empty_trips_content.dart';
 
 Future<void> showNoTripsDialog(BuildContext context) async {
   return showDialog(
@@ -7,47 +10,27 @@ Future<void> showNoTripsDialog(BuildContext context) async {
     builder: (ctx) => AlertDialog(
       backgroundColor: MyColors.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.airport_shuttle_outlined,
-            size: 60,
-            color: MyColors.accent.withOpacity(0.8),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد رحلات متاحة حالياً',
-            style: TextStyle(
-              color: MyColors.primary,
-              fontWeight: FontWeight.w600,
-              fontSize: 18,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'حاول تغيير التاريخ أو الموقع للعثور على رحلات أخرى.',
-            style: TextStyle(
-              color: MyColors.textSecondary.withOpacity(0.7),
-              fontSize: 14,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: MyColors.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+          const EmptyTripsContent(compact: true),
+          SizedBox(height: 20.h),
+          SizedBox(
+            width: double.infinity,
+            height: 46.h,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: MyColors.primary,
+                foregroundColor: MyColors.textOnDark,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                elevation: 0,
               ),
-            ),
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              'حسناً',
-              style: TextStyle(color: Colors.white),
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('حسناً', style: AppTextStyles.buttonLarge),
             ),
           ),
         ],

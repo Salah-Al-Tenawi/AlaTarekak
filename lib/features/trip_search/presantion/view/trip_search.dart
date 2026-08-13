@@ -413,11 +413,11 @@ class _SearchCard extends StatelessWidget {
                       elevation: 0,
                     ),
                     child: isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 22,
                             height: 22,
                             child: CircularProgressIndicator(
-                              color: Colors.white,
+                              color: MyColors.textOnDark,
                               strokeWidth: 2,
                             ),
                           )
