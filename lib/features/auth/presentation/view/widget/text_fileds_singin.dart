@@ -6,6 +6,7 @@ class TextFieldsSingin extends StatelessWidget {
   final TextEditingController firstname;
   final TextEditingController lastname;
   final TextEditingController email;
+  final TextEditingController phoneNumber;
   final TextEditingController password;
   final TextEditingController passwordConfirm;
 
@@ -14,6 +15,7 @@ class TextFieldsSingin extends StatelessWidget {
     required this.firstname,
     required this.lastname,
     required this.email,
+    required this.phoneNumber,
     required this.password,
     required this.passwordConfirm,
   });
@@ -24,6 +26,7 @@ class TextFieldsSingin extends StatelessWidget {
       firstname: firstname,
       lastname: lastname,
       email: email,
+      phoneNumber: phoneNumber,
       password: password,
       passwordConfirm: passwordConfirm,
     );
@@ -34,6 +37,7 @@ class _TextFieldsSinginBody extends StatefulWidget {
   final TextEditingController firstname;
   final TextEditingController lastname;
   final TextEditingController email;
+  final TextEditingController phoneNumber;
   final TextEditingController password;
   final TextEditingController passwordConfirm;
 
@@ -41,6 +45,7 @@ class _TextFieldsSinginBody extends StatefulWidget {
     required this.firstname,
     required this.lastname,
     required this.email,
+    required this.phoneNumber,
     required this.password,
     required this.passwordConfirm,
   });
@@ -96,6 +101,18 @@ class _TextFieldsSinginBodyState
               inputvaild(val!, "email", 30, 5),
           decoration: const InputDecoration(
             hintText: "البريد الإلكتروني",
+          ),
+        ),
+
+        SizedBox(height: 14.h),
+
+        /// رقم الهاتف — يُستخدم للتواصل وتُفتح عليه محفظة المستخدم تلقائياً
+        TextFormField(
+          controller: widget.phoneNumber,
+          keyboardType: TextInputType.phone,
+          validator: (val) => inputvaild(val!, "nubmerphone", 10, 10),
+          decoration: const InputDecoration(
+            hintText: "رقم الهاتف",
           ),
         ),
 

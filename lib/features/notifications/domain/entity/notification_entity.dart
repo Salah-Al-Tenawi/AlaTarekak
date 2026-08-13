@@ -39,6 +39,7 @@ class NotificationEntity {
 
   /// العنوان للعرض: الباك إند يخزن أغلب العناوين بالإنجليزية (العيب D5)
   /// — نعيد العنونة بالعربية حسب type حتى يُعرَّب الباك إند.
+  /// أي type جديد أو غير معروف يسقط إلى عنوان الخادم كما هو (لا ينكسر شيء).
   String get displayTitle => _arabicTitles[type] ?? title;
 
   static const Map<String, String> _arabicTitles = {
@@ -69,6 +70,14 @@ class NotificationEntity {
     'account_banned': 'تم حظر حسابك',
     'account_unbanned': 'تمت إعادة تفعيل حسابك',
     'chat_message': 'رسالة جديدة',
+    // أنواع أضافها الباك إند لاحقاً
+    'charge_request_received': 'تم استلام طلب شحن المحفظة',
+    'withdraw_request_received': 'تم استلام طلب سحب الرصيد',
+    'verification_submitted': 'تم استلام طلب التوثيق',
+    'passenger_confirmed': 'أكّد الراكب إتمام الرحلة',
+    'seats_partially_cancelled': 'ألغى الراكب جزءاً من مقاعده',
+    'no_show_recorded': 'تم تسجيل عدم حضورك',
+    'driver_no_show_recorded': 'بلاغ عدم حضور بحقك',
   };
 
   /// تسميات التصنيفات بالعربية — الباك إند يرسلها إنجليزية (§10.3)

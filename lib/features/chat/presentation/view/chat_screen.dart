@@ -8,6 +8,7 @@ import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/functions/get_userid.dart';
 import 'package:alatarekak/features/chat/domain/entity/message_entity.dart';
+import 'package:alatarekak/features/chat/domain/entity/quick_messages.dart';
 import 'package:alatarekak/features/chat/presentation/manager/message_cubit/message_cubit.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -34,6 +35,8 @@ class _ChatScreenState extends State<ChatScreen> {
     conversationId = args['conversationId'] as int;
     title = args['title'] as String? ?? 'محادثة';
     avatar = args['avatar'] as String?;
+    // رسالة مقترحة تُكتب في الحقل ولا تُرسَل — القرار للمستخدم
+    _controller.text = args['draft'] as String? ?? '';
     _scrollController.addListener(_onScroll);
     context.read<MessageCubit>().loadMessages();
   }
@@ -140,6 +143,25 @@ class _ChatScreenState extends State<ChatScreen> {
                 );
               },
             ),
+          ),
+
+          // ── Quick replies ──
+          // تُعرض في بداية المحادثة فقط — حين يكون التنسيق على نقطة اللقاء
+          // هو الغرض، ثم تختفي لتفسح المجال للمحادثة الطبيعية.
+          BlocBuilder<MessageCubit, MessageState>(
+            builder: (context, state) {
+              final count = switch (state) {
+                MessageLoaded(:final messages) => messages.length,
+                MessageSent(:final messages) => messages.length,
+                MessageSending(:final messages) => messages.length,
+                _ => -1,
+              };
+              if (count < 0 || count > 4) return const SizedBox.shrink();
+              return _QuickReplies(
+                onTap: (text) =>
+                    context.read<MessageCubit>().sendText(text),
+              );
+            },
           ),
 
           // ── Input Bar ──
@@ -377,6 +399,41 @@ class _ImageBubble extends StatelessWidget {
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 // Input Bar
 // ━━━━━━━━━━━━━━━━━━━━━━━━
+/// شريط رسائل جاهزة يُرسل بضغطة — يختصر التنسيق على نقطة اللقاء.
+class _QuickReplies extends StatelessWidget {
+  final void Function(String text) onTap;
+  const _QuickReplies({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 44.h,
+      color: MyColors.background,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        itemCount: QuickMessages.coordination.length,
+        separatorBuilder: (_, _) => SizedBox(width: 8.w),
+        itemBuilder: (_, i) {
+          final text = QuickMessages.coordination[i];
+          return ActionChip(
+            label: Text(
+              text,
+              style: TextStyle(fontSize: 12.sp, color: MyColors.primary),
+            ),
+            backgroundColor: MyColors.surface,
+            side: BorderSide(color: MyColors.border),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            onPressed: () => onTap(text),
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _InputBar extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onSend;

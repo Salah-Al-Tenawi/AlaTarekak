@@ -23,6 +23,37 @@ class TripSelectCashTypeTypeState extends State<TripSelectCashType> {
 
   @override
   Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _buildToggle(),
+        if (_cashType == "cash") _buildCashFeeNote(),
+      ],
+    );
+  }
+
+  /// الدفع النقدي يخصم رسوم إنشاء (5%) من محفظة السائق، ويُرفض الإنشاء
+  /// إن لم تكن لديه محفظة أو كان رصيده لا يكفي — ننبّهه قبل إتمام الرحلة.
+  Widget _buildCashFeeNote() {
+    return Padding(
+      padding: EdgeInsets.only(top: 10.h, right: 8.w, left: 8.w),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline_rounded, size: 15, color: MyColors.accent),
+          SizedBox(width: 6.w),
+          Expanded(
+            child: Text(
+              'الدفع النقدي يتطلب محفظة إلكترونية، وتُخصم منها رسوم إنشاء '
+              'الرحلة (5%)',
+              style: TextStyle(fontSize: 11.sp, color: MyColors.textSecondary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToggle() {
     return Padding(
       padding: EdgeInsets.only(top: 30.h, bottom: 5.h),
       child: ToggleButtons(

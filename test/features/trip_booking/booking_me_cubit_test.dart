@@ -152,6 +152,32 @@ void main() {
     );
 
     blocTest<BookingMeCubit, BookingMeState>(
+      'تأكيد مكرر (ضغط مزدوج): نجاح صامت لا خطأ — الخادم يرده بحالة 500',
+      build: () {
+        when(() => repo.finshTrip(10)).thenAnswer((_) async =>
+            left(const Filuar(message: 'You have already confirmed this ride')));
+        return BookingMeCubit(repo);
+      },
+      act: (cubit) => cubit.finishTrip(10),
+      expect: () => [isA<BookingMeButtonloading>(), isA<BookingMeFinish>()],
+    );
+
+    blocTest<BookingMeCubit, BookingMeState>(
+      'خطأ منطق عمل حقيقي بحالة 500: رسالة معرّبة لا "خطأ سيرفر"',
+      build: () {
+        when(() => repo.finshTrip(10)).thenAnswer((_) async => left(
+            const Filuar(message: 'Ride is not awaiting confirmation')));
+        return BookingMeCubit(repo);
+      },
+      act: (cubit) => cubit.finishTrip(10),
+      expect: () => [
+        isA<BookingMeButtonloading>(),
+        isA<BookingMeErorr>().having((s) => s.message, 'message',
+            'الرحلة ليست بانتظار التأكيد'),
+      ],
+    );
+
+    blocTest<BookingMeCubit, BookingMeState>(
       'بلاغ عدم حضور السائق: نجاح',
       build: () {
         when(() => repo.driverNoShow(5)).thenAnswer((_) async => right(null));

@@ -1,7 +1,6 @@
 import 'package:alatarekak/core/api/api_end_points.dart';
 import 'package:alatarekak/core/api/dio_consumer.dart';
 import 'package:alatarekak/core/utils/functions/get_token.dart';
-import 'package:alatarekak/core/utils/functions/uuid_v4.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_details/data/model/booking_model.dart';
 
@@ -17,8 +16,11 @@ class TripDetailsRemoteDataSource {
     return TripModel.fromMap(response);
   }
 
-  Future<BookingResponse> booking(
-      int seats, int tripId, String communicationNumber) async {
+  /// [idempotencyKey] يجب أن يبقى ثابتاً طوال محاولة الحجز الواحدة —
+  /// إعادة إرساله بعد انقطاع تُرجع نفس الحجز بدل إنشاء حجز ثانٍ.
+  /// من يستدعي هذه الدالة هو المسؤول عن تثبيته (انظر TripDetailsCubit).
+  Future<BookingResponse> booking(int seats, int tripId,
+      String communicationNumber, String idempotencyKey) async {
     final response = await api.post("${ApiEndPoint.rides}/$tripId/book",
         header: {
           ApiKey.authorization: "Bearer ${mytoken()}"
@@ -26,8 +28,7 @@ class TripDetailsRemoteDataSource {
         data: {
           ApiKey.seats: seats,
           ApiKey.communicationNumber: communicationNumber,
-          // مفتاح جديد لكل ضغطة — الباك إند يتجاهل الطلب المكرر بنفس المفتاح
-          'idempotency_key': uuidV4(),
+          'idempotency_key': idempotencyKey,
         });
     return BookingResponse.fromJson(response);
   }

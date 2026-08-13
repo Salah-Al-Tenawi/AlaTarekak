@@ -60,10 +60,17 @@ class BookingMeCubit extends Cubit<BookingMeState> {
     });
   }
 
+  /// تأكيد الراكب لاكتمال الرحلة. الخادم يرجع أخطاء منطق العمل هنا بحالة
+  /// 500 لا 4xx، لذا نطابق على النص. والتأكيد المكرر (ضغط مزدوج على الزر)
+  /// حالة طبيعية تُعامل كنجاح لا كخطأ.
   Future<void> finishTrip(int bookingId) async {
     emit(BookingMeButtonloading());
     final response = await _repo.finshTrip(bookingId);
     response.fold((erorr) {
+      if (HandelErorrMessage.isAlreadyConfirmed(erorr.message)) {
+        emit(const BookingMeFinish(message: "تم التأكيد"));
+        return;
+      }
       emit(BookingMeErorr(
           message: HandelErorrMessage.passangerConfirm(erorr.message)));
     }, (sucess) {

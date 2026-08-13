@@ -73,8 +73,18 @@ class TripReviewAndConfirm extends StatelessWidget {
               Get.toNamed(RouteName.verfiyUser, arguments: "driver"),
           onCancel: () => Get.offAllNamed(RouteName.home),
         );
+      } else if (HandelErorrMessage.isCashRideWalletMissing(state.message)) {
+        // رحلة بالدفع النقدي تحتاج محفظة (تُخصم منها رسوم الإنشاء)
+        myConfirmDilaogWithPolicy(
+          context,
+          message,
+          title: "المحفظة مطلوبة",
+          confirmText: "إنشاء محفظة",
+          cancelText: "لاحقاً",
+          onConfirm: () => Get.toNamed(RouteName.wallet),
+        );
       } else {
-        showMySnackBar(context, state.message);
+        showMySnackBar(context, message);
       }
     }
   }

@@ -51,6 +51,12 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
         listener: (context, state) {
           if (state is BookingUserInTripErorr) {
             showMySnackBar(context, state.message);
+          } else if (state is BookingUserInTripOpenConversation) {
+            Get.toNamed(RouteName.chatScreen, arguments: {
+              'conversationId': state.conversationId,
+              'title': state.title ?? 'الراكب',
+              'avatar': state.avatar,
+            });
           }
         },
         child: usersBooking.isEmpty
@@ -361,22 +367,29 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
                   label: Text("الراكب لم يحضر",
                       style: TextStyle(color: MyColors.error, fontSize: 13)),
                 ),
-                _statusChip("تم القبول", MyColors.success),
+                // المراسلة مسموحة الآن — الحجز مؤكَّد بين الطرفين
+                TextButton.icon(
+                  onPressed: () => context
+                      .read<BookingUserInTripCubit>()
+                      .openChatWithPassenger(
+                        userId: booking.userId,
+                        name: booking.userName,
+                        avatar: booking.avatar,
+                      ),
+                  icon: Icon(Icons.chat_bubble_outline_rounded,
+                      size: 18, color: MyColors.primary),
+                  label: Text("مراسلة",
+                      style: TextStyle(color: MyColors.primary, fontSize: 13)),
+                ),
               ],
             );
 
-          case "Booking rejected":
-          case "rejected":
-            return _statusChip("تم رفض الحجز", MyColors.error);
-
-          case "passenger_no_show":
-            return _statusChip("تم تسجيل عدم الحضور", MyColors.warning);
-
+          // الرفض والإلغاء ينتجان الحالة نفسها في الخادم (cancelled)
           case "cancelled":
             return _statusChip("ملغاة", MyColors.error);
 
           case "no_show":
-            return _statusChip("لم يحضر", MyColors.warning);
+            return _statusChip("تم تسجيل عدم الحضور", MyColors.warning);
 
           case "completed":
             return _statusChip("مكتملة", MyColors.blue);

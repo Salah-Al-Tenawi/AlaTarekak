@@ -6,10 +6,12 @@ import 'package:alatarekak/core/service/chat_socket_service.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:alatarekak/core/route/route_name.dart';
+import 'package:alatarekak/core/service/booking_chat_service.dart';
 import 'package:alatarekak/core/service/notifications_badge_service.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/animations/app_animations.dart';
+import 'package:alatarekak/features/chat/domain/entity/quick_messages.dart';
 import 'package:alatarekak/features/notifications/domain/entity/notification_entity.dart';
 import 'package:alatarekak/features/notifications/presantion/manger/cubit/notifications_cubit.dart';
 
@@ -191,7 +193,25 @@ class _NotificationCard extends StatelessWidget {
   const _NotificationCard({required this.notification, required this.time});
 
   /// ربط عميق حسب حمولة data (ride_id, complaint_id...) أو التصنيف
-  void _onTap() {
+  Future<void> _onTap() async {
+    // قبِل السائق الحجز ← صار بين الطرفين حجز فعلي، فنفتح المحادثة
+    // للاتفاق على مكان اللقاء بدل الاكتفاء بعرض تفاصيل الرحلة.
+    if (notification.type == 'booking_accepted' &&
+        notification.rideId != null) {
+      final target =
+          await BookingChatService.instance.withDriverOfRide(notification.rideId!);
+      if (target != null) {
+        Get.toNamed(RouteName.chatScreen, arguments: {
+          'conversationId': target.conversationId,
+          'title': target.title ?? 'السائق',
+          'avatar': target.avatar,
+          'draft': QuickMessages.passengerOpener,
+        });
+        return;
+      }
+      // تعذّرت المحادثة ← نكمل إلى تفاصيل الرحلة كالمعتاد
+    }
+
     if (notification.conversationId != null) {
       // إشعار chat_message: العنوان الخام = اسم المرسل (من الباك إند)
       Get.toNamed(

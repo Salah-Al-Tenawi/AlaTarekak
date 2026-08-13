@@ -5,11 +5,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/animations/app_animations.dart';
+import 'package:alatarekak/core/utils/functions/input_valid.dart';
 import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
 import 'package:alatarekak/features/e_pay/data/model/balance_model.dart';
 import 'package:alatarekak/features/e_pay/presantion/manger/cubit/wallet_cubit.dart';
@@ -47,8 +47,15 @@ class WalletView extends StatelessWidget {
           if (state is WalletInitial || state is WalletLoading) {
             return const Center(child: LoadingWidgetSize150());
           }
-          if (state is WalletNotActivated) {
-            return const FadeSlideIn(child: _ActivateWalletView());
+          if (state is WalletNotActivated ||
+              state is WalletActivating ||
+              state is WalletActivationFailed) {
+            return FadeSlideIn(
+              child: _ActivateWalletView(
+                isSubmitting: state is WalletActivating,
+                error: state is WalletActivationFailed ? state.message : null,
+              ),
+            );
           }
           if (state is WalletErorr) {
             return _WalletErrorView(message: state.message);
@@ -379,21 +386,49 @@ class _ContactTile extends StatelessWidget {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // NOT ACTIVATED VIEW
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-class _ActivateWalletView extends StatelessWidget {
-  const _ActivateWalletView();
+/// تفعيل بخطوة واحدة: رقم الهاتف فقط بلا رمز تحقق. يصلها المستخدم حين
+/// لا تكون محفظته أُنشئت تلقائياً عند التسجيل — فشل عابر وقتها، أو حساب
+/// أُنشئ قبل هذه الميزة.
+class _ActivateWalletView extends StatefulWidget {
+  final bool isSubmitting;
+  final String? error;
 
-  Future<void> _activate(BuildContext context) async {
-    final result = await Get.toNamed(RouteName.verfiyOtpEpy);
-    if (result == true && context.mounted) {
-      context.read<WalletCubit>().getBalance();
-    }
+  const _ActivateWalletView({required this.isSubmitting, this.error});
+
+  @override
+  State<_ActivateWalletView> createState() => _ActivateWalletViewState();
+}
+
+class _ActivateWalletViewState extends State<_ActivateWalletView> {
+  late final TextEditingController _phone;
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    // نُرشّح الحقل بالرقم الذي أدخله عند التسجيل إن وُجد
+    _phone = TextEditingController(
+        text: context.read<WalletCubit>().suggestedPhone ?? '');
+  }
+
+  @override
+  void dispose() {
+    _phone.dispose();
+    super.dispose();
+  }
+
+  void _activate() {
+    if (!_formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
+    context.read<WalletCubit>().activateWallet(_phone.text.trim());
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 32.w),
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 32.h),
+      child: Form(
+        key: _formKey,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -418,32 +453,72 @@ class _ActivateWalletView extends StatelessWidget {
             ),
             SizedBox(height: 8.h),
             Text(
-              'بمحفظتك الإلكترونية يمكنك دفع تكاليف الرحلات واستلام أرباحك بسهولة وأمان من داخل التطبيق',
+              'أدخل رقم هاتفك لتفعيل محفظتك، فتدفع تكاليف الرحلات وتستلم أرباحك من داخل التطبيق',
               style: AppTextStyles.bodyMedium.copyWith(
                 color: MyColors.textSecondary,
                 height: 1.6,
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 28.h),
+            SizedBox(height: 24.h),
+            TextFormField(
+              controller: _phone,
+              keyboardType: TextInputType.phone,
+              enabled: !widget.isSubmitting,
+              textAlign: TextAlign.center,
+              validator: (val) => inputvaild(val ?? '', "nubmerphone", 10, 10),
+              decoration: const InputDecoration(
+                hintText: "رقم الهاتف",
+                prefixIcon: Icon(Icons.phone_outlined),
+              ),
+              onFieldSubmitted: (_) => widget.isSubmitting ? null : _activate(),
+            ),
+            if (widget.error != null) ...[
+              SizedBox(height: 12.h),
+              Row(
+                children: [
+                  Icon(Icons.error_outline_rounded,
+                      color: MyColors.error, size: 18),
+                  SizedBox(width: 6.w),
+                  Expanded(
+                    child: Text(
+                      widget.error!,
+                      style: AppTextStyles.bodySmall
+                          .copyWith(color: MyColors.error),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            SizedBox(height: 24.h),
             SizedBox(
               width: double.infinity,
               height: 52.h,
               child: ElevatedButton.icon(
-                onPressed: () => _activate(context),
+                onPressed: widget.isSubmitting ? null : _activate,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: MyColors.primary,
+                  disabledBackgroundColor: MyColors.textHint,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                icon: const Icon(
-                  Icons.lock_open_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                icon: widget.isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Icon(
+                        Icons.lock_open_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                 label: Text(
-                  'تفعيل المحفظة الآن',
+                  widget.isSubmitting ? 'جارٍ التفعيل...' : 'تفعيل المحفظة الآن',
                   style: AppTextStyles.buttonLarge,
                 ),
               ),

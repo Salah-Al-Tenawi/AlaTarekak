@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:alatarekak/core/errors/excptions.dart';
 import 'package:alatarekak/core/errors/filuar.dart';
 import 'package:alatarekak/core/service/push_token_service.dart';
+import 'package:alatarekak/core/service/wallet_provision_service.dart';
 import 'package:alatarekak/features/auth/data/data_source/auth_local_data_source.dart';
 import 'package:alatarekak/features/auth/data/data_source/auth_remote_data_source.dart';
 import 'package:alatarekak/features/auth/data/model/user_model.dart';
@@ -24,6 +25,9 @@ class AuthRepoIm extends AuthRepo {
   Future<Either<Filuar, Unit>> signIn(SignUpParams params) async {
     try {
       await authRemoteDataSource.singIn(params);
+      // الرقم يُحفظ الآن وتُنشأ المحفظة عليه بعد تأكيد البريد — لأن مسار
+      // إنشاء المحفظة يتطلب توكناً لا يصل إلا حينها
+      await WalletProvisionService.instance.rememberPhone(params.phoneNumber);
       return right(unit);
     } on ServerExpcptions catch (e) {
       return left(e.error);
@@ -36,6 +40,8 @@ class AuthRepoIm extends AuthRepo {
     try {
       final user = await authRemoteDataSource.verifySinginOtp(email, otp);
       await authLocalDataSourceIm.saveUser(user);
+      // المحفظة تُنشأ صامتة بعد حفظ الجلسة — لا تفشل التسجيل مهما حدث
+      await WalletProvisionService.instance.provisionAfterSignup();
       return right(user);
     } on ServerExpcptions catch (e) {
       return left(e.error);

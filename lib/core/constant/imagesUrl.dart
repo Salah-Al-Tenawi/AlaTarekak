@@ -10,7 +10,8 @@ class ImagesUrl {
   static const String defualtCar = "$imageRuotassets/defualtCar.jpeg";
 
 // lottie image
-  static const String loadinglottie = "$lottieAssets/loading1.json";
+  /// Brand loader: accent/navy/cyan comet, matches MyColors.
+  static const String loadinglottie = "$lottieAssets/loading_comet.json";
   static const String searchlottie =
       "$lottieAssets/Animation - 1719048732828(1).json";
   static const String lottie1 = "$lottieAssets/one.json";

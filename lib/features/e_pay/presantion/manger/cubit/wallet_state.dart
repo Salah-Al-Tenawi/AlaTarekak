@@ -11,8 +11,21 @@ final class WalletInitial extends WalletState {}
 
 final class WalletLoading extends WalletState {}
 
-/// المستخدم لا يملك محفظة بعد — تُعرض شاشة التفعيل بدل الرصيد.
+/// المستخدم لا يملك محفظة بعد — يُعرض حقل التفعيل بدل الرصيد.
 final class WalletNotActivated extends WalletState {}
+
+/// جارٍ إنشاء المحفظة برقم الهاتف.
+final class WalletActivating extends WalletState {}
+
+/// فشل الإنشاء اليدوي — يبقى حقل الرقم ظاهراً مع الرسالة.
+final class WalletActivationFailed extends WalletState {
+  final String message;
+
+  const WalletActivationFailed({required this.message});
+
+  @override
+  List<Object> get props => [message];
+}
 
 final class WalletErorr extends WalletState {
   final String message;

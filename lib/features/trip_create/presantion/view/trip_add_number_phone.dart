@@ -129,8 +129,18 @@ class _TripAddNumberPhoneState extends State<TripAddNumberPhone> {
           onConfirm: _goToVerify,
           onCancel: _goHome,
         );
+      } else if (HandelErorrMessage.isCashRideWalletMissing(state.message)) {
+        // رحلة بالدفع النقدي تحتاج محفظة (تُخصم منها رسوم الإنشاء)
+        myConfirmDilaogWithPolicy(
+          context,
+          message,
+          title: "المحفظة مطلوبة",
+          confirmText: "إنشاء محفظة",
+          cancelText: "لاحقاً",
+          onConfirm: () => Get.toNamed(RouteName.wallet),
+        );
       } else {
-        showMySnackBar(context, state.message);
+        showMySnackBar(context, message);
       }
     }
   }

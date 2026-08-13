@@ -42,6 +42,10 @@ class BookingData {
   final DateTime bookingDate;
   final RideDetails? rideDetails;
 
+  /// من ride.driver — يُستخدمان لعنوان محادثة السائق بعد الحجز
+  final String? driverName;
+  final String? driverAvatar;
+
   BookingData({
     required this.id,
     required this.rideId,
@@ -53,7 +57,12 @@ class BookingData {
     required this.totalPrice,
     required this.bookingDate,
     this.rideDetails,
+    this.driverName,
+    this.driverAvatar,
   });
+
+  /// الحجز مؤكَّد فعلاً (رحلة direct) لا بانتظار موافقة السائق
+  bool get isConfirmed => status == 'confirmed';
 
   /// يدعم شكل BookingResource المتداخل (passenger/ride/driver) والشكل القديم
   factory BookingData.fromJson(Map<String, dynamic> json) {
@@ -85,6 +94,8 @@ class BookingData {
       rideDetails: json['ride_details'] != null
           ? RideDetails.fromJson(json['ride_details'])
           : (ride.isNotEmpty ? RideDetails.fromJson(ride) : null),
+      driverName: driver['name']?.toString(),
+      driverAvatar: driver['avatar']?.toString(),
     );
   }
 

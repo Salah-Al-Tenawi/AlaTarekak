@@ -95,5 +95,68 @@ void main() {
       expect(HandelErorrMessage.checkbalance('Wallet not found'),
           'لا تملك محفظة بعد، أنشئ واحدة الآن');
     });
+
+    test('محفظة موجودة أصلاً تُكتشف ولا تُعامل كخطأ', () {
+      const raw = 'You already have a wallet.';
+      expect(HandelErorrMessage.isWalletAlreadyExists(raw), isTrue);
+      expect(HandelErorrMessage.createWalletDirect(raw), 'لديك محفظة بالفعل');
+    });
+
+    test('رقم المحفظة مستخدم مسبقاً → رسالة الرقم المستخدم', () {
+      expect(
+        HandelErorrMessage.createWalletDirect(
+            'This phone number is already linked to another wallet.'),
+        'هذا الرقم مستخدم في محفظة أخرى',
+      );
+    });
+
+    test('فشل غير معروف في إنشاء المحفظة → احتياطي خاص بالمحفظة', () {
+      expect(
+        HandelErorrMessage.createWalletDirect('Something exploded'),
+        'تعذر إنشاء المحفظة، حاول مجدداً',
+      );
+    });
+  });
+
+  group('HandelErorrMessage — رسوم الرحلات النقدية (5%)', () {
+    test('لا محفظة للسائق → رسالة إنشاء محفظة + كاشف مخصص', () {
+      const raw = 'You must create a wallet before creating a cash ride.';
+      expect(HandelErorrMessage.isCashRideWalletMissing(raw), isTrue);
+      expect(HandelErorrMessage.isCashRideFeeError(raw), isTrue);
+      expect(HandelErorrMessage.createWithRoute(raw),
+          'يجب إنشاء محفظة إلكترونية قبل إنشاء رحلة بالدفع النقدي');
+    });
+
+    test('دين متراكم → الرسالة تحتفظ بالمبلغ القادم من الخادم', () {
+      final message = HandelErorrMessage.createWithRoute(
+          'You have an outstanding debt of 2,500.00 SYP from previous cash '
+          'rides. Please top up your wallet to clear it before creating '
+          'another ride.');
+      expect(message, contains('2,500.00 ل.س'));
+      expect(message, contains('اشحن محفظتك'));
+    });
+
+    test('رصيد غير كافٍ → الرسالة تحتفظ بالرسوم والرصيد بالترتيب', () {
+      final message = HandelErorrMessage.createWithRoute(
+          'Insufficient wallet balance. The creation fee for this ride is '
+          '1,000 SYP. Current balance: 250 SYP.');
+      expect(message, contains('1,000 ل.س'));
+      expect(message, contains('250 ل.س'));
+    });
+
+    test('رصيد غير كافٍ خارج سياق الرحلات النقدية يبقى على الرسالة العامة', () {
+      expect(HandelErorrMessage.createWithRoute('Insufficient wallet balance'),
+          'لا يوجد رصيد كافٍ في المحفظة');
+      expect(
+          HandelErorrMessage.isCashRideFeeError('Insufficient wallet balance'),
+          isFalse);
+    });
+
+    test('خطأ رحلة غير نقدي لا يُصنَّف كخطأ رسوم', () {
+      expect(
+          HandelErorrMessage.isCashRideWalletMissing(
+              'You must be verified as a driver'),
+          isFalse);
+    });
   });
 }

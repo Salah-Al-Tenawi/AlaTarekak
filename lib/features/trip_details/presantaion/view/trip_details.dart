@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
+import 'package:alatarekak/features/chat/domain/entity/quick_messages.dart';
 import 'package:alatarekak/features/trip_details/presantaion/manger/cubit/tripdetails_cubit.dart';
 import 'package:alatarekak/features/trip_details/presantaion/view/widget/body_trip_details.dart';
 
@@ -36,19 +37,55 @@ class _TripDetailsState extends State<TripDetails> {
             if (state is TripDetailsGoToProfile) {
               Get.toNamed(RouteName.profile, arguments: state.userId);
             } else if (state is TripDetailsGoToChat) {
-              // todo add route name chat
-              // todo don't forget that
-              // todo
-              // state.driverId!=myid()?
-              // Get.toNamed(RouteName.forgetpassword,
-              //     arguments: {'userId': state.driverId});
+              context.read<TripDetailsCubit>().openChatWith(
+                    userId: state.driverId,
+                    name: state.driverName,
+                    avatar: state.driverAvatar,
+                  );
+            } else if (state is TripDetailsOpenConversation) {
+              // نعيد جلب الرحلة أولاً حتى لا تعود الشاشة فارغة بعد الرجوع
+              context.read<TripDetailsCubit>().fetchTrip(tripId);
+              Get.toNamed(RouteName.chatScreen, arguments: {
+                'conversationId': state.conversationId,
+                'title': state.title ?? 'السائق',
+                'avatar': state.avatar,
+              });
             } else if (state is TripDetailsCancel) {
               Get.snackbar('تم إلغاء الرحلة', state.message,
                   snackPosition: SnackPosition.BOTTOM);
             } else if (state is TripDetailsRequestBooking) {
               context.read<TripDetailsCubit>().fetchTrip(tripId);
-              Get.snackbar('تم الحجز', 'رقم الطلب: ${state.booking.data?.id}',
-                  snackPosition: SnackPosition.BOTTOM);
+              // رحلات direct تُخصم مقاعدها فوراً (confirmed)، أما رحلات
+              // request فتنتظر موافقة السائق (pending) — حالتان مختلفتان
+              // تماماً ولا يصحّ إظهارهما برسالة واحدة.
+              final booking = state.booking.data;
+              final isPending = booking?.status == 'pending';
+              final conversationId = state.conversationId;
+
+              Get.snackbar(
+                isPending ? 'تم إرسال الطلب' : 'تم تأكيد الحجز',
+                isPending
+                    ? 'طلبك بانتظار موافقة السائق (رقم ${booking?.id})'
+                    : conversationId != null
+                        ? 'فُتحت محادثة مع السائق للاتفاق على مكان اللقاء'
+                        : 'تم تأكيد حجزك، رقم الطلب: ${booking?.id}',
+                snackPosition: SnackPosition.BOTTOM,
+                duration: const Duration(seconds: 6),
+                mainButton: conversationId == null
+                    ? null
+                    : TextButton(
+                        onPressed: () {
+                          Get.closeCurrentSnackbar();
+                          Get.toNamed(RouteName.chatScreen, arguments: {
+                            'conversationId': conversationId,
+                            'title': state.driverName ?? 'السائق',
+                            'avatar': state.driverAvatar,
+                            'draft': QuickMessages.passengerOpener,
+                          });
+                        },
+                        child: const Text('فتح المحادثة'),
+                      ),
+              );
             }
           },
           builder: (context, state) {

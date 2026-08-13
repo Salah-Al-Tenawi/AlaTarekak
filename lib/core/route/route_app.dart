@@ -19,9 +19,7 @@ import 'package:alatarekak/features/booking_user_in_trip/presantion/view/booking
 
 import 'package:alatarekak/features/e_pay/data/data_source/e_pay_remote_data_source.dart';
 import 'package:alatarekak/features/e_pay/data/repo/e_pay_repo_im.dart';
-import 'package:alatarekak/features/e_pay/presantion/manger/cubit/veriyotp_epy_cubit.dart';
 import 'package:alatarekak/features/e_pay/presantion/manger/cubit/wallet_cubit.dart';
-import 'package:alatarekak/features/e_pay/presantion/view/verfiy_otp_epy.dart';
 import 'package:alatarekak/features/e_pay/presantion/view/wallet_view.dart';
 import 'package:alatarekak/features/home/preantion/manger/cubit/home_nav_cubit_cubit.dart';
 import 'package:alatarekak/features/maps/data/data_source/maps_data_source.dart';
@@ -296,18 +294,31 @@ List<GetPage<dynamic>> appRoute = [
     name: RouteName.tripDetails,
     page: () => BlocProvider(
       create: (context) => TripDetailsCubit(
-          tripDetailsRepoIM: TripDetailsRepoIM(
-              remoteDataSource:
-                  TripDetailsRemoteDataSource(api: getit.get<DioConSumer>()))),
+        tripDetailsRepoIM: TripDetailsRepoIM(
+            remoteDataSource:
+                TripDetailsRemoteDataSource(api: getit.get<DioConSumer>())),
+        // لفتح محادثة مع السائق تلقائياً عند تأكيد الحجز
+        chatRepo: ChatRepoImpl(
+          remoteDataSource:
+              ChatRemoteDataSourceImpl(api: getit.get<DioConSumer>()),
+        ),
+      ),
       child: const TripDetails(),
     ),
   ),
   GetPage(
     name: RouteName.bookingUserInTrip,
     page: () => BlocProvider(
-      create: (context) => BookingUserInTripCubit(BookingUsersInTripRepoImp(
-          remoteData:
-              BookingUserTripRemoteData(api: getit.get<DioConSumer>()))),
+      create: (context) => BookingUserInTripCubit(
+        BookingUsersInTripRepoImp(
+            remoteData:
+                BookingUserTripRemoteData(api: getit.get<DioConSumer>())),
+        // لمراسلة الراكب بعد تأكيد حجزه
+        chatRepo: ChatRepoImpl(
+          remoteDataSource:
+              ChatRemoteDataSourceImpl(api: getit.get<DioConSumer>()),
+        ),
+      ),
       child: const BookingUserINTrip(),
     ),
   ),
@@ -469,15 +480,6 @@ List<GetPage<dynamic>> appRoute = [
 
   // policy
   GetPage(name: RouteName.policy, page: () => const Policy()),
-
-  GetPage(
-      name: RouteName.verfiyOtpEpy,
-      page: () => BlocProvider(
-            create: (context) => VeriyotpEpyCubit(EPayRepoIm(
-                remoteDataSource:
-                    EPayRemoteDataSource(api: getit.get<DioConSumer>()))),
-            child: const VerifyOtpEPay(),
-          )),
 
   GetPage(
       name: RouteName.wallet,

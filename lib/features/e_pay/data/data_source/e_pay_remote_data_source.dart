@@ -9,21 +9,14 @@ class EPayRemoteDataSource {
 
   EPayRemoteDataSource({required this.api});
 
-  Future<dynamic> initWallet(String numberPhone, String password) async {
-    final response = await api.post(ApiEndPoint.initialwallet, header: {
-      ApiKey.authorization: "Bearer ${mytoken()}"
-    }, data: {
-      ApiKey.phoneNumber: numberPhone,
-      ApiKey.password: password,
-    });
-    return response;
-  }
-
-  Future<dynamic> createWallet(String numberPhone, String otpCode) async {
+  /// إنشاء المحفظة برقم الهاتف بلا رمز تحقق — رقم الهاتف هو رقم المحفظة.
+  /// يُستخدم تلقائياً ضمن تدفّق إنشاء الحساب، ويدوياً من شاشة المحفظة لمن
+  /// لم تُنشأ محفظته وقتها (فشل عابر، أو حساب أُنشئ قبل هذه الميزة).
+  Future<dynamic> createWalletDirect(String phoneNumber) async {
     final response = await api.post(
-      ApiEndPoint.createwallet,
+      ApiEndPoint.createWalletDirect,
       header: {ApiKey.authorization: "Bearer ${mytoken()}"},
-      data: {ApiKey.phoneNumber: numberPhone, ApiKey.otpCode: otpCode},
+      data: {ApiKey.phoneNumber: phoneNumber},
     );
     return response;
   }

@@ -146,22 +146,64 @@ class HandelErorrMessage {
         "failed to get route options": "تعذر حساب المسار، حاول مجدداً",
       }, fallback: "تعذر حساب المسار، حاول مجدداً");
 
-  static String createWithRoute(String message) => _match(message, {
-        "must be verified as a driver":
-            "يجب توثيق حسابك كسائق قبل إنشاء الرحلات",
-        "missing required verification documents":
-            "يجب توثيق حسابك كسائق قبل إنشاء الرحلات",
-        "driver profile not found": "يرجى إكمال ملفك الشخصي أولاً",
-        "trust score":
-            "نقاط الثقة لديك غير كافية لإنشاء رحلات (الحد الأدنى 50)",
-        "at least 5 minutes":
-            "يجب أن يكون موعد الانطلاق بعد 5 دقائق على الأقل من الآن",
-        "departure_time":
-            "يجب أن يكون موعد الانطلاق بعد 5 دقائق على الأقل من الآن",
-        "more than 30 days": "لا يمكن جدولة رحلة بعد أكثر من 30 يوماً",
-        "insufficient wallet balance": "لا يوجد رصيد كافٍ في المحفظة",
-        "price": "يرجى إدخال سعر صحيح",
-      });
+  // ---------- رسوم الرحلات النقدية (5% من المحفظة عند الإنشاء) ----------
+  // الخادم يرمي هذه الأخطاء بحالة 500 لا 422، ورسائلها تحمل مبالغ متغيرة،
+  // لذا تُطابق قبل الخريطة العامة وتُستخرج منها الأرقام.
+
+  static String? _cashRideFee(String m, String original) {
+    if (m.contains("must create a wallet")) {
+      return "يجب إنشاء محفظة إلكترونية قبل إنشاء رحلة بالدفع النقدي";
+    }
+    if (m.contains("outstanding debt")) {
+      final amounts = _amounts(original);
+      final debt = amounts.isNotEmpty ? "${amounts.first} ل.س" : "مستحقة";
+      return "عليك رسوم $debt من رحلات نقدية سابقة. اشحن محفظتك لتسويتها "
+          "قبل إنشاء رحلة جديدة";
+    }
+    if (m.contains("insufficient wallet balance") &&
+        m.contains("creation fee")) {
+      final amounts = _amounts(original);
+      if (amounts.length >= 2) {
+        return "رصيد محفظتك لا يكفي رسوم إنشاء هذه الرحلة (${amounts[0]} ل.س)، "
+            "ورصيدك الحالي ${amounts[1]} ل.س. اشحن محفظتك ثم أعد المحاولة";
+      }
+      return "رصيد محفظتك لا يكفي رسوم إنشاء الرحلة، اشحن محفظتك ثم أعد المحاولة";
+    }
+    return null;
+  }
+
+  /// المبالغ الواردة في رسالة الخادم بالترتيب (مثل "1,500.00 SYP").
+  static List<String> _amounts(String message) => RegExp(
+        r'([0-9][0-9,]*(?:\.[0-9]+)?)\s*SYP',
+        caseSensitive: false,
+      ).allMatches(message).map((m) => m.group(1)!).toList();
+
+  /// السائق لا يملك محفظة — الواجهة تعرض له طريقاً مباشراً لإنشائها.
+  static bool isCashRideWalletMissing(String message) =>
+      message.toLowerCase().contains("must create a wallet");
+
+  /// هل فشل إنشاء الرحلة بسبب رسوم الدفع النقدي؟ (محفظة/دين/رصيد)
+  static bool isCashRideFeeError(String message) =>
+      _cashRideFee(message.toLowerCase().trim(), message) != null;
+
+  static String createWithRoute(String message) {
+    final cash = _cashRideFee(message.toLowerCase().trim(), message);
+    if (cash != null) return cash;
+    return _match(message, {
+      "must be verified as a driver": "يجب توثيق حسابك كسائق قبل إنشاء الرحلات",
+      "missing required verification documents":
+          "يجب توثيق حسابك كسائق قبل إنشاء الرحلات",
+      "driver profile not found": "يرجى إكمال ملفك الشخصي أولاً",
+      "trust score": "نقاط الثقة لديك غير كافية لإنشاء رحلات (الحد الأدنى 50)",
+      "at least 5 minutes":
+          "يجب أن يكون موعد الانطلاق بعد 5 دقائق على الأقل من الآن",
+      "departure_time":
+          "يجب أن يكون موعد الانطلاق بعد 5 دقائق على الأقل من الآن",
+      "more than 30 days": "لا يمكن جدولة رحلة بعد أكثر من 30 يوماً",
+      "insufficient wallet balance": "لا يوجد رصيد كافٍ في المحفظة",
+      "price": "يرجى إدخال سعر صحيح",
+    });
+  }
 
   static String showAllride(String message) => _match(message, {});
 
@@ -189,8 +231,21 @@ class HandelErorrMessage {
         "at least 1 seat": "يجب حجز مقعد واحد على الأقل",
         "more than 8 seats": "لا يمكن حجز أكثر من 8 مقاعد",
         "not enough seats": "عدد المقاعد المتاحة غير كافٍ",
+        "not available for booking": "هذه الرحلة لم تعد متاحة للحجز",
+        "insufficient balance": "رصيد محفظتك غير كافٍ لإتمام الحجز",
         "wallet balance": "رصيد محفظتك غير كافٍ لإتمام الحجز",
       }, fallback: "تعذر إتمام الحجز، حاول مجدداً");
+
+  /// رحلة بلا ركّاب: الخادم ينهيها فعلاً ثم يرمي هذا الخطأ بحالة 400
+  /// (عيب مؤكد في الباك إند). المستدعي يعيد جلب الرحلة ويتحقق من
+  /// status == "finished" بدل عرض خطأ كاذب للسائق.
+  static bool isRideNotAwaitingConfirmation(String message) =>
+      message.toLowerCase().contains("not awaiting confirmation");
+
+  /// تأكيد مكرر (ضغط مزدوج على الزر) — حالة طبيعية تُعامل كنجاح صامت.
+  /// الخادم يرجعها بحالة 500 من passenger-confirm وبحالة 400 من driver-confirm.
+  static bool isAlreadyConfirmed(String message) =>
+      message.toLowerCase().contains("already confirmed");
 
   static String finishRide(String message) => _match(message, {
         "only the ride driver": "هذا الإجراء متاح لسائق الرحلة فقط",
@@ -200,6 +255,9 @@ class HandelErorrMessage {
             "لا يمكن إنهاء الرحلة قبل موعد انطلاقها",
         "no confirmed bookings found":
             "لا يوجد حجوزات في هذه الرحلة، يمكنك إلغاؤها بدلاً من ذلك",
+        // تصل هنا فقط إذا لم تكن الرحلة قد انتهت فعلاً — الحالة الكاذبة
+        // (رحلة بلا ركّاب) يلتقطها isRideNotAwaitingConfirmation قبلها
+        "not awaiting confirmation": "الرحلة ليست بانتظار التأكيد",
       });
 
   static String driverConfirm(String message) => _match(message, {
@@ -277,17 +335,17 @@ class HandelErorrMessage {
         "wallet not found": "لا تملك محفظة بعد، أنشئ واحدة الآن",
       });
 
-  static String initialWallet(String message) => _match(message, {
-        "invalid password": "كلمة المرور غير صحيحة",
-        "wallet already exists": "لديك محفظة بالفعل",
+  /// إنشاء المحفظة مباشرة برقم الهاتف بلا رمز تحقق.
+  static String createWalletDirect(String message) => _match(message, {
+        "already have a wallet": "لديك محفظة بالفعل",
+        "already linked": "هذا الرقم مستخدم في محفظة أخرى",
+        "already been taken": "هذا الرقم مستخدم في محفظة أخرى",
         "phone_number": "هذا الرقم مستخدم في محفظة أخرى",
-        "failed to send otp": "تعذر إرسال الرمز، حاول مجدداً",
-        "no api key": "الخدمة غير متاحة حالياً",
-      });
+      }, fallback: "تعذر إنشاء المحفظة، حاول مجدداً");
 
-  static String createWallet(String message) => _match(message, {
-        "wallet already exists": "لديك محفظة بالفعل",
-      });
+  /// المحفظة موجودة أصلاً — ليست خطأً: الواجهة تكتفي بتحديث الرصيد.
+  static bool isWalletAlreadyExists(String message) =>
+      message.toLowerCase().contains("already have a wallet");
 
   static String requestCharge(String message) => _match(message, {
         "do not have a wallet": "أنشئ محفظة أولاً",

@@ -12,6 +12,7 @@ class ButtonSingin extends StatelessWidget {
     required this.firstname,
     required this.lastname,
     required this.email,
+    required this.phoneNumber,
     required this.password,
     required this.passwordConfirm,
     required this.formKey,
@@ -20,6 +21,7 @@ class ButtonSingin extends StatelessWidget {
   final TextEditingController firstname;
   final TextEditingController lastname;
   final TextEditingController email;
+  final TextEditingController phoneNumber;
   final TextEditingController password;
   final TextEditingController passwordConfirm;
   final GlobalKey<FormState> formKey;
@@ -53,6 +55,7 @@ class ButtonSingin extends StatelessWidget {
               final fname = firstname.text.trim();
               final lname = lastname.text.trim();
               final mail = email.text.trim();
+              final phone = phoneNumber.text.trim();
               final pass = password.text.trim();
               final confirm = passwordConfirm.text.trim();
               final gender = cubit.gender;
@@ -67,6 +70,7 @@ class ButtonSingin extends StatelessWidget {
                       address ?? "دمشق",
                       pass,
                       confirm,
+                      phone,
                     );
               }
             },

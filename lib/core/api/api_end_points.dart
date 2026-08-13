@@ -32,10 +32,9 @@ class ApiEndPoint {
   static const createRide = "$rides/create-with-route";
   static const search = "$rides/search";
 
-  // epy
+  // epy — المحفظة تُنشأ برقم الهاتف مباشرة بلا رمز تحقق
   static const getbalance = "$baserUrl/wallet/balance";
-  static const initialwallet = "$baserUrl/wallet/initiate";
-static const createwallet = "$baserUrl/wallet/verify-and-create";
+  static const createWalletDirect = "$baserUrl/wallet/create-direct";
 
   // bookings — حجوزاتي كراكب + إجراءات الحجز (cancel / cancel-seats / passenger-confirm / accept / reject)
   static const bookings = "$baserUrl/bookings";
@@ -108,7 +107,7 @@ class ApiKey {
   static const averageRating = "average_rating";
   static const phoneNumber = "phone_number";
   static const otpCode = "otp_code";
-  
+
 
   // Car Info
   static const typeOfCar = "type_of_car";

@@ -31,6 +31,7 @@ void main() {
       address: 'x',
       password: 'x',
       confirmPassword: 'x',
+      phoneNumber: '0999999999',
     ));
   });
 
@@ -46,7 +47,7 @@ void main() {
         return SinginCubit(repo);
       },
       act: (cubit) => cubit.signIn('يزن', 'صلاح', 'M', 'new@example.com',
-          'دمشق', '12345678', '12345678'),
+          'دمشق', '12345678', '12345678', '0999999999'),
       expect: () => [
         isA<SinginLoading>(),
         isA<SingInGotoVerfiyOtp>()
@@ -62,7 +63,7 @@ void main() {
         return SinginCubit(repo);
       },
       act: (cubit) => cubit.signIn('يزن', 'صلاح', 'M', 'dup@example.com',
-          'دمشق', '12345678', '12345678'),
+          'دمشق', '12345678', '12345678', '0999999999'),
       expect: () => [
         isA<SinginLoading>(),
         isA<SinginErorre>()

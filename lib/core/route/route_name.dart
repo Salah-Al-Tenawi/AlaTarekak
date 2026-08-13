@@ -53,10 +53,9 @@ class RouteName {
   static const bookingMeList = "/BookingMeList";
   // pilicy
   static const policy = "/policy"; 
-  // e-pay wallet
+  // e-pay wallet — الإنشاء يتم داخل الشاشة نفسها بلا شاشة رمز تحقق
   static const wallet = "/wallet";
-  static const verfiyOtpEpy = "/VerfiyotpEpy";
-  
+
 static const chatListScreen = "/ChatListScreen";
 static const chatScreen = "/ChatScreen";
 

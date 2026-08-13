@@ -11,22 +11,9 @@ class EPayRepoIm extends EPayRepo {
   EPayRepoIm({required this.remoteDataSource});
 
   @override
-  Future<Either<Filuar, dynamic>> initWallet(
-      String numberPhone, String password) async {
+  Future<Either<Filuar, dynamic>> createWalletDirect(String phoneNumber) async {
     try {
-      final response = await remoteDataSource.initWallet(numberPhone, password);
-      return right(response);
-    } on ServerExpcptions catch (e) {
-      return left(e.error);
-    }
-  }
-
-  @override
-  Future<Either<Filuar, dynamic>> createWallet(
-      String numberPhone, String otpCode) async {
-    try {
-      final response =
-          await remoteDataSource.createWallet(numberPhone, otpCode);
+      final response = await remoteDataSource.createWalletDirect(phoneNumber);
       return right(response);
     } on ServerExpcptions catch (e) {
       return left(e.error);

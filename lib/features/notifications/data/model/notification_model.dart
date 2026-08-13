@@ -42,8 +42,12 @@ class NotificationModel extends NotificationEntity {
           (inner['category'] ?? json['category'])?.toString() ?? 'general',
       type: (inner['type'] ?? json['type'])?.toString(),
       priority: (inner['priority'] ?? json['priority'])?.toString(),
-      // حالة القراءة على الصف الخارجي — الباك إند قد يرسلها bool أو 0/1
-      isRead: json['is_read'] == true || json['is_read'] == 1,
+      // حالة القراءة على الصف الخارجي: الباك إند لا يرسل is_read إطلاقاً —
+      // المصدر الوحيد هو read_at (null تعني غير مقروء). أما is_read فيأتي
+      // من كاش Hive المحلي فقط (انظر toJson أدناه) لذا نقبله كمصدر ثانوي.
+      isRead: json['read_at'] != null ||
+          json['is_read'] == true ||
+          json['is_read'] == 1,
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? ''),
       data: data,
     );

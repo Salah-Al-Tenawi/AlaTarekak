@@ -26,6 +26,22 @@ class BodyTripDetails extends StatefulWidget {
 }
 
 class _BodyTripDetailsState extends State<BodyTripDetails> {
+  /// حجز المستخدم الحالي على هذه الرحلة (إن وُجد).
+  BookingModel? get _myBooking {
+    for (final b in widget.trip.booking) {
+      if (b.userId == myid()) return b;
+    }
+    return null;
+  }
+
+  /// المحادثة مسموحة بين طرفين بينهما حجز فعلي فقط. الحجز المعلّق
+  /// (pending) ليس حجزاً بعد — ينتظر موافقة السائق.
+  bool get _canChatWithDriver {
+    if (widget.mode != TripDetailsMode.otherView) return false;
+    final status = _myBooking?.status;
+    return status == 'confirmed' || status == 'completed';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -69,24 +85,23 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
     final now = DateTime.now();
     final difference = departure.difference(now);
 
+    // الخادم يرفض الإنهاء قبل موعد الانطلاق — نعطّل الزر بدل انتظار الرفض
+    final canFinish = difference.inSeconds <= 0;
+
     // نتحقق إذا كانت الحالة active أو full
     if (widget.trip.status == 'active' || widget.trip.status == 'full') {
       return Container(
         width: double.infinity,
         margin: EdgeInsets.symmetric(vertical: 10.h),
         child: ElevatedButton(
-          onPressed: () {
-            if (widget.trip.booking.isEmpty) {
-              context.read<TripDetailsCubit>().finishRide(widget.trip.id);
-            } else if (difference.inSeconds <= 0) {
-              context
-                  .read<TripDetailsCubit>()
-                  .finishAndConfirmRide(widget.trip.id);
-            }
-          },
+          onPressed: canFinish
+              ? () => context.read<TripDetailsCubit>().finishRide(widget.trip.id)
+              : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: MyColors.accent,
             foregroundColor: Colors.white,
+            disabledBackgroundColor: MyColors.textHint,
+            disabledForegroundColor: Colors.white,
             padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 24.w),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.r),
@@ -103,7 +118,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
                 color: Colors.white,
               ),
               SizedBox(width: 12.w),
-              difference.inSeconds <= 0
+              canFinish
                   ? Text(
                       "إنهاء الرحلة",
                       style: TextStyle(
@@ -211,18 +226,37 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
           ),
         ),
         SizedBox(width: 8.w),
-        Text(widget.trip.driver.name),
-        SizedBox(width: 15.w),
-        RatingBarIndicator(
-          rating: widget.trip.driver.rating.toDouble(),
-          itemBuilder: (context, index) => const Icon(
-            Icons.star,
-            color: Colors.amber,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(widget.trip.driver.name),
+              RatingBarIndicator(
+                rating: widget.trip.driver.rating.toDouble(),
+                itemBuilder: (context, index) => const Icon(
+                  Icons.star,
+                  color: Colors.amber,
+                ),
+                itemCount: 5,
+                itemSize: 18.0,
+                direction: Axis.horizontal,
+              ),
+            ],
           ),
-          itemCount: 5,
-          itemSize: 20.0,
-          direction: Axis.horizontal,
         ),
+        // مراسلة السائق — لا تُفتح محادثة إلا بين طرفين بينهما حجز فعلي،
+        // فالزر يظهر فقط لمن له حجز مؤكَّد أو مكتمل على هذه الرحلة
+        if (_canChatWithDriver)
+          IconButton(
+            onPressed: () => context.read<TripDetailsCubit>().gotoChatWithDriver(
+                  widget.trip.driver.id,
+                  name: widget.trip.driver.name,
+                  avatar: widget.trip.driver.avatar,
+                ),
+            icon: Icon(Icons.chat_bubble_outline_rounded,
+                color: MyColors.primary),
+            tooltip: 'مراسلة السائق',
+          ),
       ],
     );
   }
@@ -1009,10 +1043,10 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
                   if (value == null || value.isEmpty) {
                     return 'الرجاء إدخال رقم الهاتف';
                   }
-                  // التحقق من أن الرقم يحتوي على 10 أرقام فقط
-                  final RegExp phoneRegex = RegExp(r'^[0-9]{10}$');
+                  // الخادم يفرض ^09\d{8}$ ويرفض ما عداه بـ 422
+                  final RegExp phoneRegex = RegExp(r'^09\d{8}$');
                   if (!phoneRegex.hasMatch(value)) {
-                    return 'يجب أن يتكون رقم الهاتف من 10 أرقام';
+                    return 'يجب أن يبدأ الرقم بـ 09 ويتكون من 10 أرقام';
                   }
                   return null;
                 },

@@ -45,6 +45,17 @@ void main() {
     );
 
     blocTest<WalletCubit, WalletState>(
+      'صياغة الخادم الفعلية "No wallet found for this account." تُفهم أيضاً',
+      build: () {
+        when(() => repo.getBalance()).thenAnswer((_) async =>
+            left(const Filuar(message: 'No wallet found for this account.')));
+        return WalletCubit(repo);
+      },
+      act: (cubit) => cubit.getBalance(),
+      expect: () => [isA<WalletLoading>(), isA<WalletNotActivated>()],
+    );
+
+    blocTest<WalletCubit, WalletState>(
       'خطأ حقيقي (انقطاع خادم): WalletErorr برسالة معرّبة عامة',
       build: () {
         when(() => repo.getBalance()).thenAnswer(
@@ -56,6 +67,77 @@ void main() {
         isA<WalletLoading>(),
         isA<WalletErorr>().having((s) => s.message, 'message',
             'حدث خطأ غير متوقع، يرجى المحاولة لاحقاً'),
+      ],
+    );
+  });
+
+  group('WalletCubit — التفعيل اليدوي (خطوة واحدة بلا رمز تحقق)', () {
+    blocTest<WalletCubit, WalletState>(
+      'نجاح التفعيل: يعرض الرصيد مباشرة بعده',
+      build: () {
+        when(() => repo.createWalletDirect('0912345678'))
+            .thenAnswer((_) async => right({'success': true}));
+        when(() => repo.getBalance()).thenAnswer((_) async =>
+            right(BalanceModel(walletNumber: 'SY-1', balance: '0')));
+        return WalletCubit(repo);
+      },
+      act: (cubit) => cubit.activateWallet('0912345678'),
+      expect: () => [
+        isA<WalletActivating>(),
+        isA<WalletLoading>(),
+        isA<WalletLoaded>().having((s) => s.balance.balance, 'balance', '0'),
+      ],
+      verify: (_) =>
+          verify(() => repo.createWalletDirect('0912345678')).called(1),
+    );
+
+    blocTest<WalletCubit, WalletState>(
+      'محفظة موجودة أصلاً (409): ليست خطأً — يعرض الرصيد',
+      build: () {
+        when(() => repo.createWalletDirect(any())).thenAnswer((_) async =>
+            left(const Filuar(message: 'You already have a wallet.')));
+        when(() => repo.getBalance()).thenAnswer((_) async =>
+            right(BalanceModel(walletNumber: 'SY-1', balance: '5000')));
+        return WalletCubit(repo);
+      },
+      act: (cubit) => cubit.activateWallet('0912345678'),
+      expect: () => [
+        isA<WalletActivating>(),
+        isA<WalletLoading>(),
+        isA<WalletLoaded>().having((s) => s.balance.balance, 'balance', '5000'),
+      ],
+    );
+
+    blocTest<WalletCubit, WalletState>(
+      'الرقم مستخدم في محفظة أخرى (422): يبقى في شاشة التفعيل برسالة معرّبة',
+      build: () {
+        when(() => repo.createWalletDirect(any())).thenAnswer((_) async => left(
+            const Filuar(
+                message:
+                    'This phone number is already linked to another wallet.')));
+        return WalletCubit(repo);
+      },
+      act: (cubit) => cubit.activateWallet('0912345678'),
+      expect: () => [
+        isA<WalletActivating>(),
+        isA<WalletActivationFailed>().having(
+            (s) => s.message, 'message', 'هذا الرقم مستخدم في محفظة أخرى'),
+      ],
+      verify: (_) => verifyNever(() => repo.getBalance()),
+    );
+
+    blocTest<WalletCubit, WalletState>(
+      'فشل شبكة أثناء التفعيل: رسالة خاصة بالمحفظة لا الرسالة العامة',
+      build: () {
+        when(() => repo.createWalletDirect(any())).thenAnswer(
+            (_) async => left(const Filuar(message: 'تحقق من اتصال الإنترنت')));
+        return WalletCubit(repo);
+      },
+      act: (cubit) => cubit.activateWallet('0912345678'),
+      expect: () => [
+        isA<WalletActivating>(),
+        isA<WalletActivationFailed>().having((s) => s.message, 'message',
+            'تعذر إنشاء المحفظة، حاول مجدداً'),
       ],
     );
   });

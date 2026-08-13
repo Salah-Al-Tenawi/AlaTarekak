@@ -2,6 +2,7 @@ import 'package:alatarekak/core/errors/filuar.dart';
 import 'package:alatarekak/features/booking_user_in_trip/data/model/booking_user_modle.dart';
 import 'package:alatarekak/features/booking_user_in_trip/data/repo/booking_users_in_trip_repo_imp.dart';
 import 'package:alatarekak/features/booking_user_in_trip/presantion/manger/cubit/booking_user_in_trip_cubit.dart';
+import 'package:alatarekak/features/chat/domain/repo/chat_repo.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +10,8 @@ import 'package:mocktail/mocktail.dart';
 
 class MockBookingUsersInTripRepo extends Mock
     implements BookingUsersInTripRepoImp {}
+
+class MockChatRepo extends Mock implements ChatRepo {}
 
 void main() {
   late MockBookingUsersInTripRepo repo;
@@ -52,7 +55,24 @@ void main() {
 
   group('BookingUserInTripCubit — رفض راكب', () {
     blocTest<BookingUserInTripCubit, BookingUserInTripState>(
-      'نجاح الرفض: يحدّث الحجز إلى rejected (تعرضه الواجهة "مرفوض")',
+      'نجاح الرفض: الحالة تُقرأ من رد الخادم (cancelled لا rejected)',
+      build: () {
+        when(() => repo.rejectPassanger(7)).thenAnswer((_) async => right({
+              'success': true,
+              'message': 'Booking rejected successfully',
+              'data': {'id': 7, 'status': 'cancelled'},
+            }));
+        return BookingUserInTripCubit(repo);
+      },
+      act: (cubit) => cubit.rejectPassanger(7),
+      expect: () => [
+        isA<BookingUserInTripLoading>(),
+        const BookingUserInTripUpdated(bookingId: 7, statusRide: 'cancelled'),
+      ],
+    );
+
+    blocTest<BookingUserInTripCubit, BookingUserInTripState>(
+      'رد بلا كائن حجز: تُستخدم cancelled احتياطياً — لا "rejected" الملفّقة',
       build: () {
         when(() => repo.rejectPassanger(7))
             .thenAnswer((_) async => right(null));
@@ -61,7 +81,7 @@ void main() {
       act: (cubit) => cubit.rejectPassanger(7),
       expect: () => [
         isA<BookingUserInTripLoading>(),
-        const BookingUserInTripUpdated(bookingId: 7, statusRide: 'rejected'),
+        const BookingUserInTripUpdated(bookingId: 7, statusRide: 'cancelled'),
       ],
     );
 
@@ -83,17 +103,18 @@ void main() {
 
   group('BookingUserInTripCubit — بلاغ عدم حضور الراكب', () {
     blocTest<BookingUserInTripCubit, BookingUserInTripState>(
-      'نجاح البلاغ: يحدّث الحجز إلى passenger_no_show',
+      'نجاح البلاغ: الحالة no_show (قيمة الـ enum) لا passenger_no_show',
       build: () {
-        when(() => repo.passengerNoShow(7))
-            .thenAnswer((_) async => right(null));
+        when(() => repo.passengerNoShow(7)).thenAnswer((_) async => right({
+              'status': 'success',
+              'message': 'Passenger no-show recorded. Settlement processed.',
+            }));
         return BookingUserInTripCubit(repo);
       },
       act: (cubit) => cubit.passengerNoShow(7),
       expect: () => [
         isA<BookingUserInTripLoading>(),
-        const BookingUserInTripUpdated(
-            bookingId: 7, statusRide: 'passenger_no_show'),
+        const BookingUserInTripUpdated(bookingId: 7, statusRide: 'no_show'),
       ],
     );
 
@@ -112,5 +133,64 @@ void main() {
             'لا يمكن الإبلاغ قبل موعد الانطلاق'),
       ],
     );
+  });
+
+  group('BookingUserInTripCubit — مراسلة الراكب (للسائق)', () {
+    test('نجاح الفتح: حالة الانتقال إلى المحادثة ببيانات الراكب', () async {
+      final chat = MockChatRepo();
+      when(() => chat.startConversation(userId: any(named: 'userId')))
+          .thenAnswer((_) async => right(9));
+
+      final cubit = BookingUserInTripCubit(repo, chatRepo: chat);
+      await cubit.openChatWithPassenger(
+          userId: 15, name: 'أحمد علي', avatar: null);
+
+      final state = cubit.state as BookingUserInTripOpenConversation;
+      expect(state.conversationId, 9);
+      expect(state.title, 'أحمد علي');
+      verify(() => chat.startConversation(userId: 15)).called(1);
+      await cubit.close();
+    });
+
+    test('ضغطتان متتاليتان لا تُنشئان محادثتين', () async {
+      final chat = MockChatRepo();
+      when(() => chat.startConversation(userId: any(named: 'userId')))
+          .thenAnswer((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+        return right(9);
+      });
+
+      final cubit = BookingUserInTripCubit(repo, chatRepo: chat);
+      // ضغطتان قبل عودة الطلب الأول
+      await Future.wait([
+        cubit.openChatWithPassenger(userId: 15),
+        cubit.openChatWithPassenger(userId: 15),
+      ]);
+
+      verify(() => chat.startConversation(userId: 15)).called(1);
+      await cubit.close();
+    });
+
+    test('فشل الفتح: رسالة معرّبة لا انتقال', () async {
+      final chat = MockChatRepo();
+      when(() => chat.startConversation(userId: any(named: 'userId')))
+          .thenAnswer((_) async =>
+              left(const Filuar(message: 'Conversation not found')));
+
+      final cubit = BookingUserInTripCubit(repo, chatRepo: chat);
+      await cubit.openChatWithPassenger(userId: 15);
+
+      expect(cubit.state, isA<BookingUserInTripErorr>());
+      expect((cubit.state as BookingUserInTripErorr).message,
+          'المحادثة غير موجودة');
+      await cubit.close();
+    });
+
+    test('بلا chatRepo: لا شيء يحدث ولا ينكسر شيء', () async {
+      final cubit = BookingUserInTripCubit(repo);
+      await cubit.openChatWithPassenger(userId: 15);
+      expect(cubit.state, isA<BookingUserInTripInitial>());
+      await cubit.close();
+    });
   });
 }

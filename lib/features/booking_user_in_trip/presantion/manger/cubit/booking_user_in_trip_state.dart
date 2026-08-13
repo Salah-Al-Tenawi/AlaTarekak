@@ -35,3 +35,19 @@ final class BookingUserInTripUpdated extends BookingUserInTripState {
 
 final class BookingUserInTripSucc extends BookingUserInTripState {}
 
+/// المحادثة مع الراكب جاهزة — الواجهة تنتقل إلى شاشة المحادثة.
+final class BookingUserInTripOpenConversation extends BookingUserInTripState {
+  final int conversationId;
+  final String? title;
+  final String? avatar;
+
+  const BookingUserInTripOpenConversation({
+    required this.conversationId,
+    this.title,
+    this.avatar,
+  });
+
+  @override
+  List<Object> get props => [conversationId, title ?? '', avatar ?? ''];
+}
+

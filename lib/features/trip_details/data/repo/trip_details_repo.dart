@@ -21,10 +21,11 @@ class TripDetailsRepoIM extends TripDetailsRepo {
     }
   }
 
-  Future<Either<Filuar, BookingResponse>> booking(
-      int seats, int tripId, String communicationNumber) async {
+  Future<Either<Filuar, BookingResponse>> booking(int seats, int tripId,
+      String communicationNumber, String idempotencyKey) async {
     try {
-      final response = await remoteDataSource.booking(seats, tripId ,communicationNumber);
+      final response = await remoteDataSource.booking(
+          seats, tripId, communicationNumber, idempotencyKey);
       return right(response);
     } on ServerExpcptions catch (e) {
       return left(e.error);

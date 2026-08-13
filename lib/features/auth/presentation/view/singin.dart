@@ -17,6 +17,7 @@ class _SinginState extends State<Singin> {
   final TextEditingController firstname = TextEditingController();
   final TextEditingController lastname = TextEditingController();
   final TextEditingController email = TextEditingController();
+  final TextEditingController phoneNumber = TextEditingController();
   final TextEditingController password = TextEditingController();
   final TextEditingController passwordConfirm = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey();
@@ -26,6 +27,7 @@ class _SinginState extends State<Singin> {
     firstname.dispose();
     lastname.dispose();
     email.dispose();
+    phoneNumber.dispose();
     password.dispose();
     passwordConfirm.dispose();
     super.dispose();
@@ -145,6 +147,7 @@ class _SinginState extends State<Singin> {
                         firstname: firstname,
                         lastname: lastname,
                         email: email,
+                        phoneNumber: phoneNumber,
                         password: password,
                         passwordConfirm: passwordConfirm,
                       ),
@@ -159,6 +162,7 @@ class _SinginState extends State<Singin> {
                         firstname: firstname,
                         lastname: lastname,
                         email: email,
+                        phoneNumber: phoneNumber,
                         formKey: formKey,
                         password: password,
                         passwordConfirm: passwordConfirm,

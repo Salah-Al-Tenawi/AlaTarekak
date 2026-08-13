@@ -94,6 +94,7 @@ class SinginCubit extends Cubit<SinginState> {
   String address,
   String password,
   String verifyPassword,
+  String phoneNumber,
 ) async {
   emit(SinginLoading());
 
@@ -105,6 +106,7 @@ class SinginCubit extends Cubit<SinginState> {
     address: address,
     password: password,
     confirmPassword: verifyPassword,
+    phoneNumber: phoneNumber,
   );
 
   final response = await authRepoIm.signIn(params);

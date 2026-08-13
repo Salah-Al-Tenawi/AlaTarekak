@@ -40,10 +40,26 @@ final class TripDetailsBooking extends TripDetailsState {}
 
   final class TripDetailsRequestBooking extends TripDetailsState {
     final BookingResponse booking;
-    const TripDetailsRequestBooking({required this.booking});
+
+    /// معرّف المحادثة التي فُتحت مع السائق وأُرسلت فيها رسالة الراكب
+    /// الأولى. يبقى null إذا كان الحجز بانتظار موافقة السائق (pending)
+    /// أو تعذّر فتح المحادثة — والحجز ناجح في الحالتين.
+    final int? conversationId;
+
+    /// اسم السائق وصورته لعنوان شاشة المحادثة عند فتحها.
+    final String? driverName;
+    final String? driverAvatar;
+
+    const TripDetailsRequestBooking({
+      required this.booking,
+      this.conversationId,
+      this.driverName,
+      this.driverAvatar,
+    });
 
     @override
-    List<Object?> get props => [booking];
+    List<Object?> get props =>
+        [booking, conversationId, driverName, driverAvatar];
   }
 
 final class TripDetailsGoToProfile extends TripDetailsState {
@@ -56,10 +72,33 @@ final class TripDetailsGoToProfile extends TripDetailsState {
 
 final class TripDetailsGoToChat extends TripDetailsState {
   final int driverId;
-  const TripDetailsGoToChat({required this.driverId});
+  final String? driverName;
+  final String? driverAvatar;
+
+  const TripDetailsGoToChat({
+    required this.driverId,
+    this.driverName,
+    this.driverAvatar,
+  });
 
   @override
-  List<Object?> get props => [driverId];
+  List<Object?> get props => [driverId, driverName, driverAvatar];
+}
+
+/// المحادثة جاهزة — الواجهة تنتقل إلى شاشة المحادثة بهذا المعرّف.
+final class TripDetailsOpenConversation extends TripDetailsState {
+  final int conversationId;
+  final String? title;
+  final String? avatar;
+
+  const TripDetailsOpenConversation({
+    required this.conversationId,
+    this.title,
+    this.avatar,
+  });
+
+  @override
+  List<Object?> get props => [conversationId, title, avatar];
 }
 
 class TripDetailsButtonLoading extends TripDetailsState {}

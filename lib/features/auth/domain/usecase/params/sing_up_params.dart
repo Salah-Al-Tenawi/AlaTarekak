@@ -1,4 +1,3 @@
-
 class SignUpParams {
   final String firstName;
   final String lastName;
@@ -6,7 +5,11 @@ class SignUpParams {
   final String email;
   final String address;
   final String password;
-  final String confirmPassword; 
+  final String confirmPassword;
+
+  /// رقم الهاتف (09XXXXXXXX) — تُنشأ عليه محفظة المستخدم تلقائياً بعد
+  /// تأكيد البريد. لا يُرسل ضمن جسم /auth/signup لأن الخادم لا يتوقعه.
+  final String phoneNumber;
 
   SignUpParams({
     required this.firstName,
@@ -16,5 +19,6 @@ class SignUpParams {
     required this.address,
     required this.password,
     required this.confirmPassword,
+    required this.phoneNumber,
   });
 }
