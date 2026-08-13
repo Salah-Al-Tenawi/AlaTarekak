@@ -487,8 +487,8 @@ class _MenuCard extends StatelessWidget {
           ),
           _divider(),
           _MenuItem(
-            icon: Icons.support_agent_outlined,
-            label: "الدعم الفني",
+            icon: Icons.help_outline_rounded,
+            label: "مركز المساعدة",
             onTap: () => Get.toNamed(RouteName.profileSupport),
           ),
           _divider(),
@@ -508,6 +508,13 @@ class _MenuCard extends StatelessWidget {
             icon: Icons.headset_mic_outlined,
             label: "تواصل مع الدعم",
             onTap: () => Get.toNamed(RouteName.profileContactUs),
+          ),
+          _divider(),
+          // من وافق على السياسة عند التسجيل يجب أن يستطيع مراجعتها لاحقاً
+          _MenuItem(
+            icon: Icons.privacy_tip_outlined,
+            label: "سياسة الخصوصية",
+            onTap: () => Get.toNamed(RouteName.policy, arguments: 0),
           ),
         ],
       ),

@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
         builder: (context, isDark, _) {
           return GetMaterialApp(
             title: "عطريقك",
-            initialRoute: RouteName.home,
+            initialRoute: RouteName.splashView,
             getPages: appRoute,
             theme: isDark ? ThemApp.darkThem : ThemApp.lightThem,
             debugShowCheckedModeBanner: false,

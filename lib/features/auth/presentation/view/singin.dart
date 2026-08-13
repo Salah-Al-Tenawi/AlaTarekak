@@ -4,6 +4,7 @@ import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/features/auth/presentation/view/widget/button_singin.dart';
 import 'package:alatarekak/features/auth/presentation/view/widget/drop_down_and_gender_sing.dart';
+import 'package:alatarekak/features/auth/presentation/view/widget/policy_consent_check.dart';
 import 'package:alatarekak/features/auth/presentation/view/widget/text_fileds_singin.dart';
 
 class Singin extends StatefulWidget {
@@ -21,6 +22,10 @@ class _SinginState extends State<Singin> {
   final TextEditingController password = TextEditingController();
   final TextEditingController passwordConfirm = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey();
+
+  /// موافقة صريحة على السياسات — لا يُنشأ الحساب قبلها
+  bool _policyAccepted = false;
+  bool _policyErrorShown = false;
 
   @override
   void dispose() {
@@ -156,7 +161,18 @@ class _SinginState extends State<Singin> {
 
                       const DropDownAndGenderSing(),
 
-                      SizedBox(height: 28.h),
+                      SizedBox(height: 20.h),
+
+                      PolicyConsentCheck(
+                        value: _policyAccepted,
+                        showError: _policyErrorShown && !_policyAccepted,
+                        onChanged: (v) => setState(() {
+                          _policyAccepted = v;
+                          if (v) _policyErrorShown = false;
+                        }),
+                      ),
+
+                      SizedBox(height: 20.h),
 
                       ButtonSingin(
                         firstname: firstname,
@@ -166,6 +182,9 @@ class _SinginState extends State<Singin> {
                         formKey: formKey,
                         password: password,
                         passwordConfirm: passwordConfirm,
+                        policyAccepted: _policyAccepted,
+                        onPolicyMissing: () =>
+                            setState(() => _policyErrorShown = true),
                       ),
 
                       SizedBox(height: 16.h),

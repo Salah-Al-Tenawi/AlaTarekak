@@ -9,8 +9,6 @@ import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/features/home/preantion/manger/cubit/home_nav_cubit_cubit.dart';
 import 'package:alatarekak/features/home/preantion/view/widget/home_botom_nav_bar.dart';
 import 'package:alatarekak/features/home/preantion/view/widget/home_drawer.dart';
-import 'package:alatarekak/features/policy/policy_dilaog.dart';
-import 'package:alatarekak/features/policy/text/pollicy_text.dart';
 import 'package:alatarekak/features/booking_user_in_trip/presantion/view/booking_user_in_trip.dart';
 import 'package:alatarekak/features/trip_me/presantion/view/trip_me_list.dart';
 import 'package:alatarekak/features/trip_search/presantion/view/trip_search.dart';
@@ -23,37 +21,11 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  bool isNew = false;
   final _pageController = PageController(initialPage: 2);
 
-  @override
-  void initState() {
-    super.initState();
-
-  isNew = Get.arguments as bool? ?? false;
-
-  if (isNew) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(seconds: 3), () {
-        _showPrivacy();
-      });
-    });
-  }
-}
-  Future<void> _showPrivacy() async {
-    final accepted = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => PrivacyPolicyDialog(
-        policyText: PolicyText.text,
-      ),
-    );
-
-    if (accepted != true) {
-      await context.read<HomeNavCubit>().logout(context);
-      // Get.offAllNamed(RouteName.singin);
-    }
-  }
+  // الموافقة على السياسات صارت شرطاً سابقاً لإنشاء الحساب في شاشة
+  // التسجيل، فلم يعد لحوار الموافقة المؤجَّل هنا معنى: كان يظهر بعد
+  // إنشاء الحساب وإرسال بياناته بثلاث ثوانٍ.
 
   @override
   Widget build(BuildContext context) {

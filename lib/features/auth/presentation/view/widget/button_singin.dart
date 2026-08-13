@@ -16,6 +16,8 @@ class ButtonSingin extends StatelessWidget {
     required this.password,
     required this.passwordConfirm,
     required this.formKey,
+    required this.policyAccepted,
+    required this.onPolicyMissing,
   });
 
   final TextEditingController firstname;
@@ -25,6 +27,12 @@ class ButtonSingin extends StatelessWidget {
   final TextEditingController password;
   final TextEditingController passwordConfirm;
   final GlobalKey<FormState> formKey;
+
+  /// وافق المستخدم على السياسات — شرط لإنشاء الحساب
+  final bool policyAccepted;
+
+  /// يُستدعى عند الضغط بلا موافقة لإظهار التنبيه تحت المربّع
+  final VoidCallback onPolicyMissing;
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +68,13 @@ class ButtonSingin extends StatelessWidget {
               final confirm = passwordConfirm.text.trim();
               final gender = cubit.gender;
               final address = cubit.address;
+
+              // الموافقة على السياسات شرط سابق لإنشاء الحساب — نتحقق منها
+              // قبل التحقق من الحقول حتى لا يُرسل أي بيان بلا موافقة
+              if (!policyAccepted) {
+                onPolicyMissing();
+                return;
+              }
 
               if (formKey.currentState!.validate()) {
                 context.read<SinginCubit>().signIn(
