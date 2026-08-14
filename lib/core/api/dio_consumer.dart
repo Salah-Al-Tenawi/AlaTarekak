@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:alatarekak/core/api/api_consumer.dart';
 import 'package:alatarekak/core/api/api_end_points.dart';
 import 'package:alatarekak/core/api/api_interceptor.dart';
+import 'package:alatarekak/core/api/rate_limit_interceptor.dart';
 import 'package:alatarekak/core/api/retry_interceptor.dart';
 import 'package:alatarekak/core/errors/excptions.dart';
 
@@ -16,6 +17,9 @@ class DioConSumer extends ApiConSumer {
     dio.options.connectTimeout = const Duration(seconds: 15);
     dio.options.receiveTimeout = const Duration(seconds: 25);
 
+    // 429 أولاً: تُعالَج وتُترجم قبل أن تصل إلى منطق الجلسة أو إعادة
+    // المحاولة العامة، فلا تُفهم خطأ توكن ولا خطأ شبكة عابراً
+    dio.interceptors.add(RateLimitInterceptor(dio: dio));
     // NFR-17: إعادة محاولة تلقائية لطلبات GET عند أخطاء الشبكة العابرة
     dio.interceptors.add(RetryInterceptor(dio: dio));
     dio.interceptors.add(ApiInterCeptor());

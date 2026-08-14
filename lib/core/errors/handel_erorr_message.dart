@@ -17,9 +17,42 @@ class HandelErorrMessage {
       "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل";
   static const String errPasswordConfirm = "كلمتا المرور غير متطابقتين";
 
+  static const String errRateLimited =
+      "عدد كبير من المحاولات، يرجى الانتظار قليلاً ثم إعادة المحاولة";
+
+  /// هل الرد 429 من مُحدِّد المعدّل؟ الخادم يرسل "Too Many Attempts."
+  /// و[RateLimitInterceptor] يُثبّت عدد ثواني الانتظار داخل النصّ.
+  static bool isRateLimited(String message) =>
+      message.toLowerCase().contains("too many attempts");
+
+  static int? _retryAfterSeconds(String message) {
+    final match = RegExp(r'(\d+)\s*seconds').firstMatch(message.toLowerCase());
+    return match == null ? null : int.tryParse(match.group(1)!);
+  }
+
+  /// رسالة 429 عامة — تظهر في كل الشاشات المحميّة.
+  static String rateLimited(String message) {
+    final seconds = _retryAfterSeconds(message);
+    return seconds == null
+        ? errRateLimited
+        : "عدد كبير من المحاولات، أعد المحاولة بعد $seconds ثانية";
+  }
+
+  /// رسالة 429 على شاشات المصادقة. الحدّ هناك محسوب بعنوان IP لا
+  /// بالمستخدم، فمن يشترك في نفس الشبكة (بيانات الهاتف، واي فاي عام)
+  /// يتقاسم الحدّ — والمستخدم يستحق أن يعرف أن السبب قد لا يكون منه.
+  static String rateLimitedAuth(String message) {
+    final seconds = _retryAfterSeconds(message);
+    final wait = seconds == null ? "قليلاً" : "$seconds ثانية";
+    return "محاولات كثيرة من هذه الشبكة. انتظر $wait ثم أعد المحاولة "
+        "— قد يكون السبب مستخدماً آخر يشاركك الاتصال نفسه";
+  }
+
   /// الأخطاء العامة المشتركة بين كل النقاط (جلسة، تحقق، OTP...).
   /// ترجع null إذا لم تطابق شيئاً ليُكمل المستدعي بخريطته الخاصة.
   static String? _common(String m) {
+    // قبل كل شيء: 429 ليست خطأ منطق عمل ولا انتهاء جلسة
+    if (isRateLimited(m)) return rateLimited(m);
     if (m.contains("unauthenticated") || m.contains("invalid token type")) {
       return errSession;
     }
@@ -59,11 +92,18 @@ class HandelErorrMessage {
   // §1 المصادقة
   // =====================================================================
 
-  static String login(String message) => _match(message, {
+  /// مسارات المصادقة محدودة بـ 5 طلبات/دقيقة **لكل عنوان IP** لا لكل
+  /// مستخدم، فرسالة 429 هنا تختلف عن بقية التطبيق.
+  static String _auth(String message, Map<String, String> map) {
+    if (isRateLimited(message)) return rateLimitedAuth(message);
+    return _match(message, map);
+  }
+
+  static String login(String message) => _auth(message, {
         "invalid credentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
       });
 
-  static String singin(String message) => _match(message, {
+  static String singin(String message) => _auth(message, {
         "already registered":
             "هذا البريد الإلكتروني مسجل مسبقاً، يرجى تسجيل الدخول",
         "could not send verification email":
@@ -75,16 +115,16 @@ class HandelErorrMessage {
   // §2 استعادة كلمة المرور
   // =====================================================================
 
-  static String forgetPassword(String message) => _match(message, {
+  static String forgetPassword(String message) => _auth(message, {
         "no account found": "لا يوجد حساب مسجل بهذا البريد الإلكتروني",
         "failed to send": "تعذر إرسال رمز التحقق، يرجى المحاولة مرة أخرى",
       });
 
-  static String verifyOtpForgetPassword(String message) => _match(message, {
+  static String verifyOtpForgetPassword(String message) => _auth(message, {
         "no account found": "لا يوجد حساب بهذا البريد",
       });
 
-  static String resetPassword(String message) => _match(message, {
+  static String resetPassword(String message) => _auth(message, {
         "expired or has already been used":
             "انتهت صلاحية رمز إعادة التعيين، يرجى طلب رمز جديد",
         "account not found": "تعذر العثور على الحساب",
@@ -94,7 +134,7 @@ class HandelErorrMessage {
   // §3 تأكيد البريد الإلكتروني
   // =====================================================================
 
-  static String emailVerification(String message) => _match(message, {
+  static String emailVerification(String message) => _auth(message, {
         "no account found": "لا يوجد حساب بهذا البريد",
         "already verified": "هذا البريد مؤكد مسبقاً، يمكنك تسجيل الدخول",
         "failed to send": "تعذر إرسال البريد، حاول مجدداً",

@@ -83,6 +83,18 @@ class ApiInterCeptor extends QueuedInterceptor {
       return handler.next(err);
     }
 
+    // سبق أن جُدِّد التوكن بينما كان هذا الطلب في الطريق — أعِد المحاولة
+    // بالتوكن الحالي بلا استهلاك محاولة تجديد جديدة. مسارات المصادقة
+    // محدودة بخمسة طلبات في الدقيقة لكل عنوان IP.
+    final sentWith = _bearerOf(err.requestOptions);
+    if (sentWith != null && sentWith != user.accessToken) {
+      try {
+        return handler.resolve(await _retry(err.requestOptions, user.accessToken));
+      } on DioException catch (retryErr) {
+        return handler.next(retryErr);
+      }
+    }
+
     final newAccessToken = await _refreshTokens(user);
     if (newAccessToken == null) {
       await _hardLogout();
@@ -97,8 +109,32 @@ class ApiInterCeptor extends QueuedInterceptor {
     }
   }
 
+  /// التوكن الذي أُرسل به الطلب الفاشل — لمقارنته بالمخزَّن حالياً.
+  String? _bearerOf(RequestOptions options) {
+    final raw = options.headers['Authorization'] as String?;
+    if (raw == null || !raw.startsWith('Bearer ')) return null;
+    return raw.substring('Bearer '.length);
+  }
+
+  /// تجديد واحد جارٍ في كل لحظة. عدة طلبات فشلت معاً تنتظر النتيجة نفسها
+  /// بدل أن يطلب كل منها تجديداً ويستنزف حدّ المصادقة.
+  static Future<String?>? _refreshInFlight;
+
   /// يجدد التوكنات ويحفظها في Hive. يرجع access token الجديد أو null عند الفشل.
   Future<String?> _refreshTokens(UserModel user) async {
+    final inFlight = _refreshInFlight;
+    if (inFlight != null) return inFlight;
+
+    final future = _performRefresh(user);
+    _refreshInFlight = future;
+    try {
+      return await future;
+    } finally {
+      _refreshInFlight = null;
+    }
+  }
+
+  Future<String?> _performRefresh(UserModel user) async {
     try {
       final response = await _refreshDio.post(
         ApiEndPoint.refreshToken,

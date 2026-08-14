@@ -40,9 +40,28 @@ Future<Either<Filuar, List<RouteModel>>> fetchRouteBYgraphHopper(
     }
   }
 
-  Future<Either<Filuar, List<PlaceSuggestion>>> searchPlaces(String query) async {
+  /// أقل عدد حروف قبل أول استدعاء — الخادم يرفض ما دونه بـ 422،
+  /// والطلب المرفوض يُحتسب من حدّ البحث (30/دقيقة) كالناجح تماماً.
+  static const int minQueryLength = 2;
+
+  /// كاش نتائج البحث لهذه الجلسة. الخادم يخزّن النتيجة ساعة كاملة،
+  /// فإعادة سؤاله عن نصّ سبق البحث عنه تستهلك من الحدّ بلا فائدة —
+  /// ويحدث كثيراً مع المسح بالتراجع وإعادة الكتابة.
+  static final Map<String, List<PlaceSuggestion>> _cache = {};
+
+  static String _key(String query) => query.trim().toLowerCase();
+
+  Future<Either<Filuar, List<PlaceSuggestion>>> searchPlaces(
+      String query) async {
+    final key = _key(query);
+    if (key.length < minQueryLength) return right(const []);
+
+    final cached = _cache[key];
+    if (cached != null) return right(cached);
+
     try {
       final results = await mapsDataSource.searchPlaces(query);
+      _cache[key] = results;
       return right(results);
     } on ServerExpcptions catch (e) {
       return left(e.error);
