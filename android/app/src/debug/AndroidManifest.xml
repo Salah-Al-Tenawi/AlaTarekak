@@ -4,4 +4,9 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- يسمح بـ HTTP العادي للخادم المحلي أثناء التطوير.
+         مقصور على نسخة debug: نسخة الإصدار تبقى HTTPS إجبارياً لأن
+         هذا الملف لا يُدمج فيها إطلاقاً. -->
+    <application android:usesCleartextTraffic="true" />
 </manifest>

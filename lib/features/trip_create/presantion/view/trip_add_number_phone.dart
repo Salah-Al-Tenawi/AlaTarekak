@@ -50,9 +50,11 @@ class _TripAddNumberPhoneState extends State<TripAddNumberPhone> {
       context.read<PushRideCubit>().validatePhone(_tripFrom.numberPhone!);
     }
 
-    _phoneController.addListener(
-      () => context.read<PushRideCubit>().validatePhone(_phoneController.text),
-    );
+    _phoneController.addListener(() {
+      // الحفظ مع الكتابة لا عند الانتقال فقط، وإلا ضاع الرقم لو رجع قبله
+      _tripFrom.numberPhone = _phoneController.text;
+      context.read<PushRideCubit>().validatePhone(_phoneController.text);
+    });
   }
 
   @override
@@ -90,15 +92,14 @@ class _TripAddNumberPhoneState extends State<TripAddNumberPhone> {
         child: Scaffold(
           backgroundColor: MyColors.background,
           appBar: AppBar(
-            backgroundColor: MyColors.surface,
             elevation: 0,
             leading: IconButton(
               icon: Icon(Icons.arrow_forward_ios_rounded,
-                  color: MyColors.primary, size: 20),
+                  size: 20),
               onPressed: () => Get.back(),
             ),
             title:
-                Text("إضافة رحلة جديدة", style: AppTextStyles.titleMedium),
+                Text("إضافة رحلة جديدة", style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
             centerTitle: true,
           ),
           body: body,

@@ -1,6 +1,21 @@
 class ApiEndPoint {
-  // الإنتاج — للتطوير المحلي بدّل إلى عنوان جهازك: http://192.168.0.110:8000
-  static const serverRoot = "https://api.onwayride.me";
+  // ── اختيار الخادم ───────────────────────────────────────────────
+  // بدّل [useLocalServer] فقط — لا تعدّل العناوين نفسها.
+  //
+  // المحلي: العنوان هو IPv4 لجهاز الكمبيوتر الذي يشغّل الباك إند على
+  // نفس شبكة الواي فاي (اعرفه بـ ipconfig). لا تستخدم localhost ولا
+  // 127.0.0.1 فهما يشيران إلى الهاتف نفسه لا إلى حاسوبك.
+  // للمحاكي: 10.0.2.2 هو منفذ الوصول إلى localhost الحاسوب.
+  //
+  // ⚠️ المحلي يعمل في وضع التطوير فقط: HTTP العادي محجوب في نسخة
+  // الإصدار، وهو مسموح في debug عبر usesCleartextTraffic في
+  // android/app/src/debug/AndroidManifest.xml.
+  static const bool useLocalServer = false;
+
+  static const _localServer = "http://192.168.0.104:8000";
+  static const _productionServer = "https://api.onwayride.me";
+
+  static const serverRoot = useLocalServer ? _localServer : _productionServer;
   static const baserUrl = "$serverRoot/api";
   static const broadcastAuth = "$serverRoot/broadcasting/auth";
 

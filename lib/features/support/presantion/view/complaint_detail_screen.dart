@@ -33,22 +33,22 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
     return Scaffold(
       backgroundColor: MyColors.background,
       appBar: AppBar(
-        backgroundColor: MyColors.surface,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_forward_ios_rounded,
-              color: MyColors.primary, size: 20),
+              size: 20),
           onPressed: () => Get.back(),
         ),
-        title: Text('تفاصيل الشكوى', style: AppTextStyles.titleMedium),
+        title: Text('تفاصيل الشكوى', style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
         centerTitle: true,
       ),
       body: BlocConsumer<ComplaintDetailCubit, ComplaintDetailState>(
         listener: (context, state) {
           // 404 — غير موجودة أو تخص مستخدماً آخر ← ارجع للقائمة
           if (state is ComplaintDetailNotFound) {
-            AppSnackBar.error('الشكوى غير موجودة');
+            // الرجوع أولاً وإلا ابتلع Get.back() مسارَ الإشعار
             Get.back();
+            AppSnackBar.error('الشكوى غير موجودة');
           }
         },
         builder: (context, state) {

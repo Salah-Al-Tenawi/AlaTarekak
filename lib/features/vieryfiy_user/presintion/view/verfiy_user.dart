@@ -38,8 +38,9 @@ class _VerfiyUserState extends State<VerfiyUser> {
           if (state is VerfiyError) {
             AppSnackBar.error(state.message);
           } else if (state is VerfiySuccess) {
-            AppSnackBar.success('تم إرسال المستندات بنجاح');
+            // الانتقال أولاً: offAllNamed يزيل كل المسارات ومنها مسار الإشعار
             Get.offAllNamed(RouteName.home);
+            AppSnackBar.success('تم إرسال المستندات بنجاح');
           }
         },
         builder: (context, state) {

@@ -28,14 +28,13 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
     return Scaffold(
       backgroundColor: MyColors.background,
       appBar: AppBar(
-        backgroundColor: MyColors.surface,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_forward_ios_rounded,
-              color: MyColors.primary, size: 20),
+              size: 20),
           onPressed: () => Get.back(),
         ),
-        title: Text('شكاواي', style: AppTextStyles.titleMedium),
+        title: Text('شكاواي', style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
         centerTitle: true,
       ),
       body: BlocBuilder<ComplaintListCubit, ComplaintListState>(

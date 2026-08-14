@@ -34,68 +34,115 @@ class MapCubit extends Cubit<MapState> {
 
   void selectFromSearch(PlaceSuggestion place) {
     final point = LatLng(place.lat, place.lng);
+    pendingPoint = null;
+
     if (_searchingForStart) {
       startLocation = point;
       startPlaceName = place.displayName;
-      endLocation = null;
-      allRoutes = [];
-      routeInfos = [];
-      emit(MapLoaded(
-        routes: const [],
-        routeInfos: const [],
-        currentRouteIndex: 0,
-        start: startLocation,
-        end: null,
-        startName: startPlaceName,
-      ));
+      // الوجهة تبقى كما هي: تغيير نقطة الانطلاق تصحيحٌ لا بداية جديدة،
+      // وكانت تُمسح هنا فيضطر السائق لإعادة اختيار وجهته من الصفر.
+      _clearRoutes();
+      if (endLocation != null) {
+        _fetchRoutes();
+      } else {
+        _emitCurrent();
+      }
+      return;
+    }
+
+    endLocation = point;
+    endPlaceName = place.displayName;
+
+    // اختيار الوجهة قبل الانطلاق وارد تماماً — ورسم المسار حينها كان
+    // يمرّ startLocation! فينهار التطبيق. نكتفي بإظهار الوجهة وننتظر
+    // تحديد نقطة الانطلاق.
+    if (startLocation == null) {
+      _emitCurrent();
+      return;
+    }
+    _fetchRoutes();
+  }
+
+  /// نقطة بانتظار التأكيد — تُحرَّك بأي نقرة جديدة بلا رسم مسار.
+  LatLng? pendingPoint;
+
+  /// النقر على الخريطة يقترح نقطة فقط ولا يلتزم بها.
+  ///
+  /// كان النقر يثبّت النقطة فوراً ويرسم المسار، فمن أخطأ في نقطة
+  /// الانطلاق كان عليه إكمال اختيار الوجهة وانتظار رسم المسار ثم النقر
+  /// من جديد ليعيد الكرّة. الآن تتحرّك النقطة المقترحة بكل نقرة، ولا
+  /// يقع أي طلب شبكة حتى يضغط «تأكيد».
+  void tapOnMap(LatLng point) {
+    pendingPoint = point;
+    _emitCurrent();
+  }
+
+  /// تثبيت النقطة المقترحة في خانتها، ورسم المسار متى اكتملت النقطتان.
+  void confirmPending() {
+    final point = pendingPoint;
+    if (point == null) return;
+
+    if (_isChoosingStart) {
+      startLocation = point;
+      startPlaceName = null; // اسم جديد يُجلب عند رسم المسار
     } else {
       endLocation = point;
-      endPlaceName = place.displayName;
+      endPlaceName = null;
+    }
+    pendingPoint = null;
+
+    if (startLocation != null && endLocation != null) {
       _fetchRoutes();
+    } else {
+      _emitCurrent();
     }
   }
 
-  void tapOnMap(LatLng point) {
-    if (startLocation == null) {
-      startLocation = point;
-      endLocation = null;
-      allRoutes = [];
-      routeInfos = [];
-      emit(MapLoaded(
-        routes: const [],
-        routeInfos: const [],
-        currentRouteIndex: 0,
-        start: startLocation,
-        end: null,
-      ));
-      return;
-    }
+  /// إلغاء الاقتراح والإبقاء على ما ثُبِّت سابقاً.
+  void cancelPending() {
+    pendingPoint = null;
+    _emitCurrent();
+  }
 
-    if (endLocation == null) {
-      endLocation = point;
-      emit(MapLoaded(
-        routes: const [],
-        routeInfos: const [],
-        currentRouteIndex: 0,
-        start: startLocation,
-        end: endLocation,
-      ));
-      _fetchRoutes();
-      return;
-    }
-
-    startLocation = point;
-    endLocation = null;
+  /// إعادة اختيار نقطة الانطلاق وحدها — الوجهة تبقى كما هي.
+  void resetStart() {
+    startLocation = null;
     startPlaceName = null;
+    pendingPoint = null;
+    _clearRoutes();
+    _emitCurrent();
+  }
+
+  /// إعادة اختيار الوجهة وحدها — نقطة الانطلاق تبقى كما هي.
+  void resetEnd() {
+    endLocation = null;
     endPlaceName = null;
+    pendingPoint = null;
+    _clearRoutes();
+    _emitCurrent();
+  }
+
+  /// المسار المرسوم لم يعد يعني شيئاً بعد تغيير أي من طرفيه.
+  void _clearRoutes() {
     allRoutes = [];
     routeInfos = [];
+    currentRouteIndex = 0;
+  }
+
+  /// الخانة التي تنتظر التحديد الآن.
+  bool get _isChoosingStart => startLocation == null;
+
+  void _emitCurrent() {
     emit(MapLoaded(
-      routes: const [],
-      routeInfos: const [],
-      currentRouteIndex: 0,
+      routes: allRoutes,
+      routeInfos: routeInfos,
+      currentRouteIndex: currentRouteIndex,
       start: startLocation,
-      end: null,
+      end: endLocation,
+      startName: startPlaceName,
+      endName: endPlaceName,
+      pending: pendingPoint,
+      pendingIsStart: _isChoosingStart,
     ));
   }
 
@@ -127,6 +174,12 @@ class MapCubit extends Cubit<MapState> {
   }
 
   Future<void> _fetchRoutes() async {
+    // حارس: لا مسار بلا طرفين. بدونه كان `startLocation!` أدناه يرمي
+    // استثناء null ويُسقط التطبيق.
+    if (startLocation == null || endLocation == null) {
+      _emitCurrent();
+      return;
+    }
     emit(MapLoading());
 
     // Resolve names for tap-placed pins (no name from search)

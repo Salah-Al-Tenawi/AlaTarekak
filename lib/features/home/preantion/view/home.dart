@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
+import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/features/home/preantion/manger/cubit/home_nav_cubit_cubit.dart';
 import 'package:alatarekak/features/home/preantion/view/widget/home_botom_nav_bar.dart';
 import 'package:alatarekak/features/home/preantion/view/widget/home_drawer.dart';
@@ -20,8 +21,15 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
+class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   final _pageController = PageController(initialPage: 2);
+
+  /// يُعاد تشغيله عند كل تبديل تبويب ليُظهر المحتوى الجديد بتلاشٍ.
+  late final AnimationController _fade = AnimationController(
+    vsync: this,
+    duration: AppAnim.entrance,
+    value: 1,
+  );
 
   // الموافقة على السياسات صارت شرطاً سابقاً لإنشاء الحساب في شاشة
   // التسجيل، فلم يعد لحوار الموافقة المؤجَّل هنا معنى: كان يظهر بعد
@@ -53,17 +61,27 @@ class _HomeState extends State<Home> {
                 _pageController.page?.round() != index) {
               _pageController.jumpToPage(index);
             }
+            _fade.forward(from: 0);
           },
-          child: PageView(
-            controller: _pageController,
-            physics: const NeverScrollableScrollPhysics(),
-            children: const [
-              BookingUserINTrip(),
-              TripMeList(),
-              TripSearch(),
-              ChatListScreen(),
-              Profile(),
-            ],
+          // تلاشٍ قصير عند تبديل التبويب: jumpToPage تنتقل فوراً بلا حركة
+          // بينما شريط التنقّل نفسه متحرّك، فيبدو المحتوى وكأنه يقفز.
+          //
+          // التلاشي بمتحكّم يُعاد تشغيله لا بـ AnimatedSwitcher: الأخير
+          // يبني شجرة جديدة عند كل تبديل فتُفقد حالة التبويبات (نتائج
+          // البحث، موضع التمرير). هنا يبقى PageView نفسه ويتغيّر شفافيته.
+          child: FadeTransition(
+            opacity: _fade,
+            child: PageView(
+              controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: const [
+                BookingUserINTrip(),
+                TripMeList(),
+                TripSearch(),
+                ChatListScreen(),
+                Profile(),
+              ],
+            ),
           ),
         ),
         bottomNavigationBar:
@@ -74,6 +92,7 @@ class _HomeState extends State<Home> {
 
   @override
   void dispose() {
+    _fade.dispose();
     _pageController.dispose();
     super.dispose();
   }

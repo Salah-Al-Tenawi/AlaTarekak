@@ -38,6 +38,11 @@ class _PushRideMapState extends State<PushRideMap> {
   bool _showEndSuggestions = false;
   Timer? _debounce;
 
+  /// بصمة آخر إطار ضُبطت عليه الكاميرا. بدونها تُعاد المعايرة عند كل
+  /// إصدار حالة — ومنها كل نقرة تحرّك النقطة المقترحة — فتقفز الخريطة
+  /// تحت يد المستخدم وتُلغي تكبيره اليدوي.
+  String? _lastFitKey;
+
   @override
   void initState() {
     super.initState();
@@ -153,16 +158,7 @@ class _PushRideMapState extends State<PushRideMap> {
             setState(() => _suggestions = state.suggestions);
           }
           if (state is MapLoaded) {
-            if (state.start != null && state.end != null) {
-              final bounds =
-                  LatLngBounds.fromPoints([state.start!, state.end!]);
-              _mapController.fitCamera(
-                CameraFit.bounds(
-                    bounds: bounds, padding: const EdgeInsets.all(80)),
-              );
-            } else if (state.start != null) {
-              _mapController.move(state.start!, 12.0);
-            }
+            _fitCameraTo(state);
             // clear end field if reset
             if (state.end == null && _endController.text.isNotEmpty) {
               _endController.clear();
@@ -178,7 +174,19 @@ class _PushRideMapState extends State<PushRideMap> {
           final center = cubit.startLocation ?? _defaultCenter;
           final showRoutePanel =
               state is MapLoaded && state.routes.isNotEmpty;
-          final showHint = state is MapInitial;
+
+          // إرشاد الخطوة التالية: بلا هذا تبقى الشاشة صامتة بعد تأكيد
+          // نقطة الانطلاق فلا يعرف السائق أن عليه تحديد الوجهة.
+          String? hint;
+          if (state is MapInitial) {
+            hint = "انقر على الخريطة أو ابحث في الأعلى لتحديد نقطة الانطلاق";
+          } else if (state is MapLoaded && state.pending == null) {
+            if (state.start == null) {
+              hint = "انقر على الخريطة أو ابحث لتحديد نقطة الانطلاق";
+            } else if (state.end == null) {
+              hint = "الآن حدّد وجهتك بالنقر على الخريطة أو بالبحث";
+            }
+          }
 
           return Stack(
             children: [
@@ -190,8 +198,16 @@ class _PushRideMapState extends State<PushRideMap> {
                 child: _buildTopOverlay(state, cubit),
               ),
               if (state is MapLoading) _buildLoadingOverlay(),
-              if (showHint) _buildHintBadge(),
-              if (showRoutePanel)
+              if (hint != null) _buildHintBadge(hint),
+              // شريط تأكيد النقطة المقترحة — له الأولوية على لوحة المسار
+              if (state is MapLoaded && state.pending != null)
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: _buildPendingPanel(state, cubit),
+                )
+              else if (showRoutePanel)
                 Positioned(
                   bottom: 0,
                   left: 0,
@@ -201,6 +217,47 @@ class _PushRideMapState extends State<PushRideMap> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  /// ضبط الكاميرا على المحتوى — مرة واحدة لكل تغيّر حقيقي.
+  ///
+  /// كانت تُضبط على النقطتين فقط، والمسار قد ينفتل بعيداً عن الخط الواصل
+  /// بينهما (التفاف، طريق سريع)، فيخرج جزء منه عن الشاشة — ويظهر ذلك
+  /// بوضوح عند تبديل المسارات لأن البديل غالباً أوسع انفتالاً.
+  void _fitCameraTo(MapLoaded state) {
+    // بصمة المحتوى: تتغيّر بتغيّر الطرفين أو المسار المعروض فقط، لا
+    // بتحريك النقطة المقترحة
+    final key = '${state.start}|${state.end}|'
+        '${state.currentRouteIndex}|${state.routes.length}';
+    if (key == _lastFitKey) return;
+    _lastFitKey = key;
+
+    final route = state.routes.isNotEmpty
+        ? state.routes[state.currentRouteIndex]
+        : const <LatLng>[];
+
+    // العلامتان تدخلان الحساب دائماً: خدمة التوجيه تلصق المسار بالطرق،
+    // فقد تقع نقطة الانطلاق أو الوجهة خارج حدود الخط المرسوم وتختفي.
+    final points = <LatLng>[
+      ...route,
+      if (state.start != null) state.start!,
+      if (state.end != null) state.end!,
+    ];
+
+    if (points.isEmpty) return;
+    if (points.length == 1) {
+      _mapController.move(points.first, 12.0);
+      return;
+    }
+
+    _mapController.fitCamera(
+      CameraFit.bounds(
+        bounds: LatLngBounds.fromPoints(points),
+        padding: EdgeInsets.fromLTRB(60.w, 160.h, 60.w, 240.h),
+        // سقف للتقريب: المسارات القصيرة كانت تُقرَّب حتى تختفي معالمها
+        maxZoom: 14.5,
       ),
     );
   }
@@ -244,6 +301,8 @@ class _PushRideMapState extends State<PushRideMap> {
 
   List<Marker> _buildMarkers(MapState state) {
     if (state is! MapLoaded) return const [];
+    final pendingColor =
+        state.pendingIsStart ? MyColors.success : MyColors.accent;
     return [
       if (state.start != null)
         Marker(
@@ -259,7 +318,133 @@ class _PushRideMapState extends State<PushRideMap> {
           height: 30,
           child: _MapPin(color: MyColors.accent, icon: Icons.flag_rounded),
         ),
+      // النقطة المقترحة: بحجم العلامات المثبَّتة وشبه شفافة، فتُقرأ
+      // كاقتراح لا كاختيار نهائي بلا أن تطغى على الخريطة
+      if (state.pending != null)
+        Marker(
+          point: state.pending!,
+          width: 32,
+          height: 32,
+          child: Opacity(
+            opacity: 0.8,
+            child: _MapPin(
+              color: pendingColor,
+              icon: Icons.add_location_alt_rounded,
+            ),
+          ),
+        ),
     ];
+  }
+
+  /// شريط تأكيد النقطة المقترحة — النقر على الخريطة يحرّكها بلا التزام،
+  /// ولا يُرسم أي مسار قبل الضغط على «تأكيد».
+  Widget _buildPendingPanel(MapLoaded state, MapCubit cubit) {
+    final isStart = state.pendingIsStart;
+    final color = isStart ? MyColors.success : MyColors.accent;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: MyColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: [
+          BoxShadow(
+              color: MyColors.shadowMedium,
+              blurRadius: 16,
+              offset: const Offset(0, -4))
+        ],
+      ),
+      padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 28.h),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: MyColors.surfaceAlt,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          SizedBox(height: 14.h),
+          Row(
+            children: [
+              Icon(
+                isStart ? Icons.my_location : Icons.flag_rounded,
+                color: color,
+                size: 20,
+              ),
+              SizedBox(width: 8.w),
+              Expanded(
+                child: Text(
+                  isStart ? 'نقطة الانطلاق' : 'الوجهة',
+                  style: AppTextStyles.labelLarge,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            'انقر في مكان آخر لتحريك النقطة، أو أكّدها للمتابعة',
+            style: AppTextStyles.bodySmall
+                .copyWith(color: MyColors.textSecondary),
+          ),
+          SizedBox(height: 16.h),
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 48.h,
+                  child: OutlinedButton(
+                    onPressed: cubit.cancelPending,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: MyColors.textSecondary,
+                      side: BorderSide(color: MyColors.border),
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: Text(
+                      'إلغاء',
+                      maxLines: 1,
+                      style: AppTextStyles.labelLarge
+                          .copyWith(fontSize: 14.sp),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                flex: 2,
+                child: SizedBox(
+                  height: 48.h,
+                  child: ElevatedButton.icon(
+                    onPressed: cubit.confirmPending,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: color,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(horizontal: 8.w),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                      elevation: 0,
+                    ),
+                    icon: Icon(Icons.check_rounded, size: 18.sp),
+                    // العنوان أعلى الشريط يذكر أي نقطة هي، فيكفي الفعل
+                    // وحده هنا — والنصّ الطويل كان يُقصّ على الشاشات
+                    // الضيقة لأن buttonLarge مقاسه ثابت بلا sp
+                    label: Text(
+                      'تأكيد',
+                      maxLines: 1,
+                      style: AppTextStyles.buttonLarge
+                          .copyWith(fontSize: 15.sp),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   // ─── Top overlay (back + step badge + search card + suggestions) ────────────
@@ -428,7 +613,7 @@ class _PushRideMapState extends State<PushRideMap> {
     );
   }
 
-  Widget _buildHintBadge() {
+  Widget _buildHintBadge([String? message]) {
     return Positioned(
       bottom: 30.h,
       left: 20.w,
@@ -446,7 +631,8 @@ class _PushRideMapState extends State<PushRideMap> {
             SizedBox(width: 8.w),
             Expanded(
               child: Text(
-                "انقر على الخريطة أو ابحث في الأعلى لتحديد نقطة الانطلاق",
+                message ??
+                    "انقر على الخريطة أو ابحث في الأعلى لتحديد نقطة الانطلاق",
                 style: AppTextStyles.labelSmall
                     .copyWith(color: Colors.white),
                 textAlign: TextAlign.center,

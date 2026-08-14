@@ -60,7 +60,6 @@ class ProfileBody extends StatelessWidget {
 
   AppBar _buildAppBar(bool isMyProfile, ProfileEntity profile) {
     return AppBar(
-      backgroundColor: MyColors.surface,
       elevation: 0,
       automaticallyImplyLeading: false,
       // My profile is a bottom-nav tab (no back); other profiles are
@@ -68,13 +67,12 @@ class ProfileBody extends StatelessWidget {
       leading: isMyProfile
           ? null
           : IconButton(
-              icon: Icon(Icons.arrow_forward_ios_rounded,
-                  color: MyColors.primary, size: 20),
+              icon: const Icon(Icons.arrow_forward_ios_rounded, size: 20),
               onPressed: () => Get.back(),
             ),
       title: Text(
         isMyProfile ? "حسابي" : "الملف الشخصي",
-        style: AppTextStyles.titleMedium,
+        style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark),
       ),
       centerTitle: true,
     );

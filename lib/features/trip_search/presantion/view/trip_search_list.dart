@@ -29,8 +29,6 @@ class _TripSearchListState extends State<TripSearchList> {
     return Scaffold(
       backgroundColor: MyColors.background,
       appBar: AppBar(
-        backgroundColor: MyColors.primary,
-        foregroundColor: MyColors.textOnDark,
         elevation: 0,
         centerTitle: true,
         title: const Text('الرحلات المتاحة'),

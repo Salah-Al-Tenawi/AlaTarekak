@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
@@ -22,22 +23,19 @@ class WalletView extends StatelessWidget {
     return Scaffold(
       backgroundColor: MyColors.background,
       appBar: AppBar(
-        backgroundColor: MyColors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_forward_ios_rounded,
-            color: MyColors.primary,
+          icon: Icon(Icons.arrow_forward_ios_rounded,
             size: 20,
           ),
           onPressed: () => Get.back(),
         ),
-        title: Text("محفظتي", style: AppTextStyles.titleMedium),
+        title: Text("محفظتي", style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
         centerTitle: true,
         actions: [
           IconButton(
             onPressed: () => context.read<WalletCubit>().getBalance(),
-            icon: Icon(Icons.refresh_rounded, color: MyColors.primary),
+            icon: const Icon(Icons.refresh_rounded),
             tooltip: 'تحديث الرصيد',
           ),
         ],
@@ -293,6 +291,17 @@ class _RechargeCard extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 12.h),
+                // القناة الداخلية أولاً: لا تُخرج المستخدم من التطبيق،
+                // ومحادثتها محفوظة يمكنه الرجوع إليها لمتابعة طلبه
+                _ContactTile(
+                  icon: Icons.headset_mic_outlined,
+                  iconColor: MyColors.primary,
+                  title: 'الدعم الفني',
+                  subtitle: 'محادثة مباشرة داخل التطبيق',
+                  isAppIcon: true,
+                  onTap: () => Get.toNamed(RouteName.profileContactUs),
+                ),
+                SizedBox(height: 10.h),
                 _ContactTile(
                   icon: FontAwesomeIcons.whatsapp,
                   iconColor: const Color(0xFF25D366),
@@ -324,12 +333,16 @@ class _ContactTile extends StatelessWidget {
   final String subtitle;
   final VoidCallback onTap;
 
+  /// أيقونة Material لا FontAwesome — لقنوات التطبيق الداخلية.
+  final bool isAppIcon;
+
   const _ContactTile({
     required this.icon,
     required this.iconColor,
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.isAppIcon = false,
   });
 
   @override
@@ -353,7 +366,11 @@ class _ContactTile extends StatelessWidget {
                 color: iconColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Center(child: FaIcon(icon, color: iconColor, size: 22)),
+              child: Center(
+                child: isAppIcon
+                    ? Icon(icon, color: iconColor, size: 22)
+                    : FaIcon(icon, color: iconColor, size: 22),
+              ),
             ),
             SizedBox(width: 12.w),
             Expanded(

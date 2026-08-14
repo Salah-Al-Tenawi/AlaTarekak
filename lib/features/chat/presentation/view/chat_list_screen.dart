@@ -8,6 +8,8 @@ import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/service/chat_socket_service.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
+import 'package:alatarekak/core/utils/animations/app_animations.dart';
+import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
 import 'package:alatarekak/features/chat/domain/entity/conversation_entity.dart';
 import 'package:alatarekak/features/chat/presentation/manager/conversation_cubit/conversation_cubit.dart';
 import 'package:alatarekak/features/support/domain/entity/support_conversation.dart';
@@ -20,25 +22,17 @@ class ChatListScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: MyColors.background,
       appBar: AppBar(
-        backgroundColor: MyColors.surface,
         elevation: 0,
         // Shown as a bottom-nav tab: a back arrow here would pop the whole
         // Home route.
         automaticallyImplyLeading: false,
-        title: Text('المحادثات', style: AppTextStyles.titleMedium),
+        title: Text('المحادثات', style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.edit_outlined, color: MyColors.primary),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: BlocBuilder<ConversationCubit, ConversationState>(
         builder: (context, state) {
           if (state is ConversationLoading) {
-            return Center(
-                child: CircularProgressIndicator(color: MyColors.primary));
+            return const Center(child: LoadingWidgetSize150());
           }
           if (state is ConversationError) {
             return _ErrorView(
@@ -60,8 +54,10 @@ class ChatListScreen extends StatelessWidget {
                     EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                 itemCount: state.conversations.length,
                 separatorBuilder: (_, __) => SizedBox(height: 8.h),
-                itemBuilder: (_, i) =>
-                    _ConversationCard(conv: state.conversations[i]),
+                itemBuilder: (_, i) => StaggeredItem(
+                  index: i,
+                  child: _ConversationCard(conv: state.conversations[i]),
+                ),
               ),
             );
           }
@@ -126,6 +122,7 @@ class _ConversationCard extends StatelessWidget {
             child: Row(
               children: [
                 // ── Avatar ──
+                // الدعم مستثنى: لا ملف شخصي لموظّف الدعم يُفتح
                 if (isSupport)
                   CircleAvatar(
                     radius: 26.r,
@@ -134,13 +131,17 @@ class _ConversationCard extends StatelessWidget {
                         color: MyColors.textOnDark, size: 28.sp),
                   )
                 else
-                  CircleAvatar(
-                    radius: 26.r,
-                    backgroundColor: MyColors.background,
-                    backgroundImage: conv.otherParticipant.avatar != null
-                        ? NetworkImage(conv.otherParticipant.avatar!)
-                            as ImageProvider
-                        : const AssetImage(ImagesUrl.profileImage),
+                  GestureDetector(
+                    onTap: () => Get.toNamed(RouteName.profile,
+                        arguments: conv.otherParticipant.id),
+                    child: CircleAvatar(
+                      radius: 26.r,
+                      backgroundColor: MyColors.background,
+                      backgroundImage: conv.otherParticipant.avatar != null
+                          ? NetworkImage(conv.otherParticipant.avatar!)
+                              as ImageProvider
+                          : const AssetImage(ImagesUrl.profileImage),
+                    ),
                   ),
 
                 SizedBox(width: 12.w),

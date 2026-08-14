@@ -42,16 +42,24 @@ class ProfileRepoIm extends ProfileRepo {
     }
   }
 
+  /// الشبكة أولاً والكاش احتياطي عند تعذّرها.
+  ///
+  /// كان الكاش يُقرأ أولاً ويُعاد فوراً بلا أي اتصال بالخادم، ولمّا كان
+  /// لا يُبطَل في أي موضع (`clearProfile` لم تكن تُستدعى إطلاقاً) كانت
+  /// نسخة أول تحميل تبقى إلى الأبد. فأي تغيّر يقع في الخادم — وأهمّه
+  /// حالة التوثيق حين تنتقل إلى «قيد المراجعة» أو يبتّ فيها الأدمن —
+  /// لا يصل التطبيق أبداً: لا تظهر شارة الحالة، ويظلّ المستخدم قادراً
+  /// على رفع طلب توثيق جديد فوق طلبٍ معلّق.
   @override
   Future<Either<Filuar, ProfileEntity>> showProfile(int userid) async {
-    final cached = profileLocalDataSourceIm.getProfile(userid);
-    if (cached != null) return right(cached);
-
     try {
       final profile = await profileRemoteDateSourceIm.showProfile(userid);
       await profileLocalDataSourceIm.saveProfile(userid, profile);
       return right(profile);
     } on ServerExpcptions catch (e) {
+      // تعذّرت الشبكة — نعرض آخر نسخة معروفة بدل شاشة خطأ فارغة
+      final cached = profileLocalDataSourceIm.getProfile(userid);
+      if (cached != null) return right(cached);
       return left(e.error);
     }
   }

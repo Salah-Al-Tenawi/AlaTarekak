@@ -104,15 +104,14 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         return Scaffold(
           backgroundColor: MyColors.background,
           appBar: AppBar(
-            backgroundColor: MyColors.surface,
             elevation: 0,
             leading: IconButton(
               icon: Icon(Icons.arrow_forward_ios_rounded,
-                  color: MyColors.primary, size: 20),
+                  size: 20),
               onPressed: () => Get.back(),
             ),
             title: Text('تعديل المعلومات الشخصية',
-                style: AppTextStyles.titleMedium),
+                style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
             centerTitle: true,
             actions: [
               if (!isLoading)
@@ -120,7 +119,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   onPressed: _save,
                   child: Text('حفظ',
                       style: AppTextStyles.labelLarge
-                          .copyWith(color: MyColors.primary)),
+                          .copyWith(color: MyColors.textOnDark)),
                 ),
             ],
           ),

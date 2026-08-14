@@ -65,44 +65,63 @@ class _TripCreateWizardState extends State<TripCreateWizard> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: MyColors.background,
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          _WizardStepIndicator(
-            currentStep: _currentPage + 2,
-            totalSteps: _totalSteps,
-          ),
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              onPageChanged: (p) => setState(() => _currentPage = p),
-              children: [
-                TripSelectDateAndSeats(
-                  tripFrom: _tripFrom,
-                  onNext: (_) => _next(),
-                ),
-                TripSelectPriceAndBookingType(
-                  tripFrom: _tripFrom,
-                  onNext: (_) => _next(),
-                  onBack: _back,
-                ),
-                TripAddNumberPhone(
-                  tripFrom: _tripFrom,
-                  isEmbedded: true,
-                  onBack: _back,
-                  onNext: (_) => _next(),
-                ),
-                TripReviewAndConfirm(
-                  tripFrom: _tripFrom,
-                  onBack: _back,
-                ),
-              ],
+    // زرّ الرجوع في النظام كان يُخرج من المعالج كله فيعود المستخدم إلى
+    // شاشة الخريطة من أي خطوة. نعترضه ليتراجع خطوةً واحدة كزرّ الشريط.
+    return PopScope(
+      canPop: _currentPage == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _back();
+      },
+      child: Scaffold(
+        backgroundColor: MyColors.background,
+        appBar: _buildAppBar(),
+        body: Column(
+          children: [
+            _WizardStepIndicator(
+              currentStep: _currentPage + 2,
+              totalSteps: _totalSteps,
             ),
-          ),
-        ],
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                onPageChanged: (p) => setState(() => _currentPage = p),
+                // كل صفحة تُبقى حيّة: بدون ذلك تتخلّص PageView من الصفحات
+                // البعيدة فتُفقد حالتها الداخلية (التاريخ، الوقت، المقاعد،
+                // السعر) عند الرجوع إليها.
+                children: [
+                  _KeepAlive(
+                    child: TripSelectDateAndSeats(
+                      tripFrom: _tripFrom,
+                      onNext: (_) => _next(),
+                    ),
+                  ),
+                  _KeepAlive(
+                    child: TripSelectPriceAndBookingType(
+                      tripFrom: _tripFrom,
+                      onNext: (_) => _next(),
+                      onBack: _back,
+                    ),
+                  ),
+                  _KeepAlive(
+                    child: TripAddNumberPhone(
+                      tripFrom: _tripFrom,
+                      isEmbedded: true,
+                      onBack: _back,
+                      onNext: (_) => _next(),
+                    ),
+                  ),
+                  _KeepAlive(
+                    child: TripReviewAndConfirm(
+                      tripFrom: _tripFrom,
+                      onBack: _back,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -119,6 +138,30 @@ class _TripCreateWizardState extends State<TripCreateWizard> {
       title: Text("إضافة رحلة جديدة", style: AppTextStyles.titleMedium),
       centerTitle: true,
     );
+  }
+}
+
+// ─── Keep-alive wrapper ───────────────────────────────────────────────────────
+
+/// يمنع PageView من التخلّص من الصفحة حين تخرج عن الشاشة، فتحتفظ كل خطوة
+/// بما أدخله المستخدم فيها عند التنقّل ذهاباً وإياباً.
+class _KeepAlive extends StatefulWidget {
+  final Widget child;
+  const _KeepAlive({required this.child});
+
+  @override
+  State<_KeepAlive> createState() => _KeepAliveState();
+}
+
+class _KeepAliveState extends State<_KeepAlive>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }
 

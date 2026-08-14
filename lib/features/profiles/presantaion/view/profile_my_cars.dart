@@ -38,14 +38,13 @@ class ProfileMyCarsScreen extends StatelessWidget {
         return Scaffold(
           backgroundColor: MyColors.background,
           appBar: AppBar(
-            backgroundColor: MyColors.surface,
             elevation: 0,
             leading: IconButton(
               icon: Icon(Icons.arrow_forward_ios_rounded,
-                  color: MyColors.primary, size: 20),
+                  size: 20),
               onPressed: () => Get.back(result: true),
             ),
-            title: Text('مركباتي', style: AppTextStyles.titleMedium),
+            title: Text('مركباتي', style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
             centerTitle: true,
           ),
           body: SingleChildScrollView(

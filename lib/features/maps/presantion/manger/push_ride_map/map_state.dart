@@ -16,6 +16,13 @@ class MapLoaded extends MapState {
   final String? startName;
   final String? endName;
 
+  /// نقطة مقترحة بانتظار تأكيد المستخدم — يمكنه تحريكها بنقرة أخرى بلا
+  /// أي رسم للمسار، فلا يدفع ثمن نقرة خاطئة.
+  final LatLng? pending;
+
+  /// هل النقطة المعلّقة للانطلاق (وإلا فهي للوجهة)؟
+  final bool pendingIsStart;
+
   MapLoaded({
     required this.routes,
     required this.routeInfos,
@@ -24,6 +31,8 @@ class MapLoaded extends MapState {
     required this.end,
     this.startName,
     this.endName,
+    this.pending,
+    this.pendingIsStart = true,
   });
 }
 

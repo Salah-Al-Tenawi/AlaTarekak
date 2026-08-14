@@ -22,10 +22,9 @@ class TripMeList extends StatelessWidget {
     return Scaffold(
       backgroundColor: MyColors.background,
       appBar: AppBar(
-        backgroundColor: MyColors.surface,
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: Text('رحلاتي', style: AppTextStyles.titleMedium),
+        title: Text('رحلاتي', style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
         centerTitle: true,
       ),
       body: BlocConsumer<TripMeCubit, TripMeState>(

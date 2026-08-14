@@ -149,6 +149,13 @@ class HandelErorrMessage {
       });
 
   static String updateProfile(String message) => _match(message, {
+        // الخادم يقفل الاسم وبيانات المركبة ما دام طلب التوثيق معلّقاً،
+        // لأنها البيانات نفسها التي يراجعها الأدمن
+        "while verification is pending":
+            "لا يمكن تعديل الاسم أو بيانات المركبة أثناء مراجعة طلب التوثيق. "
+                "يمكنك تعديل باقي البيانات، أو الانتظار حتى يُبتّ في طلبك",
+        "cannot modify documents while verification is pending":
+            "لا يمكن تعديل المستندات أثناء مراجعة طلب التوثيق",
         "image": "يجب أن تكون الصورة بصيغة JPG أو PNG وبحجم أقصى 2 ميغابايت",
       });
 
@@ -230,6 +237,16 @@ class HandelErorrMessage {
     final cash = _cashRideFee(message.toLowerCase().trim(), message);
     if (cash != null) return cash;
     return _match(message, {
+      // أخطاء تحقّق الحقول (صيغة Laravel الافتراضية) — تصل كنصّ إنجليزي
+      // يذكر اسم الحقل، فنترجمها بدل إظهار «حدث خطأ غير متوقع»
+      "vehicle type field is required":
+          "نوع المركبة مطلوب — أضف سيارتك من «مركباتي» في ملفك الشخصي",
+      "vehicle type": "يرجى تحديد نوع المركبة",
+      "available seats": "يرجى تحديد عدد المقاعد المتاحة",
+      "price per seat": "يرجى إدخال سعر المقعد",
+      "communication number": "رقم التواصل مطلوب ويجب أن يبدأ بـ 09",
+      "pickup": "يرجى تحديد نقطة الانطلاق على الخريطة",
+      "destination": "يرجى تحديد الوجهة على الخريطة",
       "must be verified as a driver": "يجب توثيق حسابك كسائق قبل إنشاء الرحلات",
       "missing required verification documents":
           "يجب توثيق حسابك كسائق قبل إنشاء الرحلات",

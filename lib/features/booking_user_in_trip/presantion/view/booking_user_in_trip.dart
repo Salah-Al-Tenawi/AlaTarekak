@@ -11,6 +11,7 @@ import 'package:alatarekak/features/booking_user_in_trip/presantion/manger/cubit
 import 'package:alatarekak/features/trip_create/data/model/booking_model.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
+import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/features/trip_details/presantaion/view/widget/status_trip.dart';
 
 class BookingUserINTrip extends StatefulWidget {
@@ -40,10 +41,9 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
     return Scaffold(
       backgroundColor: MyColors.background,
       appBar: AppBar(
-        backgroundColor: MyColors.surface,
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: Text("الحجوزات", style: AppTextStyles.titleMedium),
+        title: Text("الحجوزات", style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
         centerTitle: true,
       ),
       // الأخطاء (رفض السيرفر لقبول/رفض/بلاغ) كانت صامتة — نعرضها كسناك بار معرّب
@@ -85,8 +85,10 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
           : ListView.builder(
               padding: const EdgeInsets.all(12),
               itemCount: usersBooking.length,
-              itemBuilder: (context, index) =>
-                  buildBookingCard(usersBooking[index]),
+              itemBuilder: (context, index) => StaggeredItem(
+                index: index,
+                child: buildBookingCard(usersBooking[index]),
+              ),
             ),
       ),
     );

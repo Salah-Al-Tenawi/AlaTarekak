@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:alatarekak/core/them/my_colors.dart';
@@ -34,15 +35,25 @@ class ThemApp {
       // ━━━━━━━━━━━━━━━━━━━━━━━━
       // AppBar
       // ━━━━━━━━━━━━━━━━━━━━━━━━
+      // الشريط بلون التطبيق لا بالأبيض: شريط التنقّل السفلي أزرق أصلاً،
+      // فالأبيض بينهما كان يقطع الشاشة ويجعلها باردة.
       appBarTheme: AppBarTheme(
-        backgroundColor: MyColors.surface,
-        foregroundColor: MyColors.textPrimary,
+        backgroundColor: MyColors.primary,
+        foregroundColor: MyColors.textOnDark,
+        iconTheme: IconThemeData(color: MyColors.textOnDark),
+        actionsIconTheme: IconThemeData(color: MyColors.textOnDark),
         elevation: 0,
         centerTitle: true,
         titleTextStyle: GoogleFonts.cairo(
           fontSize: 18,
           fontWeight: FontWeight.w700,
-          color: MyColors.textPrimary,
+          color: MyColors.textOnDark,
+        ),
+        // أيقونات شريط الحالة فاتحة فوق الخلفية الداكنة
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
         ),
       ),
 

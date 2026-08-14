@@ -77,17 +77,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       backgroundColor: MyColors.background,
       appBar: AppBar(
-        backgroundColor: MyColors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_forward_ios_rounded,
-            color: MyColors.primary,
+          icon: Icon(Icons.arrow_forward_ios_rounded,
             size: 20,
           ),
           onPressed: () => Get.back(),
         ),
-        title: Text('الإشعارات', style: AppTextStyles.titleMedium),
+        title: Text('الإشعارات', style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
         centerTitle: true,
       ),
       body: BlocConsumer<NotificationsCubit, NotificationsState>(

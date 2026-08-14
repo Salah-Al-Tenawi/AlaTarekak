@@ -90,6 +90,26 @@ class _TripSelectDateAndSeatsState extends State<TripSelectDateAndSeats> {
     } else {
       _tripFrom = Get.arguments as TripFrom;
     }
+    _restoreFromTrip();
+  }
+
+  /// استعادة ما أُدخل سابقاً — يعمل حتى لو أُعيد بناء الشاشة من الصفر
+  /// (رجوع إلى الخريطة ثم تقدّم من جديد).
+  void _restoreFromTrip() {
+    if (_tripFrom.numberSeats > 0) _seats = _tripFrom.numberSeats;
+
+    final saved = DateTime.tryParse(_tripFrom.date ?? '');
+    if (saved == null) return;
+
+    _selectedDate = saved;
+    _selectedTime = TimeOfDay(hour: saved.hour, minute: saved.minute);
+    if (saved.hour >= 6 && saved.hour < 12) {
+      _selectedTimeSlot = 0;
+    } else if (saved.hour >= 12 && saved.hour < 17) {
+      _selectedTimeSlot = 1;
+    } else {
+      _selectedTimeSlot = 2;
+    }
   }
 
   bool _isPast(TimeOfDay t) {
@@ -177,14 +197,13 @@ class _TripSelectDateAndSeatsState extends State<TripSelectDateAndSeats> {
     return Scaffold(
       backgroundColor: MyColors.background,
       appBar: AppBar(
-        backgroundColor: MyColors.surface,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_forward_ios_rounded,
-              color: MyColors.primary, size: 20),
+              size: 20),
           onPressed: () => Get.back(),
         ),
-        title: Text("إضافة رحلة جديدة", style: AppTextStyles.titleMedium),
+        title: Text("إضافة رحلة جديدة", style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
         centerTitle: true,
       ),
       body: content,
@@ -194,7 +213,8 @@ class _TripSelectDateAndSeatsState extends State<TripSelectDateAndSeats> {
   Widget _buildContent() {
     return Column(
       children: [
-        _StepIndicator(currentStep: 2, totalSteps: 3),
+        // شريط الخطوات يعرضه المعالج (5 خطوات) — شريط ثانٍ بترقيم مخالف
+        // كان يظهر هنا فيتناقض معه
 
           // ━━ المحتوى القابل للتمرير ━━
           Expanded(
@@ -279,44 +299,6 @@ class _TripSelectDateAndSeatsState extends State<TripSelectDateAndSeats> {
   }
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━
-// مؤشر الخطوة
-// ━━━━━━━━━━━━━━━━━━━━━━━━
-class _StepIndicator extends StatelessWidget {
-  final int currentStep;
-  final int totalSteps;
-  const _StepIndicator(
-      {required this.currentStep, required this.totalSteps});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: MyColors.surface,
-      padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 14.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "الخطوة $currentStep من $totalSteps",
-            style: AppTextStyles.labelMedium
-                .copyWith(color: MyColors.textSecondary),
-          ),
-          SizedBox(height: 8.h),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4.r),
-            child: LinearProgressIndicator(
-              value: currentStep / totalSteps,
-              backgroundColor: MyColors.surfaceAlt,
-              valueColor:
-                  AlwaysStoppedAnimation<Color>(MyColors.primary),
-              minHeight: 5.h,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 // عنوان قسم

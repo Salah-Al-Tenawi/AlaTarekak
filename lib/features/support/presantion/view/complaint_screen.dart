@@ -71,9 +71,12 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
     return BlocListener<ComplaintCubit, ComplaintState>(
       listener: (context, state) {
         if (state is ComplaintSuccess) {
+          // الرجوع أولاً ثم الإشعار: Get.snackbar يدفع مساراً على
+          // المتصفّح، فاستدعاء Get.back() بعده يُغلق الإشعار نفسه بدل
+          // الشاشة فلا يرى المستخدم أي تأكيد.
+          Get.back();
           AppSnackBar.success(
               'تم إرسال شكواك بنجاح، سيقوم فريق الدعم بمراجعتها قريباً');
-          Get.back();
         } else if (state is ComplaintFailure) {
           AppSnackBar.error(state.message);
         }
@@ -81,14 +84,13 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
       child: Scaffold(
         backgroundColor: MyColors.background,
         appBar: AppBar(
-          backgroundColor: MyColors.surface,
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.arrow_forward_ios_rounded,
-                color: MyColors.primary, size: 20),
+                size: 20),
             onPressed: () => Get.back(),
           ),
-          title: Text('تقديم شكوى', style: AppTextStyles.titleMedium),
+          title: Text('تقديم شكوى', style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
           centerTitle: true,
         ),
         body: SingleChildScrollView(

@@ -24,14 +24,12 @@ class Policy extends StatelessWidget {
       child: Scaffold(
         backgroundColor: MyColors.background,
         appBar: AppBar(
-          backgroundColor: MyColors.primary,
-          foregroundColor: MyColors.textOnDark,
           elevation: 0,
           centerTitle: true,
           // bodyLarge يحمل لون النصّ الداكن، فيتجاوز foregroundColor أعلاه
           title: Text(
             'سياسات التطبيق',
-            style: AppTextStyles.bodyLarge
+            style: AppTextStyles.bodyLarge.copyWith(color: MyColors.textOnDark)
                 .copyWith(color: MyColors.textOnDark),
           ),
           bottom: TabBar(

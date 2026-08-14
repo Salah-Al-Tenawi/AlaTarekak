@@ -40,11 +40,21 @@ class _TripSelectPriceAndBookingTypeState
     } else {
       _tripFrom = Get.arguments as TripFrom;
     }
-    _price = _calcSuggestedPrice(_tripFrom.distance);
+    // السعر المقترح يُحسب مرة واحدة فقط. كان يُحسب في كل بناء ويكتب فوق
+    // ما اختاره السائق، فيفقد سعره كلما رجع خطوة وعاد.
+    final suggested = _calcSuggestedPrice(_tripFrom.distance);
+    _tripFrom.recomandedPrice = suggested.toDouble();
+    _price = _tripFrom.price > 0 ? _tripFrom.price : suggested;
     _tripFrom.price = _price;
+
     _cashType = _tripFrom.cashType;
     _bookingType = _tripFrom.bookingType;
     _notesController.text = _tripFrom.notes;
+
+    // الملاحظات كانت تُحفظ عند الانتقال فقط، فتضيع لو رجع قبله
+    _notesController.addListener(
+      () => _tripFrom.notes = _notesController.text.trim(),
+    );
   }
 
   @override
@@ -105,15 +115,14 @@ class _TripSelectPriceAndBookingTypeState
     return Scaffold(
       backgroundColor: MyColors.background,
       appBar: AppBar(
-        backgroundColor: MyColors.surface,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_forward_ios_rounded,
-              color: MyColors.primary, size: 20),
+              size: 20),
           onPressed: widget.onBack ?? () => Get.back(),
         ),
         title:
-            Text("إضافة رحلة جديدة", style: AppTextStyles.titleMedium),
+            Text("إضافة رحلة جديدة", style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
         centerTitle: true,
       ),
       body: content,

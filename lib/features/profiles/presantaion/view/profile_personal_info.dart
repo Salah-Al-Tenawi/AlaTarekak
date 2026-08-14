@@ -20,14 +20,13 @@ class ProfilePersonalInfoScreen extends StatelessWidget {
     if (profile == null) {
       return Scaffold(
         appBar: AppBar(
-          backgroundColor: MyColors.surface,
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.arrow_forward_ios_rounded,
-                color: MyColors.primary, size: 20),
+                size: 20),
             onPressed: () => Get.back(),
           ),
-          title: Text("المعلومات الشخصية", style: AppTextStyles.titleMedium),
+          title: Text("المعلومات الشخصية", style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
           centerTitle: true,
         ),
         body: const Center(child: Text("تعذّر تحميل البيانات")),
@@ -89,19 +88,18 @@ class ProfilePersonalInfoScreen extends StatelessWidget {
 
   AppBar _appBar(ProfileEntity profile) {
     return AppBar(
-      backgroundColor: MyColors.surface,
       elevation: 0,
       leading: IconButton(
-        icon: Icon(Icons.arrow_forward_ios_rounded,
-            color: MyColors.primary, size: 20),
+        icon: const Icon(Icons.arrow_forward_ios_rounded, size: 20),
         onPressed: () => Get.back(),
       ),
-      title: Text("المعلومات الشخصية", style: AppTextStyles.titleMedium),
+      title: Text("المعلومات الشخصية",
+          style: AppTextStyles.titleMedium
+              .copyWith(color: MyColors.textOnDark)),
       centerTitle: true,
       actions: [
         IconButton(
-          icon: Icon(Icons.edit_outlined,
-              color: MyColors.primary, size: 22),
+          icon: const Icon(Icons.edit_outlined, size: 22),
           tooltip: 'تعديل',
           onPressed: () async {
             final result = await Get.toNamed(
@@ -402,7 +400,7 @@ class _ScoreTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start, // start = يمين في RTL
         children: [
           Text(
-            'درجة النشاط',
+            'مؤشر الثقة',
             style: AppTextStyles.labelSmall.copyWith(color: MyColors.textHint),
           ),
           SizedBox(height: 8.h),

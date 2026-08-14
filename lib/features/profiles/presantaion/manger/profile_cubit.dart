@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/utils/functions/boot_to_int.dart';
 import 'package:alatarekak/core/utils/functions/get_userid.dart';
 import 'package:alatarekak/features/profiles/data/model/enum/image_mode.dart';
@@ -208,10 +209,16 @@ class ProfileCubit extends Cubit<ProfileState> {
     );
 
     response.fold(
-      (error) => emit(ProfileErrorState(
-        message: error.message,
-        profileEntity: current.profileEntity,
-      )),
+      (error) {
+        emit(ProfileErrorState(
+          message: HandelErorrMessage.updateProfile(error.message),
+          profileEntity: current.profileEntity,
+        ));
+        // العودة إلى حالة التحرير: كل الدوال هنا تشترط ProfileLoadedState
+        // وتخرج صامتة بدونها، فلو بقيت الحالة خطأً لتوقّف زرّ الحفظ عن
+        // فعل أي شيء إلى الأبد ولم يصل أي طلب إلى الخادم.
+        emit(current);
+      },
       (updated) => emit(ProfileLoadedState(
         mode: ProfileMode.myView,
         profileEntity: updated,

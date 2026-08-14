@@ -34,8 +34,9 @@ class _VerfiyEmailSinginState extends State<VerfiyEmailSingin> {
     return BlocConsumer<SinginCubit, SinginState>(
       listener: (context, state) {
         if (state is SinginSuccess) {
-          AppSnackBar.success("تم إنشاء الحساب بنجاح");
+          // الانتقال أولاً: offAllNamed يزيل كل المسارات ومنها مسار الإشعار
           Get.offAllNamed(RouteName.home, arguments: true);
+          AppSnackBar.success("تم إنشاء الحساب بنجاح");
         }
         if (state is SinginErorre) {
           AppSnackBar.error(state.message);

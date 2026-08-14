@@ -1,6 +1,8 @@
 import 'package:alatarekak/core/api/api_end_points.dart';
 import 'package:alatarekak/core/api/dio_consumer.dart';
 import 'package:alatarekak/core/utils/functions/get_token.dart';
+import 'package:alatarekak/core/utils/functions/get_userid.dart';
+import 'package:alatarekak/features/profiles/data/date_source/profile_local_data_source.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 
 class TripCreateRemoteDataSource {
@@ -38,6 +40,11 @@ class TripCreateRemoteDataSource {
       ApiKey.paymentmethod: paymentMethod,
       ApiKey.bookingType: bookingType.toLowerCase(),
       ApiKey.communicationNumber: communicationNumber,
+      // حقل إلزامي في الخادم. ليس اختياراً يخصّ الرحلة بل صفة لسيارة
+      // السائق المسجّلة، فنقرؤه من ملفه المخزّن محلياً بدل سؤاله عنه
+      // في كل رحلة. إن غاب يرفض الخادم بـ 422 برسالة مترجَمة توجّهه
+      // إلى إضافة سيارته.
+      if (_myVehicleType() != null) 'vehicle_type': _myVehicleType(),
     },
   );
 
@@ -46,4 +53,16 @@ class TripCreateRemoteDataSource {
   return trip;
 }
 
+  /// نوع سيارة السائق من ملفه المخزّن محلياً — null إن لم يُخزَّن الملف
+  /// بعد أو لم يسجّل السائق سيارة.
+  String? _myVehicleType() {
+    try {
+      final id = myid();
+      if (id == null) return null;
+      final type = ProfileLocalDataSourceIm().getProfile(id)?.car?.type;
+      return (type == null || type.isEmpty) ? null : type;
+    } catch (_) {
+      return null;
+    }
+  }
 }

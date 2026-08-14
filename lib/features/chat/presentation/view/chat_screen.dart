@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/functions/get_userid.dart';
@@ -282,24 +283,12 @@ class _MessageBubble extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(bottom: 8.h),
       child: Row(
-        mainAxisAlignment: isMe
-            ? MainAxisAlignment.end
-            : MainAxisAlignment.start,
+        // الواجهة عربية (RTL) فـ start هي الحافة اليمنى: رسائلي يميناً
+        // ورسائل الطرف الآخر يساراً. كان معكوساً لأن end في RTL = اليسار.
+        mainAxisAlignment:
+            isMe ? MainAxisAlignment.start : MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!isMe) ...[
-            CircleAvatar(
-              radius: 14.r,
-              backgroundColor: MyColors.background,
-              backgroundImage: message.sender.avatar != null
-                  ? NetworkImage(message.sender.avatar!)
-                  : null,
-              child: message.sender.avatar == null
-                  ? Icon(Icons.person, size: 14, color: MyColors.textHint)
-                  : null,
-            ),
-            SizedBox(width: 6.w),
-          ],
           GestureDetector(
             onLongPress: isMe ? onLongPress : null,
             child: ConstrainedBox(
@@ -356,6 +345,27 @@ class _MessageBubble extends StatelessWidget {
               ),
             ),
           ),
+          // الصورة بعد الفقاعة لا قبلها: في RTL يُرسم أول عنصر في الصف
+          // على اليمين، فوضعها أولاً كان يضعها بين الفقاعة ووسط الشاشة.
+          // ترتيبها أخيراً يدفعها إلى الحافة اليسرى حيث ينتمي الطرف الآخر.
+          if (!isMe) ...[
+            SizedBox(width: 6.w),
+            GestureDetector(
+              // صورة المرسِل تفتح ملفه الشخصي
+              onTap: () => Get.toNamed(RouteName.profile,
+                  arguments: message.sender.id),
+              child: CircleAvatar(
+                radius: 14.r,
+                backgroundColor: MyColors.background,
+                backgroundImage: message.sender.avatar != null
+                    ? NetworkImage(message.sender.avatar!)
+                    : null,
+                child: message.sender.avatar == null
+                    ? Icon(Icons.person, size: 14, color: MyColors.textHint)
+                    : null,
+              ),
+            ),
+          ],
         ],
       ),
     );

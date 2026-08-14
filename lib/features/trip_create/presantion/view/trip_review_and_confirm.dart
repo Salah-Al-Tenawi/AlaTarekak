@@ -338,8 +338,13 @@ class _BottomBar extends StatelessWidget {
           Expanded(
             flex: 3,
             child: BlocBuilder<PushRideCubit, PushRideState>(
+              // لا بد من إدراج حالتَي الفشل والنجاح: بدونهما لا يُعاد بناء
+              // الزر بعد فشل النشر فيبقى عالقاً في وضع التحميل للأبد.
               buildWhen: (_, curr) =>
-                  curr is PushRideLoading || curr is PushRideInitial,
+                  curr is PushRideLoading ||
+                  curr is PushRideInitial ||
+                  curr is PushRideErorr ||
+                  curr is PushRideSuccsess,
               builder: (context, state) {
                 final isLoading = state is PushRideLoading;
                 return ElevatedButton(

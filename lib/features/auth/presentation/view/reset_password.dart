@@ -39,8 +39,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     return BlocConsumer<ForgetPasswordCubit, ForgetPasswordState>(
       listener: (context, state) {
         if (state is ForgetPasswordResetSuccess) {
-          AppSnackBar.success('تم تغيير كلمة المرور بنجاح');
+          // الانتقال أولاً: offAllNamed يزيل كل المسارات ومنها مسار الإشعار
           Get.offAllNamed(RouteName.login);
+          AppSnackBar.success('تم تغيير كلمة المرور بنجاح');
         }
         if (state is ForgetPasswordErorr) {
           AppSnackBar.error(state.message);
