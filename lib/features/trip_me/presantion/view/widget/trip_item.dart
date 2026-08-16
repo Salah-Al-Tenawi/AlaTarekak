@@ -116,13 +116,48 @@ class ItemTrip extends StatelessWidget {
                       expand: true,
                       icon: Icons.event_seat_rounded,
                       // `available_seats` هي المقاعد المتبقّية لا الإجمالي،
-                      // فصياغة «س من ص» تصف شيئاً لا يرسله الخادم
-                      label: trip.seatsAvailable > 0
-                          ? '${trip.seatsAvailable} مقاعد متاحة'
-                          : 'مقاعد متاحة',
-                      color: MyColors.success,
+                      // فصياغة «س من ص» تصف شيئاً لا يرسله الخادم.
+                      // والصفر يُصاغ نفياً صريحاً: «مقاعد متاحة» وحدها كانت
+                      // تُقرأ إثباتاً على رحلة ممتلئة.
+                      label: _seatsLabel(trip.seatsAvailable),
+                      color: trip.seatsAvailable > 0
+                          ? MyColors.success
+                          : MyColors.textSecondary,
                     ),
                   ),
+                ],
+              ),
+
+              SizedBox(height: 8.h),
+
+              // ━━ الحجوزات والمسار ━━
+              // `bookings_count` يصل في قائمة الرحلات ولم يكن يُعرض، وهو
+              // أول ما يبحث عنه السائق في رحلته. والمسافة والمدّة تصلان
+              // معه فتُعرضان بدل أن تُهدرا.
+              Row(
+                children: [
+                  Expanded(
+                    child: TripInfoChip(
+                      expand: true,
+                      icon: Icons.people_alt_rounded,
+                      label: _bookingsLabel(trip.bookingsCount),
+                      color: trip.bookingsCount > 0
+                          ? MyColors.primary
+                          : MyColors.textSecondary,
+                    ),
+                  ),
+                  if (trip.distance.meters > 0) ...[
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: TripInfoChip(
+                        expand: true,
+                        icon: Icons.route_rounded,
+                        label: _routeLabel(
+                            trip.distance.kilometers, trip.duration.minutes),
+                        color: MyColors.blue,
+                      ),
+                    ),
+                  ],
                 ],
               ),
 
@@ -268,6 +303,40 @@ class _CancelButton extends StatelessWidget {
       ),
     );
   }
+}
+
+// ─── صياغة نصوص البطاقة ───────────────────────────────────────────────────────
+//
+// العربية تُثنّي وتجمع بصيغ مختلفة، و«1 مقاعد» أو «2 حجوزات» يقرأها
+// المستخدم خطأً في التطبيق لا في بياناته. المفرد والمثنّى يُصاغان صراحةً.
+
+String _seatsLabel(int available) {
+  if (available <= 0) return 'لا مقاعد متاحة';
+  if (available == 1) return 'مقعد واحد متاح';
+  if (available == 2) return 'مقعدان متاحان';
+  return '$available مقاعد متاحة';
+}
+
+String _bookingsLabel(int count) {
+  if (count <= 0) return 'لا حجوزات';
+  if (count == 1) return 'حجز واحد';
+  if (count == 2) return 'حجزان';
+  return '$count حجوزات';
+}
+
+/// «47.8 كم · 41 د» — والمدّة الطويلة بالساعات فلا تُقرأ «150 د».
+String _routeLabel(double kilometers, int minutes) {
+  final distance = kilometers >= 10
+      ? '${kilometers.round()} كم'
+      : '${kilometers.toStringAsFixed(1)} كم';
+
+  if (minutes < 60) return '$distance · $minutes د';
+
+  final hours = minutes ~/ 60;
+  final rest = minutes % 60;
+  return rest == 0
+      ? '$distance · $hours س'
+      : '$distance · $hours س $rest د';
 }
 
 String formatRemainingTime(Duration duration) {

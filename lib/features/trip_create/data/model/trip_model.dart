@@ -47,6 +47,14 @@ class TripModel {
   final String communicationNumber;
   final List<BookingModel> booking;
 
+  /// عدد الحجوزات على الرحلة.
+  ///
+  /// الصفّ الخام (`GET /rides`) يرسل عدّاداً `bookings_count` بلا قائمة
+  /// الحجوزات، والشكل المحوَّل يرسل القائمة بلا عدّاد. كلاهما يجيب عن
+  /// السؤال نفسه في بطاقة «رحلاتي»: كم حجزاً على هذه الرحلة. وهو غير
+  /// [seatsBooked] — الحجز الواحد قد يحمل أكثر من مقعد.
+  final int bookingsCount;
+
   TripModel({
     required this.id,
     required this.driver,
@@ -67,6 +75,7 @@ class TripModel {
     required this.chosenRouteIndex,
     required this.communicationNumber,
     required this.booking,
+    this.bookingsCount = 0,
   });
 
   /// المفاتيح التي قد تُغلَّف بها رحلة مفردة.
@@ -175,6 +184,12 @@ class TripModel {
           .whereType<Map>()
           .map((e) => BookingModel.fromJson(Map<String, dynamic>.from(e)))
           .toList(),
+      bookingsCount: asInt(pick(data, const [
+            'bookings_count',
+            'booking_count',
+            'total_bookings',
+          ])) ??
+          rawBookings.length,
     );
   }
 
@@ -224,6 +239,7 @@ class TripModel {
       'created_at': createdAt?.toIso8601String(),
       'chosen_route_index': chosenRouteIndex,
       'communication_number': communicationNumber,
+      'bookings_count': bookingsCount,
     };
   }
 }
