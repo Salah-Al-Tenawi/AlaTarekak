@@ -43,3 +43,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# أسرار — مفاتيح خدمة Firebase (تخص السيرفر) وملفات إعداد Firebase للتطبيق
+**/firebase-credentials.json
+**/*-adminsdk-*.json
+android/key.properties
+*.jks
+*.p8
+*.p12
