@@ -7,8 +7,8 @@ import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/class/format_money.dart';
+import 'package:alatarekak/core/utils/class/syrian_phone.dart';
 import 'package:alatarekak/core/utils/functions/get_userid.dart';
-import 'package:alatarekak/core/utils/widgets/custom_text_form.dart';
 import 'package:alatarekak/core/utils/widgets/trip_card_parts.dart';
 import 'package:alatarekak/features/trip_create/data/model/booking_model.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
@@ -637,123 +637,20 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
   }
 
   void _showBookingDialog(BuildContext context) {
-    final seatsController = TextEditingController();
-    final contactController = TextEditingController();
     // حين يصل العدّاد صفراً لا نعرف أهي ممتلئة أم أن الحقل لم يُقرأ، فلا
     // يُقيَّد المستخدم بصفر. الحدّ حينها هو سقف الخادم لكل حجز (8 مقاعد)،
     // وهو من يرفض إن لم تكفِ المقاعد.
     const int serverSeatCap = 8;
     final int maxSeats =
         trip.seatsAvailable > 0 ? trip.seatsAvailable : serverSeatCap;
-    final bool seatsKnown = trip.seatsAvailable > 0;
-    final formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: MyColors.surface,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.r)),
-        title: Row(
-          children: [
-            Icon(Icons.event_seat_rounded,
-                color: MyColors.accent, size: 22.sp),
-            SizedBox(width: 8.w),
-            Text('حجز مقاعد',
-                style: AppTextStyles.titleMedium.copyWith(fontSize: 16.sp)),
-          ],
-        ),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding:
-                    EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
-                decoration: BoxDecoration(
-                  color: MyColors.accentLight,
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: Text(
-                  seatsKnown
-                      ? 'المتاح $maxSeats مقاعد — سعر المقعد '
-                          '${Money.withCurrency(trip.pricePerSeat)}'
-                      : 'سعر المقعد ${Money.withCurrency(trip.pricePerSeat)} '
-                          '— يؤكّد الخادم توفّر المقاعد عند الإرسال',
-                  style: TextStyle(
-                      fontSize: 12.sp, color: MyColors.textPrimary),
-                ),
-              ),
-              SizedBox(height: 14.h),
-              CustomTextformfild(
-                title: 'عدد المقاعد',
-                controller: seatsController,
-                fill: true,
-                fillColor: MyColors.background,
-                icon: Icon(Icons.event_seat, color: MyColors.accent),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'الرجاء إدخال عدد المقاعد';
-                  }
-                  final seats = int.tryParse(value);
-                  if (seats == null || seats < 1 || seats > maxSeats) {
-                    return 'الرجاء إدخال عدد بين 1 و $maxSeats';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 10.h),
-              CustomTextformfild(
-                title: 'رقم التواصل',
-                controller: contactController,
-                fill: true,
-                fillColor: MyColors.background,
-                icon: Icon(Icons.phone, color: MyColors.accent),
-                keyboardType: TextInputType.phone,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'الرجاء إدخال رقم الهاتف';
-                  }
-                  // الخادم يفرض ^09\d{8}$ ويرفض ما عداه بـ 422
-                  if (!RegExp(r'^09\d{8}$').hasMatch(value)) {
-                    return 'يجب أن يبدأ الرقم بـ 09 ويتكون من 10 أرقام';
-                  }
-                  return null;
-                },
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('إلغاء',
-                style:
-                    TextStyle(color: MyColors.textSecondary, fontSize: 14.sp)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: MyColors.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.r)),
-              padding:
-                  EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-            ),
-            onPressed: () {
-              if (!formKey.currentState!.validate()) return;
-              final seats = int.parse(seatsController.text);
-              _bookSeats(seats, trip.id, contactController.text.trim());
-              Navigator.pop(context);
-            },
-            child: Text('تأكيد الحجز',
-                style: TextStyle(
-                    fontSize: 14.sp, fontWeight: FontWeight.bold)),
-          ),
-        ],
+      builder: (dialogContext) => _BookingDialog(
+        maxSeats: maxSeats,
+        seatsKnown: trip.seatsAvailable > 0,
+        pricePerSeat: trip.pricePerSeat,
+        onConfirm: (seats, phone) => _bookSeats(seats, trip.id, phone),
       ),
     );
   }
@@ -921,6 +818,296 @@ class _ActionButton extends StatelessWidget {
           label,
           style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold),
           overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
+  }
+}
+
+/// حوار الحجز — عدّاد مقاعد محدود بالمتاح، وحقل هاتف يقبل الصيغتين.
+///
+/// كان العدد يُكتب نصّاً فيُترك للمستخدم أن يخطئ ثم يُصحَّح برسالة تحقّق.
+/// العدّاد يمنع الخطأ ابتداءً: لا يتجاوز المتاح ولا ينزل تحت مقعد واحد.
+class _BookingDialog extends StatefulWidget {
+  final int maxSeats;
+  final bool seatsKnown;
+  final String pricePerSeat;
+  final void Function(int seats, String phone) onConfirm;
+
+  const _BookingDialog({
+    required this.maxSeats,
+    required this.seatsKnown,
+    required this.pricePerSeat,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_BookingDialog> createState() => _BookingDialogState();
+}
+
+class _BookingDialogState extends State<_BookingDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _phone = TextEditingController();
+  int _seats = 1;
+
+  @override
+  void dispose() {
+    _phone.dispose();
+    super.dispose();
+  }
+
+  double? get _unitPrice => double.tryParse(widget.pricePerSeat);
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: MyColors.surface,
+      insetPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.r)),
+      titlePadding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 8.h),
+      contentPadding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 8.h),
+      title: Row(
+        children: [
+          Icon(Icons.event_seat_rounded, color: MyColors.accent, size: 22.sp),
+          SizedBox(width: 8.w),
+          Expanded(
+            child: Text('حجز مقاعد',
+                style: AppTextStyles.titleMedium.copyWith(fontSize: 16.sp)),
+          ),
+        ],
+      ),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _availabilityNote(),
+              SizedBox(height: 16.h),
+              _seatsStepper(),
+              SizedBox(height: 16.h),
+              _phoneField(),
+            ],
+          ),
+        ),
+      ),
+      actionsPadding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('إلغاء',
+              style:
+                  TextStyle(color: MyColors.textSecondary, fontSize: 14.sp)),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: MyColors.primary,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.r)),
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+          ),
+          onPressed: _submit,
+          child: Text('تأكيد الحجز',
+              style:
+                  TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
+        ),
+      ],
+    );
+  }
+
+  void _submit() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    // يُرسَل الرقم مطبَّعاً لا كما كُتب: الخادم يقبل 09XXXXXXXX وحدها
+    final phone = SyrianPhone.normalize(_phone.text) ?? _phone.text.trim();
+    Navigator.pop(context);
+    widget.onConfirm(_seats, phone);
+  }
+
+  Widget _availabilityNote() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      decoration: BoxDecoration(
+        color: MyColors.accentLight,
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline_rounded,
+              size: 16.sp, color: MyColors.accent),
+          SizedBox(width: 8.w),
+          Expanded(
+            child: Text(
+              widget.seatsKnown
+                  ? 'المتاح ${widget.maxSeats} مقاعد — سعر المقعد '
+                      '${Money.withCurrency(widget.pricePerSeat)}'
+                  : 'سعر المقعد ${Money.withCurrency(widget.pricePerSeat)} — '
+                      'يؤكّد الخادم توفّر المقاعد عند الإرسال',
+              style: TextStyle(fontSize: 12.sp, color: MyColors.textPrimary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _seatsStepper() {
+    final unit = _unitPrice;
+    final atMin = _seats <= 1;
+    final atMax = _seats >= widget.maxSeats;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('عدد المقاعد',
+            style: AppTextStyles.labelMedium.copyWith(fontSize: 13.sp)),
+        SizedBox(height: 8.h),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 6.h),
+          decoration: BoxDecoration(
+            color: MyColors.background,
+            borderRadius: BorderRadius.circular(14.r),
+            border: Border.all(color: MyColors.border, width: 1),
+          ),
+          child: Row(
+            children: [
+              _StepButton(
+                icon: Icons.remove_rounded,
+                enabled: !atMin,
+                onTap: () => setState(() => _seats--),
+              ),
+              Expanded(
+                child: Text(
+                  '$_seats',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.bold,
+                    color: MyColors.textPrimary,
+                  ),
+                ),
+              ),
+              _StepButton(
+                icon: Icons.add_rounded,
+                enabled: !atMax,
+                onTap: () => setState(() => _seats++),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 8.h),
+        Row(
+          children: [
+            if (atMax && widget.seatsKnown)
+              Expanded(
+                child: Text(
+                  'بلغتَ أقصى المتاح',
+                  style: TextStyle(fontSize: 11.sp, color: MyColors.textHint),
+                ),
+              )
+            else
+              const Spacer(),
+            if (unit != null)
+              Text(
+                'الإجمالي ${Money.withCurrency(unit * _seats)}',
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.bold,
+                  color: MyColors.accent,
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _phoneField() {
+    OutlineInputBorder border(Color color, [double width = 1]) =>
+        OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14.r),
+          borderSide: BorderSide(color: color, width: width),
+        );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('رقم التواصل',
+            style: AppTextStyles.labelMedium.copyWith(fontSize: 13.sp)),
+        SizedBox(height: 8.h),
+        TextFormField(
+          controller: _phone,
+          keyboardType: TextInputType.phone,
+          // الرقم يُكتب ويُعرض يساراً حتى لا تنقلب خاناته في سطر عربي
+          textDirection: TextDirection.ltr,
+          textAlign: TextAlign.left,
+          style: TextStyle(
+              fontSize: 15.sp,
+              fontWeight: FontWeight.w600,
+              color: MyColors.textPrimary),
+          decoration: InputDecoration(
+            hintText: '0988626577',
+            hintStyle: TextStyle(
+                fontSize: 14.sp,
+                color: MyColors.textHint,
+                fontWeight: FontWeight.normal),
+            filled: true,
+            fillColor: MyColors.background,
+            prefixIcon:
+                Icon(Icons.phone_rounded, color: MyColors.accent, size: 20.sp),
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
+            border: border(MyColors.border),
+            enabledBorder: border(MyColors.border),
+            focusedBorder: border(MyColors.primary, 1.5),
+            errorBorder: border(MyColors.error),
+            focusedErrorBorder: border(MyColors.error, 1.5),
+            errorStyle: TextStyle(fontSize: 11.sp),
+          ),
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'الرجاء إدخال رقم الهاتف';
+            }
+            return SyrianPhone.isValid(value) ? null : SyrianPhone.error;
+          },
+        ),
+        SizedBox(height: 6.h),
+        Text(
+          'يُقبل 0988626577 أو +963988626577',
+          style: TextStyle(fontSize: 11.sp, color: MyColors.textHint),
+        ),
+      ],
+    );
+  }
+}
+
+class _StepButton extends StatelessWidget {
+  final IconData icon;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  const _StepButton({
+    required this.icon,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = enabled ? MyColors.primary : MyColors.textHint;
+    return Material(
+      color: enabled
+          ? MyColors.primary.withValues(alpha: 0.1)
+          : MyColors.surfaceAlt.withValues(alpha: 0.5),
+      borderRadius: BorderRadius.circular(10.r),
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        borderRadius: BorderRadius.circular(10.r),
+        child: Padding(
+          padding: EdgeInsets.all(10.w),
+          child: Icon(icon, size: 20.sp, color: color),
         ),
       ),
     );

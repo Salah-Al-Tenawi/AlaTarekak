@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 
+import 'package:alatarekak/core/utils/class/syrian_phone.dart';
+
 String? inputvaild(String val, String? type, int? max, int? min) {
   if (val.isEmpty) {
     return "لا يمكن ترك الحقل فارغ";
@@ -19,12 +21,12 @@ String? inputvaild(String val, String? type, int? max, int? min) {
     }
   }
 
-  // رقم التواصل: الخادم يفرض ^09\d{8}$ ويرفض أي صيغة أخرى بـ 422
-  // (بما فيها +963...) — نفرض القاعدة نفسها هنا قبل الإرسال
+  // رقم التواصل: الخادم يفرض ^09\d{8}$ ويرفض ما عداه بـ 422 — بما فيه
+  // صيغة المفتاح الدولي. لكن رفضَ رقم صحيح لأن صاحبه كتب مفتاح بلده ليس
+  // تحقّقاً بل عرقلة، فتُقبل كل الصيغ هنا ويُطبَّع الرقم في مصادر البيانات
+  // قبل إرساله. انظر [SyrianPhone].
   if (type == "nubmerphone") {
-    if (!RegExp(r'^09\d{8}$').hasMatch(val)) {
-      return "رقم الهاتف يجب أن يبدأ بـ 09 ويتكون من 10 أرقام";
-    }
+    if (!SyrianPhone.isValid(val)) return SyrianPhone.error;
   }
 
   // التحقق من الرابط

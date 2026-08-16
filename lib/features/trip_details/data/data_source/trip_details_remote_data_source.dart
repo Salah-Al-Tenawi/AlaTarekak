@@ -1,6 +1,7 @@
 import 'package:alatarekak/core/api/api_end_points.dart';
 import 'package:alatarekak/core/api/dio_consumer.dart';
 import 'package:alatarekak/core/utils/functions/get_token.dart';
+import 'package:alatarekak/core/utils/class/syrian_phone.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_details/data/model/booking_model.dart';
 
@@ -27,7 +28,9 @@ class TripDetailsRemoteDataSource {
         },
         data: {
           ApiKey.seats: seats,
-          ApiKey.communicationNumber: communicationNumber,
+          // الخادم يقبل 09XXXXXXXX وحدها — يُطبَّع هنا مهما كتبه المستخدم
+          ApiKey.communicationNumber:
+              SyrianPhone.normalize(communicationNumber) ?? communicationNumber,
           'idempotency_key': idempotencyKey,
         });
     return BookingResponse.fromJson(response);

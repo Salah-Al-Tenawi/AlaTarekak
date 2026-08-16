@@ -2,6 +2,7 @@
 import 'package:alatarekak/core/api/api_end_points.dart';
 import 'package:alatarekak/core/api/dio_consumer.dart';
 import 'package:alatarekak/core/utils/functions/get_token.dart';
+import 'package:alatarekak/core/utils/class/syrian_phone.dart';
 import 'package:alatarekak/features/e_pay/data/model/balance_model.dart';
 import 'package:alatarekak/features/e_pay/data/model/wallet_transaction_model.dart';
 import 'package:alatarekak/features/e_pay/domain/entity/wallet_transaction.dart';
@@ -18,7 +19,10 @@ class EPayRemoteDataSource {
     final response = await api.post(
       ApiEndPoint.createWalletDirect,
       header: {ApiKey.authorization: "Bearer ${mytoken()}"},
-      data: {ApiKey.phoneNumber: phoneNumber},
+      // الخادم يقبل 09XXXXXXXX وحدها — يُطبَّع هنا مهما كتبه المستخدم
+      data: {
+        ApiKey.phoneNumber: SyrianPhone.normalize(phoneNumber) ?? phoneNumber
+      },
     );
     return response;
   }
