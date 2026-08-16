@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:alatarekak/core/route/route_name.dart';
+import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
 import 'package:alatarekak/features/chat/domain/entity/quick_messages.dart';
@@ -28,6 +29,25 @@ class _TripDetailsState extends State<TripDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: MyColors.background,
+      // كانت الشاشة بلا شريط علوي إطلاقاً: لا عنوان ولا زرّ رجوع، فلا
+      // مخرج منها إلا زرّ النظام — والقادم إليها من إشعار لا يعرف أين هو.
+      appBar: AppBar(
+        title: const Text('تفاصيل الرحلة'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_forward_ios_rounded, size: 20),
+          onPressed: () => Get.back(),
+          tooltip: 'رجوع',
+        ),
+        actions: [
+          IconButton(
+            onPressed: () =>
+                context.read<TripDetailsCubit>().fetchTrip(tripId),
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'تحديث',
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           await context.read<TripDetailsCubit>().fetchTrip(tripId);

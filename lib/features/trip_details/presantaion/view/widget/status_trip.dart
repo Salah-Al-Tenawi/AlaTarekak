@@ -5,7 +5,14 @@ class StatusInfo {
   final String text;
   final Color color;
 
-  StatusInfo(this.text, this.color);
+  /// false حين لا تُطابَق الحالة أو تصل فارغة.
+  ///
+  /// بعض المسارات لا ترسل حالة الرحلة أصلاً، فكان يظهر للمستخدم مربّع
+  /// «غير معروف» — وهو ضجيج لا معلومة. تتيح هذه الراية للواجهة أن تُخفي
+  /// الشارة بدل عرض قيمة لا نملكها.
+  final bool isKnown;
+
+  StatusInfo(this.text, this.color, {this.isKnown = true});
 }
 
 StatusInfo getStatusInfo(String? status) {
@@ -36,6 +43,6 @@ StatusInfo getStatusInfo(String? status) {
       return StatusInfo('انتهت الرحلة', MyColors.blue);
 
     default:
-      return StatusInfo('غير معروف', MyColors.textPrimary);
+      return StatusInfo('غير معروف', MyColors.textSecondary, isKnown: false);
   }
 }

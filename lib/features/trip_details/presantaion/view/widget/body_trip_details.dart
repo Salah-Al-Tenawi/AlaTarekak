@@ -2,20 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:alatarekak/core/constant/imagesUrl.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
+import 'package:alatarekak/core/utils/class/format_money.dart';
 import 'package:alatarekak/core/utils/functions/get_userid.dart';
 import 'package:alatarekak/core/utils/widgets/custom_text_form.dart';
+import 'package:alatarekak/core/utils/widgets/trip_card_parts.dart';
 import 'package:alatarekak/features/trip_create/data/model/booking_model.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_details/data/model/trip_details_mode.dart';
 import 'package:alatarekak/features/trip_details/presantaion/manger/cubit/tripdetails_cubit.dart';
-import 'package:alatarekak/features/trip_details/presantaion/view/widget/status_trip.dart';
 
+/// تفاصيل الرحلة.
+///
+/// كانت الشاشة سلسلة عناصر متجاورة بلا تجميع: كل معلومة في حاوية بلون
+/// وزاوية ومقاس مختلف، وبعضها بمقاسات ثابتة لا تتجاوب مع حجم الشاشة.
+/// أُعيد تنظيمها إلى بطاقات موضوعية ([TripSectionCard]) بالمقاسات نفسها
+/// المستعملة في بطاقات البحث و«رحلاتي»، فتُقرأ الشاشة كوحدة واحدة.
 class BodyTripDetails extends StatefulWidget {
   final TripModel trip;
   final TripDetailsMode mode;
@@ -26,9 +31,11 @@ class BodyTripDetails extends StatefulWidget {
 }
 
 class _BodyTripDetailsState extends State<BodyTripDetails> {
+  TripModel get trip => widget.trip;
+
   /// حجز المستخدم الحالي على هذه الرحلة (إن وُجد).
   BookingModel? get _myBooking {
-    for (final b in widget.trip.booking) {
+    for (final b in trip.booking) {
       if (b.userId == myid()) return b;
     }
     return null;
@@ -44,394 +51,296 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-      width: double.infinity,
-      child: Column(children: [
-        _buildStatusChip(),
-
-        SizedBox(
-          height: 10.h,
-        ),
-        _buildDriverInfo(),
-        // SizedBox(height: 5.h),
-        _buildContactAndCreatedAtRow(),
-        _buildTripRoute(),
-        SizedBox(height: 17.h),
-        _buildDistanceDurationRow(),
-
-        _buildDepartureBadge(),
-        
-        _buildSeatsInfo(),
-
-        SizedBox(height: 17.h),
-        _buildPaymentMethodWidget(),
-
-        SizedBox(height: 5.h),
-        _buildBookingTypeWidget(),
-        SizedBox(height: 20.h),
-        widget.mode == TripDetailsMode.otherView
-            ? _buildConditionalBookingButton(context)
-            : showBookingButton(),
-        widget.mode == TripDetailsMode.myView
-            ? _buildFinishRideButton()
-            : const SizedBox()
-      ]),
-    );
-  }
-
-  Widget _buildFinishRideButton() {
-    final departure = widget.trip.departure;
-    final now = DateTime.now();
-    final difference = departure.difference(now);
-
-    // الخادم يرفض الإنهاء قبل موعد الانطلاق — نعطّل الزر بدل انتظار الرفض
-    final canFinish = difference.inSeconds <= 0;
-
-    // نتحقق إذا كانت الحالة active أو full
-    if (widget.trip.status == 'active' || widget.trip.status == 'full') {
-      return Container(
-        width: double.infinity,
-        margin: EdgeInsets.symmetric(vertical: 10.h),
-        child: ElevatedButton(
-          onPressed: canFinish
-              ? () => context.read<TripDetailsCubit>().finishRide(widget.trip.id)
-              : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: MyColors.accent,
-            foregroundColor: Colors.white,
-            disabledBackgroundColor: MyColors.textHint,
-            disabledForegroundColor: Colors.white,
-            padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 24.w),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            elevation: 4,
-            shadowColor: MyColors.accent.withOpacity(0.3),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.flag_rounded,
-                size: 24.w,
-                color: Colors.white,
-              ),
-              SizedBox(width: 12.w),
-              canFinish
-                  ? Text(
-                      "إنهاء الرحلة",
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )
-                  : Text(
-                      "لم يحن وقت الرحلة",
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )
-            ],
-          ),
-        ),
-      );
-    }
-
-    return const SizedBox();
-  }
-
-  ElevatedButton showBookingButton() {
-    return ElevatedButton(
-      onPressed: () {
-        Get.toNamed(RouteName.bookingUserInTrip,
-            arguments: widget.trip.booking);
-      },
-      style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 24.w),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        elevation: 6,
-        backgroundColor: MyColors.primary,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.list_alt,
-            color: Colors.white,
-            size: 22.sp,
-          ),
-          SizedBox(width: 10.w),
-          Text(
-            "عرض الحجوزات - ${widget.trip.seatsBooked} محجوزة",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 16.sp,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusChip() {
-    final statusInfo = getStatusInfo(widget.trip.status);
-
-    return Align(
-      alignment: Alignment.topLeft,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
-        decoration: BoxDecoration(
-          color: statusInfo.color,
-          borderRadius: BorderRadius.circular(12.r),
-          boxShadow: [
-            BoxShadow(
-              color: statusInfo.color.withOpacity(0.4),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Text(
-          statusInfo.text,
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 15.sp,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDriverInfo() {
-    return Row(
-      children: [
-        InkWell(
-          onTap: () {
-            context
-                .read<TripDetailsCubit>()
-                .fetchProfile(widget.trip.driver.id);
-          },
-          child: CircleAvatar(
-            radius: 30.w,
-            backgroundImage: (widget.trip.driver.avatar == null ||
-                    widget.trip.driver.avatar!.isEmpty)
-                ? const AssetImage(ImagesUrl.profileImage)
-                : NetworkImage(widget.trip.driver.avatar!) as ImageProvider,
-          ),
-        ),
-        SizedBox(width: 8.w),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(widget.trip.driver.name),
-              RatingBarIndicator(
-                rating: widget.trip.driver.rating.toDouble(),
-                itemBuilder: (context, index) => const Icon(
-                  Icons.star,
-                  color: Colors.amber,
-                ),
-                itemCount: 5,
-                itemSize: 18.0,
-                direction: Axis.horizontal,
-              ),
-            ],
-          ),
-        ),
-        // مراسلة السائق — لا تُفتح محادثة إلا بين طرفين بينهما حجز فعلي،
-        // فالزر يظهر فقط لمن له حجز مؤكَّد أو مكتمل على هذه الرحلة
-        if (_canChatWithDriver)
-          IconButton(
-            onPressed: () => context.read<TripDetailsCubit>().gotoChatWithDriver(
-                  widget.trip.driver.id,
-                  name: widget.trip.driver.name,
-                  avatar: widget.trip.driver.avatar,
-                ),
-            icon: Icon(Icons.chat_bubble_outline_rounded,
-                color: MyColors.primary),
-            tooltip: 'مراسلة السائق',
-          ),
-      ],
-    );
-  }
-
-  Widget _buildPickupCard() {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 2,
-      child: Padding(
-        padding: EdgeInsets.all(12.w),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(Icons.my_location, color: MyColors.textSecondary, size: 24.w),
-            SizedBox(width: 10.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "موقع الانطلاق",
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.bold,
-                      color: MyColors.primary,
-                    ),
-                  ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    widget.trip.pickup.address,
-                    style: TextStyle(fontSize: 12.sp, color: Colors.black87),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDestinationCard() {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 2,
-      child: Padding(
-        padding: EdgeInsets.all(12.w),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(Icons.location_on, color: MyColors.textSecondary, size: 24.w),
-            SizedBox(width: 10.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "الوجهة",
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.bold,
-                      color: MyColors.primary,
-                    ),
-                  ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    widget.trip.destination.address,
-                    style: TextStyle(fontSize: 12.sp, color: Colors.black87),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTripRoute() {
-    return InkWell(
-      onTap: () {
-        Get.toNamed(
-          RouteName.routeMapView,
-          arguments: {
-            'startLat': widget.trip.pickup.coordinates.lat,
-            'startLng': widget.trip.pickup.coordinates.lng,
-            'endLat': widget.trip.destination.coordinates.lat,
-            'endLng': widget.trip.destination.coordinates.lng,
-            'routeIndex': widget.trip.chosenRouteIndex,
-          },
-        );
-      },
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 24.h),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildPickupCard(),
-          SizedBox(height: 8.h),
-          FaIcon(
-            FontAwesomeIcons.route,
-            size: 25.w,
-            color: MyColors.accent,
-          ),
-          SizedBox(height: 8.h),
-          _buildDestinationCard(),
+          _buildHeroCard(),
+          _buildDriverCard(),
+          _buildRouteCard(),
+          _buildSeatsAndPriceCard(),
+          _buildBookingTermsCard(),
+          SizedBox(height: 4.h),
+          _buildPrimaryAction(context),
         ],
       ),
     );
   }
 
-  Widget _buildDepartureBadge() {
-    final departure = widget.trip.departure;
-    final now = DateTime.now();
-    final difference = departure.difference(now);
+  // ━━━━━━━━━━━━━━━━━━━ الرأس ━━━━━━━━━━━━━━━━━━━
 
-    String timeLeft;
-    if (difference.inSeconds <= 0) {
-      timeLeft = "بدأت الرحلة";
-    } else if (difference.inMinutes < 60) {
-      timeLeft = "${difference.inMinutes} دقيقة متبقية";
-    } else if (difference.inHours < 24) {
-      timeLeft =
-          "${difference.inHours} ساعة و ${difference.inMinutes % 60} دقيقة متبقية";
-    } else {
-      timeLeft =
-          "${difference.inDays} يوم و ${difference.inHours % 24} ساعة متبقية";
-    }
+  /// بطاقة الموعد — أبرز ما يبحث عنه المستخدم عند فتح الرحلة، فتتصدّر
+  /// الشاشة بلون الهوية بدل أن تكون سطراً بين أسطر.
+  Widget _buildHeroCard() {
+    final departure = trip.departure;
+    final remaining = departure.difference(DateTime.now());
 
     final hour12 = departure.hour % 12 == 0 ? 12 : departure.hour % 12;
-    final amPm = departure.hour >= 12 ? "م" : "ص";
-    final timeFormatted =
-        "${hour12.toString().padLeft(2, '0')}:${departure.minute.toString().padLeft(2, '0')} $amPm";
-
-    final dateFormatted =
-        "${departure.day.toString().padLeft(2, '0')}/${departure.month.toString().padLeft(2, '0')}/${departure.year}";
+    final amPm = departure.hour >= 12 ? 'م' : 'ص';
+    final time = '${hour12.toString().padLeft(2, '0')}:'
+        '${departure.minute.toString().padLeft(2, '0')} $amPm';
+    final date = '${departure.day.toString().padLeft(2, '0')}/'
+        '${departure.month.toString().padLeft(2, '0')}/${departure.year}';
 
     return Container(
-      padding: EdgeInsets.all(16.w),
+      margin: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.all(18.w),
       decoration: BoxDecoration(
-        // color: MyColors.primary,
-        borderRadius: BorderRadius.circular(16.r),
-        // boxShadow: [
-        //   BoxShadow(
-        //     color: MyColors.primary.withOpacity(0.2),
-        //     blurRadius: 8,
-        //     offset: const Offset(0, 4),
-        //   ),
-        // ],
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.timelapse_outlined,
-            color: MyColors.accent,
-            size: 28.sp,
+        gradient: LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [MyColors.primary, MyColors.navy],
+        ),
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: [
+          BoxShadow(
+            color: MyColors.primary.withValues(alpha: 0.28),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
-          SizedBox(width: 12.w),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
+              Icon(Icons.event_rounded,
+                  color: MyColors.accent, size: 20.sp),
+              SizedBox(width: 8.w),
               Text(
-                "$dateFormatted  |  $timeFormatted",
+                'موعد الانطلاق',
                 style: TextStyle(
-                  color: MyColors.textLight,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14.sp,
-                ),
-              ),
-              SizedBox(height: 4.h),
-              Text(
-                timeLeft,
-                style: TextStyle(
-                  color: MyColors.textHint,
+                  color: Colors.white.withValues(alpha: 0.75),
                   fontSize: 12.sp,
                   fontWeight: FontWeight.w600,
                 ),
               ),
+              const Spacer(),
+              TripStatusBadge(status: trip.status, solid: true),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                time,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 26.sp,
+                  fontWeight: FontWeight.bold,
+                  height: 1,
+                ),
+              ),
+              SizedBox(width: 10.w),
+              Padding(
+                padding: EdgeInsets.only(bottom: 3.h),
+                child: Text(
+                  date,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontSize: 13.sp,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10.r),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.timelapse_rounded,
+                    color: MyColors.accent, size: 14.sp),
+                SizedBox(width: 6.w),
+                Text(
+                  _remainingText(remaining),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _remainingText(Duration d) {
+    if (d.inSeconds <= 0) return 'انطلقت الرحلة';
+    if (d.inMinutes < 60) return 'بعد ${d.inMinutes} دقيقة';
+    if (d.inHours < 24) {
+      return 'بعد ${d.inHours} ساعة و${d.inMinutes % 60} دقيقة';
+    }
+    return 'بعد ${d.inDays} يوم و${d.inHours % 24} ساعة';
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━ السائق ━━━━━━━━━━━━━━━━━━━
+
+  /// بطاقة السائق — بلا رقم تواصل عمداً.
+  ///
+  /// رقم التواصل لا يُكشف لمن يتصفّح الرحلة، بل لمن قام بحجز فعلي فقط،
+  /// ويظهر له في «حجوزاتي». وهي القاعدة نفسها التي تحكم المحادثة: لا
+  /// وسيلة اتصال بين طرفين قبل قيام حجز بينهما.
+  Widget _buildDriverCard() {
+    final hasName = trip.driver.name.trim().isNotEmpty;
+
+    return TripSectionCard(
+      title: 'السائق',
+      titleIcon: Icons.person_rounded,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              TripAvatar(
+                avatar: trip.driver.avatar,
+                size: 52,
+                onTap: () => context
+                    .read<TripDetailsCubit>()
+                    .fetchProfile(trip.driver.id),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      hasName ? trip.driver.name : 'سائق الرحلة',
+                      style: AppTextStyles.bodyLarge.copyWith(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4.h),
+                    Row(
+                      children: [
+                        RatingBarIndicator(
+                          rating: trip.driver.rating,
+                          itemBuilder: (context, index) =>
+                              Icon(Icons.star_rounded, color: MyColors.warning),
+                          itemCount: 5,
+                          itemSize: 15.sp,
+                          unratedColor: MyColors.border,
+                        ),
+                        SizedBox(width: 6.w),
+                        Text(
+                          trip.driver.rating.toStringAsFixed(1),
+                          style: AppTextStyles.labelSmall
+                              .copyWith(fontSize: 11.sp),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // مراسلة السائق — لا تُفتح محادثة إلا بين طرفين بينهما حجز
+              // فعلي، فالزر يظهر لمن له حجز مؤكَّد أو مكتمل فقط
+              if (_canChatWithDriver)
+                _CircleAction(
+                  icon: Icons.chat_bubble_rounded,
+                  tooltip: 'مراسلة السائق',
+                  onTap: () =>
+                      context.read<TripDetailsCubit>().gotoChatWithDriver(
+                            trip.driver.id,
+                            name: trip.driver.name,
+                            avatar: trip.driver.avatar,
+                          ),
+                ),
+            ],
+          ),
+          // لا سطر رقم تواصل هنا — يُنظر إلى تعليق الدالة أعلاه.
+        ],
+      ),
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━ المسار ━━━━━━━━━━━━━━━━━━━
+
+  Widget _buildRouteCard() {
+    final distance = trip.distance;
+    final duration = trip.duration;
+    final distanceText = distance.kilometers >= 1
+        ? '${distance.kilometers.toStringAsFixed(1)} كم'
+        : '${distance.meters} م';
+    final durationText = duration.minutes >= 60
+        ? '${duration.minutes ~/ 60} س ${duration.minutes % 60} د'
+        : '${duration.minutes} دقيقة';
+
+    return TripSectionCard(
+      title: 'المسار',
+      titleIcon: Icons.route_rounded,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('عرض على الخريطة',
+              style: TextStyle(
+                fontSize: 11.sp,
+                fontWeight: FontWeight.w600,
+                color: MyColors.primary,
+              )),
+          Icon(Icons.chevron_left_rounded,
+              size: 18.sp, color: MyColors.primary),
+        ],
+      ),
+      onTap: () => Get.toNamed(
+        RouteName.routeMapView,
+        arguments: {
+          'startLat': trip.pickup.coordinates.lat,
+          'startLng': trip.pickup.coordinates.lng,
+          'endLat': trip.destination.coordinates.lat,
+          'endLng': trip.destination.coordinates.lng,
+          'routeIndex': trip.chosenRouteIndex,
+        },
+      ),
+      child: Column(
+        // البدء من حافة السطر: الخيط الواصل يُرسم تحت الأيقونة تماماً،
+        // ومع التوسيط الافتراضي كان ينزاح إلى منتصف البطاقة.
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TripLocationLine(
+            label: 'نقطة الانطلاق',
+            icon: Icons.circle,
+            iconColor: MyColors.primary,
+            text: trip.pickup.address,
+          ),
+          const TripRouteConnector(height: 22),
+          TripLocationLine(
+            label: 'الوجهة',
+            icon: Icons.location_pin,
+            iconColor: MyColors.accent,
+            text: trip.destination.address,
+          ),
+          SizedBox(height: 14.h),
+          Row(
+            children: [
+              Expanded(
+                child: TripInfoChip(
+                  expand: true,
+                  icon: Icons.straighten_rounded,
+                  label: distanceText,
+                  color: MyColors.blue,
+                ),
+              ),
+              SizedBox(width: 8.w),
+              Expanded(
+                child: TripInfoChip(
+                  expand: true,
+                  icon: Icons.access_time_filled_rounded,
+                  label: durationText,
+                  color: MyColors.cyan,
+                ),
+              ),
             ],
           ),
         ],
@@ -439,321 +348,212 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
     );
   }
 
-  String timeAgo(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
+  // ━━━━━━━━━━━━━━━━━━━ المقاعد والسعر ━━━━━━━━━━━━━━━━━━━
 
-    if (difference.inSeconds < 60) {
-      return 'قبل ثوانٍ';
-    } else if (difference.inMinutes < 60) {
-      return 'قبل ${difference.inMinutes} دقيقة';
-    } else if (difference.inHours < 24) {
-      return 'قبل ${difference.inHours} ساعة';
-    } else if (difference.inDays < 7) {
-      return 'قبل ${difference.inDays} يوم';
-    } else {
-      final weeks = (difference.inDays / 7).floor();
-      return 'قبل $weeks أسبوع';
+  Widget _buildSeatsAndPriceCard() {
+    return TripSectionCard(
+      title: 'المقاعد والسعر',
+      titleIcon: Icons.event_seat_rounded,
+      child: Row(
+        children: [
+          Expanded(
+            // صفر قد يعني «ممتلئة» وقد يعني «لم يرسل الخادم العدّاد»،
+            // ولا سبيل للتمييز — فلا يُعرض رقم يوحي بأحدهما. الشرطة أصدق.
+            child: _StatTile(
+              value: trip.seatsAvailable > 0 ? '${trip.seatsAvailable}' : '—',
+              label: 'متاح',
+              icon: Icons.event_available_rounded,
+              color: MyColors.success,
+            ),
+          ),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: _StatTile(
+              value: trip.seatsBooked > 0 ? '${trip.seatsBooked}' : '—',
+              label: 'محجوز',
+              icon: Icons.event_busy_rounded,
+              color: MyColors.accent,
+            ),
+          ),
+          SizedBox(width: 10.w),
+          Expanded(
+            flex: 2,
+            child: _StatTile(
+              value: Money.format(trip.pricePerSeat),
+              label: 'ل.س للمقعد',
+              icon: Icons.monetization_on_rounded,
+              color: MyColors.warning,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━ شروط الحجز ━━━━━━━━━━━━━━━━━━━
+
+  Widget _buildBookingTermsCard() {
+    final isCash = trip.paymentMethod.toLowerCase() == 'cash';
+    final isDirect = trip.bookingType.toLowerCase() == 'direct';
+
+    return TripSectionCard(
+      title: 'شروط الحجز',
+      titleIcon: Icons.rule_rounded,
+      child: Column(
+        children: [
+          _TermRow(
+            icon: isCash ? Icons.payments_rounded : Icons.credit_card_rounded,
+            label: 'طريقة الدفع',
+            value: isCash ? 'نقداً للسائق' : 'من المحفظة',
+          ),
+          SizedBox(height: 10.h),
+          Divider(height: 1, color: MyColors.divider),
+          SizedBox(height: 10.h),
+          _TermRow(
+            icon: isDirect
+                ? Icons.bolt_rounded
+                : Icons.hourglass_top_rounded,
+            label: 'نوع الحجز',
+            value: isDirect ? 'فوري بلا موافقة' : 'بموافقة السائق',
+          ),
+          if (trip.notes != null && trip.notes!.trim().isNotEmpty) ...[
+            SizedBox(height: 10.h),
+            Divider(height: 1, color: MyColors.divider),
+            SizedBox(height: 10.h),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.sticky_note_2_rounded,
+                    size: 16.sp, color: MyColors.textSecondary),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('ملاحظة السائق',
+                          style: AppTextStyles.bodySmall
+                              .copyWith(fontSize: 12.sp)),
+                      SizedBox(height: 4.h),
+                      Text(
+                        trip.notes!,
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: MyColors.textPrimary,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━ الإجراء ━━━━━━━━━━━━━━━━━━━
+
+  Widget _buildPrimaryAction(BuildContext context) {
+    if (widget.mode == TripDetailsMode.myView) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildBookingsListButton(),
+          _buildFinishRideButton(),
+        ],
+      );
+    }
+    return _buildConditionalBookingButton(context);
+  }
+
+  Widget _buildBookingsListButton() {
+    return _ActionButton(
+      icon: Icons.list_alt_rounded,
+      label: 'عرض الحجوزات (${trip.seatsBooked})',
+      color: MyColors.primary,
+      onTap: () =>
+          Get.toNamed(RouteName.bookingUserInTrip, arguments: trip.booking),
+    );
+  }
+
+  Widget _buildFinishRideButton() {
+    if (trip.status != 'active' && trip.status != 'full') {
+      return const SizedBox.shrink();
+    }
+
+    // الخادم يرفض الإنهاء قبل موعد الانطلاق — نعطّل الزر بدل انتظار الرفض
+    final canFinish = trip.departure.difference(DateTime.now()).inSeconds <= 0;
+
+    return Padding(
+      padding: EdgeInsets.only(top: 10.h),
+      child: _ActionButton(
+        icon: canFinish ? Icons.flag_rounded : Icons.schedule_rounded,
+        label: canFinish ? 'إنهاء الرحلة' : 'لم يحن موعد الرحلة بعد',
+        color: MyColors.accent,
+        onTap: canFinish
+            ? () => context.read<TripDetailsCubit>().finishRide(trip.id)
+            : null,
+      ),
+    );
+  }
+
+  Widget _buildConditionalBookingButton(BuildContext context) {
+    final booking = _myBooking;
+
+    switch (booking?.status) {
+      case 'confirmed':
+        return _statusAction(
+            MyColors.success, 'تم قبول حجزك', Icons.check_circle_rounded);
+      case 'pending':
+        return _statusAction(
+            MyColors.warning, 'طلبك بانتظار موافقة السائق',
+            Icons.hourglass_top_rounded);
+      case 'rejected':
+        return _statusAction(
+            MyColors.error, 'رُفض طلب الحجز', Icons.cancel_rounded);
+      case 'cancelled':
+        return _statusAction(
+            MyColors.error, 'الحجز ملغى', Icons.cancel_rounded);
+      case 'completed':
+        return _statusAction(
+            MyColors.success, 'حجز مكتمل', Icons.verified_rounded);
+      case 'finished':
+        return _statusAction(
+            MyColors.textSecondary, 'انتهت الرحلة', Icons.flag_rounded);
+      default:
+        return _buildBookingButton(context);
     }
   }
 
-  Widget _buildCreatedAtBadge() {
-    return Align(
-      alignment: Alignment.bottomRight,
-      child: Container(
-        margin: EdgeInsets.only(top: 10.h, right: 30.w),
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.access_time,
-              size: 16.sp,
-              color: MyColors.textPrimary,
-            ),
-            SizedBox(width: 6.w),
-            Text(
-              timeAgo(widget.trip.createdAt),
+  /// حالة الحجز ليست زرّاً — لا تُصاغ كزرّ يوحي بأن الضغط يفعل شيئاً.
+  Widget _statusAction(Color color, String text, IconData icon) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 16.w),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: color.withValues(alpha: 0.35), width: 1.5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: 20.sp),
+          SizedBox(width: 10.w),
+          Flexible(
+            child: Text(
+              text,
               style: TextStyle(
-                  color: MyColors.background,
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSeatsInfo() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        // بطاقة المقاعد المتاحة
-        _buildSeatCard(
-          label: "المقاعد المتاحة",
-          count: widget.trip.seatsAvailable,
-          icon: Icons.event_seat,
-          color: MyColors.primary,
-        ),
-        // بطاقة المقاعد المحجوزة
-        _buildSeatCard(
-          label: "المقاعد المحجوزة",
-          count: widget.trip.seatsBooked,
-          icon: Icons.event_busy,
-          color: MyColors.accent,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSeatCard({
-    required String label,
-    required int count,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.2),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 24.sp),
-          SizedBox(width: 8.w),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                count.toString(),
-                style: TextStyle(
-                  color: color,
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                label,
-                style: TextStyle(
-                  color: MyColors.textPrimary,
-                  fontSize: 12.sp,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentMethodWidget() {
-    final method =
-        widget.trip.paymentMethod.toLowerCase() == "cash" ? "كاش" : "الكتروني";
-    final icon = widget.trip.paymentMethod.toLowerCase() == "cash"
-        ? Icons.money // أيقونة للكاش
-        : Icons.credit_card; // أيقونة للدفع الالكتروني
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-      decoration: BoxDecoration(
-        color: MyColors.textSecondary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: MyColors.primary, size: 20.sp),
-          SizedBox(width: 8.w),
-          Text(
-            "نوع الدفع: ",
-            style: TextStyle(
-              color: MyColors.textPrimary,
-              fontSize: 14.sp,
-            ),
-          ),
-          Text(
-            method,
-            style: TextStyle(
-              color: MyColors.accent,
-              fontWeight: FontWeight.bold,
-              fontSize: 14.sp,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBookingTypeWidget() {
-    final type = widget.trip.bookingType.toLowerCase() == "direct"
-        ? "مباشر"
-        : "بعد الموافقة";
-    final icon = widget.trip.bookingType.toLowerCase() == "direct"
-        ? Icons.flash_on // أيقونة مباشر
-        : Icons.pending_actions; // أيقونة طلب
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-      decoration: BoxDecoration(
-        color: MyColors.textSecondary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: MyColors.primary, size: 20.sp),
-          SizedBox(width: 8.w),
-          Text(
-            "نوع الحجز: ",
-            style: TextStyle(
-              color: MyColors.textSecondary,
-              fontSize: 14.sp,
-            ),
-          ),
-          Text(
-            type,
-            style: TextStyle(
-              color: MyColors.accent,
-              fontWeight: FontWeight.bold,
-              fontSize: 14.sp,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDistanceWidget() {
-    final distance = widget.trip.distance;
-    final distanceText = distance.kilometers >= 1
-        ? "${distance.kilometers.toStringAsFixed(1)} كم"
-        : "${distance.meters} م";
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 0.w, vertical: 15.h),
-      decoration: BoxDecoration(
-        // color: MyColors.secondary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.place, color: MyColors.textSecondary, size: 20.sp),
-          SizedBox(width: 8.w),
-          Text(
-            "المسافة: ",
-            style: TextStyle(
-              color: MyColors.textSecondary,
-              fontSize: 14.sp,
-            ),
-          ),
-          Text(
-            distanceText,
-            style: TextStyle(
-              color: MyColors.accent,
-              fontWeight: FontWeight.bold,
-              fontSize: 14.sp,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDurationWidget() {
-    final duration = widget.trip.duration;
-    final durationText = duration.minutes > 0
-        ? "${duration.minutes} دقيقة"
-        : "${duration.seconds} ثانية";
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 0.w, vertical: 8.h),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.access_time_filled,
-              color: MyColors.textSecondary, size: 20.sp),
-          SizedBox(width: 8.w),
-          Text(
-            " المدة المتوقعة: ",
-            style: TextStyle(
-              color: MyColors.textSecondary,
-              fontSize: 14.sp,
-            ),
-          ),
-          Text(
-            durationText,
-            style: TextStyle(
-              color: MyColors.accent,
-              fontWeight: FontWeight.bold,
-              fontSize: 14.sp,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDistanceDurationRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        _buildDistanceWidget(),
-        SizedBox(width: 20.w),
-        _buildDurationWidget(),
-      ],
-    );
-  }
-
-  Widget _buildCommunicationNumber() {
-    return Align(
-      alignment: Alignment.topLeft,
-      child: Container(
-        padding: EdgeInsets.only(bottom: 20.h, left: 10.w),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.phone, color: MyColors.primary, size: 20.sp),
-            SizedBox(width: 10.w),
-            Text(
-              "تواصل: ",
-              style: TextStyle(
-                color: MyColors.textSecondary,
-                fontSize: 14.sp,
-              ),
-            ),
-            Text(
-              widget.trip.communicationNumber,
-              style: TextStyle(
-                color: MyColors.textSecondary,
+                color: color,
                 fontWeight: FontWeight.bold,
                 fontSize: 14.sp,
               ),
+              textAlign: TextAlign.center,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
-
-  Widget _buildContactAndCreatedAtRow() {
-    return Column(
-      children: [
-        _buildCreatedAtBadge(),
-        SizedBox(
-          width: 10.w,
-        ),
-        _buildCommunicationNumber()
-      ],
     );
   }
 
@@ -762,210 +562,74 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
       builder: (context, state) {
         if (state is TripDetailsLoading) {
           return Container(
-            width: double.infinity,
             padding: EdgeInsets.symmetric(vertical: 16.h),
             decoration: BoxDecoration(
-              color: MyColors.primary.withOpacity(0.7),
+              color: MyColors.primary.withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(16.r),
             ),
-            child: const Center(
-              child: CircularProgressIndicator(color: Colors.white),
+            child: Center(
+              child: SizedBox(
+                width: 22.w,
+                height: 22.w,
+                child: const CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2.5),
+              ),
             ),
           );
         }
 
         if (state is TripDetailsRequestBooking) {
-          return GestureDetector(
-            onTap: () {},
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(vertical: 16.h),
-              decoration: BoxDecoration(
-                color: MyColors.accent,
-                borderRadius: BorderRadius.circular(16.r),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white, size: 22.sp),
-                  SizedBox(width: 10.w),
-                  Text(
-                    "تم الحجز",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.sp,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
+          return _statusAction(
+              MyColors.success, 'تم إرسال الحجز', Icons.check_circle_rounded);
         }
 
-        return GestureDetector(
-          onTap: () {
-            if (widget.trip.seatsAvailable == 0) {
-              _showNoSeatsDialog(context);
-            } else {
-              _showBookingDialog(context);
-            }
-          },
-          child: Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 16.h),
-            decoration: BoxDecoration(
-              color: MyColors.primary,
-              borderRadius: BorderRadius.circular(16.r),
-              boxShadow: [
-                BoxShadow(
-                  color: MyColors.primary.withOpacity(0.4),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.event_seat_sharp,
-                  color: Colors.white,
-                  size: 22.sp,
-                ),
-                SizedBox(width: 10.w),
-                Text(
-                  "احجز الآن - ${widget.trip.pricePerSeat} ل.س",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16.sp,
-                  ),
-                ),
-              ],
-            ),
-          ),
+        // الامتلاء يُقرأ من حالة الرحلة التي يضبطها الخادم، لا من عدّاد
+        // المقاعد: العدّاد قد يصل صفراً لأن المسار سمّى الحقل باسم لا
+        // نقرؤه، فيُمنع الراكب من حجز رحلة فيها مقاعد فعلاً. وإن كانت
+        // ممتلئة حقاً فالخادم يرفض برسالة معرّبة — وهو المرجع.
+        final soldOut = trip.status.toLowerCase() == 'full';
+        return _ActionButton(
+          icon: soldOut
+              ? Icons.event_busy_rounded
+              : Icons.event_seat_rounded,
+          label: soldOut
+              ? 'الرحلة ممتلئة'
+              : 'احجز الآن — ${Money.withCurrency(trip.pricePerSeat)}',
+          color: soldOut ? MyColors.textHint : MyColors.primary,
+          onTap: () => soldOut
+              ? _showNoSeatsDialog(context)
+              : _showBookingDialog(context),
         );
       },
     );
   }
 
-  Widget _buildConditionalBookingButton(BuildContext context) {
-    BookingModel? booking;
-    for (var b in widget.trip.booking) {
-      if (b.userId == myid()) {
-        booking = b;
-        break;
-      }
-    }
-
-    if (booking != null) {
-      switch (booking.status) {
-        case "confirmed":
-          return _buildBookingStatusButton(
-            context,
-            color: Colors.green,
-            text: "تم قبول الحجز",
-            icon: Icons.check_circle,
-          );
-        case "pending":
-          return _buildBookingStatusButton(
-            context,
-            color: Colors.orange,
-            text: "قيد الانتظار",
-            icon: Icons.hourglass_top,
-          );
-        case "rejected":
-          return _buildBookingStatusButton(
-            context,
-            color: Colors.red,
-            text: "تم رفض الحجز",
-            icon: Icons.cancel,
-          );
-        case "cancelled":
-          return _buildBookingStatusButton(
-            context,
-            color: Colors.red,
-            text: "الحجز ملغي",
-            icon: Icons.cancel,
-          );
-        case "completed":
-          return _buildBookingStatusButton(
-            context,
-            color: Colors.green,
-            text: "مؤكد",
-            icon: Icons.confirmation_num,
-          );
-        case "finished":
-          return _buildBookingStatusButton(
-            context,
-            color: Colors.grey,
-            text: "انتهت الرحلة",
-            icon: Icons.cancel,
-          );
-
-        default:
-          return _buildBookingButton(context);
-      }
-    } else {
-      return _buildBookingButton(context);
-    }
-  }
-
-  Widget _buildBookingStatusButton(
-    BuildContext context, {
-    required Color color,
-    required String text,
-    required IconData icon,
-  }) {
-    return GestureDetector(
-      onTap: () {},
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: 16.h),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(16.r),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.4),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.white, size: 22.sp),
-            SizedBox(width: 10.w),
-            Text(
-              text,
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16.sp,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // ━━━━━━━━━━━━━━━━━━━ الحوارات ━━━━━━━━━━━━━━━━━━━
 
   void _showNoSeatsDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("عذراً"),
+        backgroundColor: MyColors.surface,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18.r)),
+        title: Row(
+          children: [
+            Icon(Icons.event_busy_rounded, color: MyColors.error, size: 22.sp),
+            SizedBox(width: 8.w),
+            Text('لا مقاعد متاحة',
+                style: AppTextStyles.titleMedium.copyWith(fontSize: 16.sp)),
+          ],
+        ),
         content: Text(
-          "لا يوجد مقاعد فارغة في هذه الرحلة.",
+          'حُجزت كل مقاعد هذه الرحلة. جرّب رحلة أخرى على المسار نفسه.',
           style: TextStyle(fontSize: 14.sp, color: MyColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("حسناً"),
+            child: Text('حسناً',
+                style: TextStyle(color: MyColors.primary, fontSize: 14.sp)),
           ),
         ],
       ),
@@ -975,53 +639,66 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
   void _showBookingDialog(BuildContext context) {
     final seatsController = TextEditingController();
     final contactController = TextEditingController();
-    final int maxSeats = widget.trip.seatsAvailable;
-    final GlobalKey<FormState> formKey =
-        GlobalKey<FormState>(); // مفتاح للتحقق من صحة النموذج
+    // حين يصل العدّاد صفراً لا نعرف أهي ممتلئة أم أن الحقل لم يُقرأ، فلا
+    // يُقيَّد المستخدم بصفر. الحدّ حينها هو سقف الخادم لكل حجز (8 مقاعد)،
+    // وهو من يرفض إن لم تكفِ المقاعد.
+    const int serverSeatCap = 8;
+    final int maxSeats =
+        trip.seatsAvailable > 0 ? trip.seatsAvailable : serverSeatCap;
+    final bool seatsKnown = trip.seatsAvailable > 0;
+    final formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: MyColors.background,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        title: Text(
-          "حجز في الرحلة",
-          style: TextStyle(
-            color: MyColors.textPrimary,
-            fontWeight: FontWeight.bold,
-            fontSize: 18.sp,
-          ),
+        backgroundColor: MyColors.surface,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.r)),
+        title: Row(
+          children: [
+            Icon(Icons.event_seat_rounded,
+                color: MyColors.accent, size: 22.sp),
+            SizedBox(width: 8.w),
+            Text('حجز مقاعد',
+                style: AppTextStyles.titleMedium.copyWith(fontSize: 16.sp)),
+          ],
         ),
         content: Form(
-          key: formKey, // ربط النموذج بالمفتاح
+          key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "العدد يجب أن يكون أكبر من 0 وأقل أو يساوي $maxSeats",
-                style: TextStyle(
-                  color: MyColors.background,
-                  fontSize: 14.sp,
+              Container(
+                padding:
+                    EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+                decoration: BoxDecoration(
+                  color: MyColors.accentLight,
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Text(
+                  seatsKnown
+                      ? 'المتاح $maxSeats مقاعد — سعر المقعد '
+                          '${Money.withCurrency(trip.pricePerSeat)}'
+                      : 'سعر المقعد ${Money.withCurrency(trip.pricePerSeat)} '
+                          '— يؤكّد الخادم توفّر المقاعد عند الإرسال',
+                  style: TextStyle(
+                      fontSize: 12.sp, color: MyColors.textPrimary),
                 ),
               ),
-              SizedBox(height: 10.h),
+              SizedBox(height: 14.h),
               CustomTextformfild(
-                title: "أدخل عدد الكراسي ",
+                title: 'عدد المقاعد',
                 controller: seatsController,
                 fill: true,
-                fillColor: Colors.white,
-                icon: Icon(
-                  Icons.event_seat,
-                  color: MyColors.accent,
-                ),
+                fillColor: MyColors.background,
+                icon: Icon(Icons.event_seat, color: MyColors.accent),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'الرجاء إدخال عدد الكراسي';
+                    return 'الرجاء إدخال عدد المقاعد';
                   }
-                  final int? seats = int.tryParse(value);
+                  final seats = int.tryParse(value);
                   if (seats == null || seats < 1 || seats > maxSeats) {
                     return 'الرجاء إدخال عدد بين 1 و $maxSeats';
                   }
@@ -1030,81 +707,51 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
               ),
               SizedBox(height: 10.h),
               CustomTextformfild(
-                title: "أدخل رقم التواصل ",
+                title: 'رقم التواصل',
                 controller: contactController,
                 fill: true,
-                fillColor: Colors.white,
-                icon: Icon(
-                  Icons.phone,
-                  color: MyColors.accent,
-                ),
+                fillColor: MyColors.background,
+                icon: Icon(Icons.phone, color: MyColors.accent),
                 keyboardType: TextInputType.phone,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'الرجاء إدخال رقم الهاتف';
                   }
                   // الخادم يفرض ^09\d{8}$ ويرفض ما عداه بـ 422
-                  final RegExp phoneRegex = RegExp(r'^09\d{8}$');
-                  if (!phoneRegex.hasMatch(value)) {
+                  if (!RegExp(r'^09\d{8}$').hasMatch(value)) {
                     return 'يجب أن يبدأ الرقم بـ 09 ويتكون من 10 أرقام';
                   }
                   return null;
                 },
-              )
+              ),
             ],
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              "إلغاء",
-              style: TextStyle(color: Colors.grey[700]),
-            ),
+            child: Text('إلغاء',
+                style:
+                    TextStyle(color: MyColors.textSecondary, fontSize: 14.sp)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: MyColors.primary,
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.r),
-              ),
+                  borderRadius: BorderRadius.circular(10.r)),
+              padding:
+                  EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
             ),
             onPressed: () {
-              // التحقق من صحة النموذج قبل المتابعة
-              if (formKey.currentState!.validate()) {
-                final int? seats = int.tryParse(seatsController.text);
-                final String contactNumber = contactController.text.trim();
-
-                // هذه الشروط أصبحت زائدة عن الحاجة بسبب الـ validator
-                // ولكن نتركها للاحتياط
-                if (seats == null || seats < 1 || seats > maxSeats) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("الرجاء إدخال عدد صحيح بين 1 و $maxSeats"),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  return;
-                }
-
-                if (contactNumber.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("الرجاء إدخال رقم التواصل"),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  return;
-                }
-
-                _bookSeats(seats, widget.trip.id, contactNumber);
-                Navigator.pop(context);
-              }
+              if (!formKey.currentState!.validate()) return;
+              final seats = int.parse(seatsController.text);
+              _bookSeats(seats, trip.id, contactController.text.trim());
+              Navigator.pop(context);
             },
-            child: Text(
-              "موافق",
-              style: AppTextStyles.buttonLarge,
-            ),
+            child: Text('تأكيد الحجز',
+                style: TextStyle(
+                    fontSize: 14.sp, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -1115,5 +762,167 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
     await context
         .read<TripDetailsCubit>()
         .booking(seats, tripId, contactNumber);
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━ لبنات محلّية ━━━━━━━━━━━━━━━━━━━
+
+/// إحصاءة مفردة داخل بطاقة — رقم بارز فوق تسميته.
+class _StatTile extends StatelessWidget {
+  final String value;
+  final String label;
+  final IconData icon;
+  final Color color;
+
+  const _StatTile({
+    required this.value,
+    required this.label,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 8.w),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(color: color.withValues(alpha: 0.18), width: 1),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 18.sp),
+          SizedBox(height: 6.h),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: TextStyle(
+                color: color,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          SizedBox(height: 2.h),
+          Text(
+            label,
+            style: TextStyle(
+                fontSize: 10.sp, color: MyColors.textSecondary),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TermRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _TermRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 16.sp, color: MyColors.textSecondary),
+        SizedBox(width: 8.w),
+        Text(label,
+            style: AppTextStyles.bodySmall.copyWith(fontSize: 12.sp)),
+        const Spacer(),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13.sp,
+            fontWeight: FontWeight.w700,
+            color: MyColors.textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CircleAction extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  const _CircleAction({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: MyColors.primary.withValues(alpha: 0.1),
+        shape: const CircleBorder(),
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const CircleBorder(),
+          child: Padding(
+            padding: EdgeInsets.all(10.w),
+            child: Icon(icon, color: MyColors.primary, size: 18.sp),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// زرّ الإجراء الرئيسي — شكل واحد لكل أزرار الشاشة، وحالته المعطّلة
+/// مقروءة بلا نصّ إضافي.
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback? onTap;
+
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onTap != null;
+    return SizedBox(
+      height: 52.h,
+      child: ElevatedButton.icon(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: MyColors.surfaceAlt,
+          disabledForegroundColor: MyColors.textHint,
+          elevation: enabled ? 2 : 0,
+          shadowColor: color.withValues(alpha: 0.4),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        ),
+        icon: Icon(icon, size: 20.sp),
+        label: Text(
+          label,
+          style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold),
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
   }
 }

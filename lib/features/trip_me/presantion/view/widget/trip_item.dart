@@ -3,10 +3,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
+import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/class/format_date_time.dart';
+import 'package:alatarekak/core/utils/class/format_money.dart';
 import 'package:alatarekak/core/utils/functions/get_userid.dart';
+import 'package:alatarekak/core/utils/widgets/trip_card_parts.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
-import 'package:alatarekak/features/trip_details/presantaion/view/widget/status_trip.dart';
 
 class ItemTrip extends StatelessWidget {
   final TripModel trip;
@@ -22,218 +24,109 @@ class ItemTrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final departure = trip.departure;
-    final now = DateTime.now();
-    final difference = departure.difference(now);
-    final statusInfo = getStatusInfo(trip.status);
+    final radius = BorderRadius.circular(20.r);
 
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 2,
+      margin: EdgeInsets.symmetric(vertical: 8.h, horizontal: 16.w),
+      shape: RoundedRectangleBorder(
+        borderRadius: radius,
+        side: BorderSide(color: MyColors.border, width: 1),
+      ),
+      elevation: 3,
+      shadowColor: MyColors.shadowMedium,
       color: MyColors.surface,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: radius,
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ━━ رأس البطاقة: السائق + الحالة ━━
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundColor: MyColors.textSecondary,
-                        backgroundImage: trip.driver.avatar != null
-                            ? NetworkImage(trip.driver.avatar!)
-                            : null,
-                        child: trip.driver.avatar == null
-                            ? Icon(Icons.person,
-                                color: MyColors.background)
-                            : null,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        trip.driver.name,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: MyColors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: statusInfo.color.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
+                  TripAvatar(avatar: trip.driver.avatar),
+                  SizedBox(width: 12.w),
+                  Expanded(
                     child: Text(
-                      statusInfo.text,
-                      style: TextStyle(
-                        color: statusInfo.color,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 13,
-                      ),
+                      trip.driver.name.isEmpty ? 'رحلتي' : trip.driver.name,
+                      style: AppTextStyles.bodyLarge
+                          .copyWith(fontWeight: FontWeight.w600),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  SizedBox(width: 8.w),
+                  TripStatusBadge(status: trip.status),
                 ],
               ),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Row(
-                  children: [
-                    Icon(Icons.airline_seat_recline_normal,
-                        size: 16, color: MyColors.primary.withOpacity(0.7)),
-                    Expanded(
-                      child: Divider(
-                        thickness: 1,
-                        height: 1,
-                        color: MyColors.border,
-                        indent: 8,
-                        endIndent: 8,
-                      ),
-                    ),
-                  ],
-                ),
+
+              SizedBox(height: 14.h),
+              Divider(height: 1, color: MyColors.divider),
+              SizedBox(height: 14.h),
+
+              // ━━ المسار ━━
+              TripLocationLine(
+                icon: Icons.circle,
+                iconColor: MyColors.primary,
+                text: trip.pickup.address,
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _LocationRowModern(
-                      icon: Icons.circle,
-                      iconColor: MyColors.primary,
-                      text: trip.pickup.address),
-                  const SizedBox(height: 6),
-                  Padding(
-                    padding: EdgeInsets.only(
-                      left: 7.w,
-                    ),
-                    child: Container(
-                      height: 20.h,
-                      width: 2.w,
-                      color: MyColors.border,
-                    ),
-                  ),
-                  _LocationRowModern(
-                      icon: Icons.location_pin,
-                      iconColor: MyColors.accent,
-                      text: trip.destination.address),
-                ],
+              const TripRouteConnector(),
+              TripLocationLine(
+                icon: Icons.location_pin,
+                iconColor: MyColors.accent,
+                text: trip.destination.address,
               ),
-              SizedBox(height: 30.h),
+
+              SizedBox(height: 14.h),
+
+              // ━━ الموعد ━━
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _InfoChip(
-                      icon: Icons.calendar_today,
-                      label: DateTimeUtils.formatDate(trip.departure),
-                      color: MyColors.textSecondary),
-                  _InfoChip(
-                      icon: Icons.access_time,
-                      label: DateTimeUtils.formatTime(trip.departure),
-                      color: MyColors.error),
-                  _InfoChip(
-                    icon: Icons.event_seat,
-                    label: " ${trip.seatsAvailable} | ${trip.seatsBooked}",
+                  TripInfoChip(
+                    icon: Icons.calendar_today_rounded,
+                    label: DateTimeUtils.formatDate(trip.departure),
                     color: MyColors.primary,
                   ),
+                  SizedBox(width: 8.w),
+                  TripInfoChip(
+                    icon: Icons.access_time_rounded,
+                    label: DateTimeUtils.formatTime(trip.departure),
+                    color: MyColors.accent,
+                  ),
                 ],
               ),
-              Align(
-                alignment: Alignment.center,
-                child: Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
-                  child: Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    color: MyColors.background,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.monetization_on,
-                            color: MyColors.accent,
-                            size: 22,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            "للراكب ${trip.pricePerSeat}  ل.س",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: MyColors.primary,
-                            ),
-                          ),
-                        ],
-                      ),
+
+              SizedBox(height: 8.h),
+
+              // ━━ السعر والمقاعد ━━
+              Row(
+                children: [
+                  Expanded(
+                    child: TripInfoChip(
+                      expand: true,
+                      icon: Icons.monetization_on_rounded,
+                      label: '${Money.withCurrency(trip.pricePerSeat)} / راكب',
+                      color: MyColors.warning,
                     ),
                   ),
-                ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: TripInfoChip(
+                      expand: true,
+                      icon: Icons.event_seat_rounded,
+                      // `available_seats` هي المقاعد المتبقّية لا الإجمالي،
+                      // فصياغة «س من ص» تصف شيئاً لا يرسله الخادم
+                      label: trip.seatsAvailable > 0
+                          ? '${trip.seatsAvailable} مقاعد متاحة'
+                          : 'مقاعد متاحة',
+                      color: MyColors.success,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: 30.h),
-              trip.driver.id == myid()
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (trip.status == "active" &&
-                            difference.inSeconds >= 0)
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: onCancel,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: MyColors.accent,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 14, horizontal: 20),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                elevation: 4,
-                              ).copyWith(
-                                backgroundColor:
-                                    WidgetStateProperty.resolveWith<Color>(
-                                  (states) =>
-                                      states.contains(WidgetState.pressed)
-                                          ? MyColors.error
-                                              .withValues(alpha: 0.8)
-                                          : MyColors.error,
-                                ),
-                              ),
-                              icon: const Icon(Icons.cancel, size: 20),
-                              label: const Text(
-                                "إلغاء الرحلة",
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ),
-                        SizedBox(
-                          width: 10.w,
-                        ),
-                        if (trip.status != "finished" &&
-                            trip.status != "awaiting_confirmation" &&
-                            trip.status != "cancelled") ...[
-                          if (difference.inSeconds <= 0)
-                            ButtonFinishRide(context, trip.id)
-                          else
-                            buildRemainingTime(difference),
-                        ],
-                      ],
-                    )
-                  : const SizedBox.shrink(),
+
+              if (trip.driver.id == myid()) _buildActions(context),
             ],
           ),
         ),
@@ -241,245 +134,150 @@ class ItemTrip extends StatelessWidget {
     );
   }
 
-  // ignore: non_constant_identifier_names
-  Widget ButtonFinishRide(BuildContext context, int tripId) {
-    return Expanded(
-      child: ElevatedButton.icon(
-        onPressed: () {
-          Get.toNamed(RouteName.tripDetails, arguments: tripId);
-        },
-        style: ElevatedButton.styleFrom(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16), // موحد مع زر الإلغاء
+  /// إجراءات السائق على رحلته.
+  ///
+  /// كان زرّ الإلغاء يملأ عرض البطاقة بارتفاع كبير فيطغى على محتواها كلّه،
+  /// وهو إجراء هدّام لا يُبرَّر إبرازه هكذا. صار الإجراء الأساسي (العدّ
+  /// التنازلي أو إنهاء الرحلة) هو الممتدّ، والإلغاء زرّاً محدَّداً بحجمه
+  /// إلى جانبه.
+  Widget _buildActions(BuildContext context) {
+    final remaining = trip.departure.difference(DateTime.now());
+    final departed = remaining.inSeconds <= 0;
+
+    final canCancel = trip.status == 'active' && !departed;
+    final canFinish = departed &&
+        trip.status != 'finished' &&
+        trip.status != 'awaiting_confirmation' &&
+        trip.status != 'cancelled';
+
+    if (!canCancel && !canFinish) return const SizedBox.shrink();
+
+    return Padding(
+      padding: EdgeInsets.only(top: 14.h),
+      child: Row(
+        children: [
+          Expanded(
+            child: canFinish
+                ? _FinishButton(tripId: trip.id)
+                : _CountdownChip(remaining: remaining),
           ),
-          elevation: 4,
-          foregroundColor: Colors.white,
-        ).copyWith(
-          backgroundColor: WidgetStateProperty.resolveWith<Color>(
-            (states) => states.contains(WidgetState.pressed)
-                ? MyColors.accent
-                : MyColors.accent,
-          ),
-          shadowColor:
-              WidgetStateProperty.all(MyColors.accent.withOpacity(0.4)),
-        ),
-        icon: const Icon(
-          Icons.flag,
-          size: 20,
-          color: Colors.white,
-        ),
-        label: const Text(
-          "إنهاء الرحلة",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+          if (canCancel) ...[
+            SizedBox(width: 10.w),
+            _CancelButton(onCancel: onCancel),
+          ],
+        ],
       ),
     );
   }
 }
 
-void showEndTripDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.r),
-        ),
-        backgroundColor: MyColors.background,
-        title: Row(
-          children: [
-            Icon(Icons.warning_amber_rounded,
-                color: MyColors.accent, size: 28),
-            SizedBox(width: 8.w),
-            Text(
-              "لقد تمت الرحلة بالفعل ",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18.sp,
-                color: MyColors.accent,
-              ),
-            ),
-          ],
-        ),
-        content: Text(
-          "عند التأكيد بإنهاء الرحلة من قبل السائق والمسافرين سيتم تحويل حساب الرحلة من المسافرين الى السائق ",
-          style: TextStyle(
-            fontSize: 15.sp,
-            color: MyColors.textPrimary,
-          ),
-        ),
-        actionsAlignment: MainAxisAlignment.spaceEvenly,
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // إلغاء
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: MyColors.surfaceAlt,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-            ),
-            child: Text(
-              "رجوع",
-              style: TextStyle(
-                color: MyColors.textPrimary,
-                fontSize: 14.sp,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: MyColors.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-              elevation: 4,
-            ),
-            child: Text(
-              "تأكيد",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 14.sp,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-class _LocationRowModern extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String text;
-
-  const _LocationRowModern(
-      {required this.icon, required this.iconColor, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: iconColor),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(text,
-              style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: MyColors.textPrimary
-                  
-                  
-                  
-                  
-                  ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis),
-        ),
-      ],
-    );
-  }
-}
-
-class _InfoChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-
-  const _InfoChip(
-      {required this.icon, required this.label, required this.color});
+/// العدّ التنازلي حتى الانطلاق — معلومة لا زرّ، فلا تُصاغ كزرّ.
+class _CountdownChip extends StatelessWidget {
+  final Duration remaining;
+  const _CountdownChip({required this.remaining});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      height: 42.h,
+      alignment: Alignment.center,
+      padding: EdgeInsets.symmetric(horizontal: 12.w),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
+        color: MyColors.warningLight,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+            color: MyColors.warning.withValues(alpha: 0.35), width: 1),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: 4),
-          Text(label,
+          Icon(Icons.schedule_rounded, color: MyColors.warning, size: 16.sp),
+          SizedBox(width: 6.w),
+          Flexible(
+            child: Text(
+              formatRemainingTime(remaining),
               style: TextStyle(
-                  fontSize: 12, color: color, fontWeight: FontWeight.w500)),
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w600,
+                color: MyColors.textPrimary,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-// class _PopupMenuRowModern extends StatelessWidget {
-//   final IconData icon;
-//   final Color color;
-//   final String text;
+class _FinishButton extends StatelessWidget {
+  final int tripId;
+  const _FinishButton({required this.tripId});
 
-//   const _PopupMenuRowModern(
-//       {required this.icon, required this.color, required this.text});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Row(
-//       children: [
-//         Icon(icon, color: color),
-//         const SizedBox(width: 8),
-//         Text(text),
-//       ],
-//     );
-//   }
-// }
-
-String formatRemainingTime(Duration duration) {
-  if (duration.inDays > 0) {
-    return 'متبقي ${duration.inDays} يوم و ${duration.inHours % 24} ساعة';
-  } else if (duration.inHours > 0) {
-    return 'متبقي ${duration.inHours} ساعة و ${duration.inMinutes % 60} دقيقة';
-  } else if (duration.inMinutes > 0) {
-    return 'متبقي ${duration.inMinutes} دقيقة';
-  } else {
-    return 'انتهى الوقت';
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 42.h,
+      child: ElevatedButton.icon(
+        onPressed: () =>
+            Get.toNamed(RouteName.tripDetails, arguments: tripId),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: MyColors.accent,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: EdgeInsets.symmetric(horizontal: 12.w),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+        ),
+        icon: Icon(Icons.flag_rounded, size: 16.sp),
+        label: Text(
+          'إنهاء الرحلة',
+          style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
   }
 }
 
-Widget buildRemainingTime(Duration duration) {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-    decoration: BoxDecoration(
-      color: MyColors.warningLight,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: MyColors.warning, width: 1.5),
-      boxShadow: [
-        BoxShadow(
-          color: MyColors.shadowMedium,
-          blurRadius: 6,
-          offset: const Offset(2, 2),
+/// إجراء هدّام: يُعرَض محدَّداً ومحدَّد اللون بالحدّ لا بالتعبئة، فلا يُضغط
+/// سهواً ولا يسحب انتباه البطاقة إليه.
+class _CancelButton extends StatelessWidget {
+  final VoidCallback? onCancel;
+  const _CancelButton({required this.onCancel});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 42.h,
+      child: OutlinedButton.icon(
+        onPressed: onCancel,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: MyColors.error,
+          side: BorderSide(
+              color: MyColors.error.withValues(alpha: 0.5), width: 1.2),
+          padding: EdgeInsets.symmetric(horizontal: 14.w),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
         ),
-      ],
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(Icons.access_time, color: MyColors.textSecondary, size: 18),
-        const SizedBox(width: 6),
-        Text(
-          formatRemainingTime(duration),
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: MyColors.textPrimary,
-          ),
+        icon: Icon(Icons.close_rounded, size: 16.sp),
+        label: Text(
+          'إلغاء',
+          style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w600),
         ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
+}
+
+String formatRemainingTime(Duration duration) {
+  if (duration.inDays > 0) {
+    return 'متبقٍ ${duration.inDays} يوم و${duration.inHours % 24} ساعة';
+  } else if (duration.inHours > 0) {
+    return 'متبقٍ ${duration.inHours} ساعة و${duration.inMinutes % 60} دقيقة';
+  } else if (duration.inMinutes > 0) {
+    return 'متبقٍ ${duration.inMinutes} دقيقة';
+  } else {
+    return 'حان موعد الانطلاق';
+  }
 }

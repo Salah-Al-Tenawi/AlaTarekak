@@ -202,10 +202,12 @@ class HandelErorrMessage {
       return "يجب إنشاء محفظة إلكترونية قبل إنشاء رحلة بالدفع النقدي";
     }
     if (m.contains("outstanding debt")) {
-      final amounts = _amounts(original);
-      final debt = amounts.isNotEmpty ? "${amounts.first} ل.س" : "مستحقة";
-      return "عليك رسوم $debt من رحلات نقدية سابقة. اشحن محفظتك لتسويتها "
-          "قبل إنشاء رحلة جديدة";
+      // المبلغ لم يعد يُستخرج من نصّ الرسالة: صار له مصدر حقيقي في
+      // meta.cash_ride_debt من GET /wallet/transactions، وتعرضه شاشة
+      // المحفظة في بطاقة مستقلة. الاستخراج النصّي كان هشّاً وينكسر
+      // بأي تغيير في صياغة الخادم.
+      return "عليك رسوم مستحقّة من رحلات نقدية سابقة. اطّلع على قيمتها في "
+          "محفظتك واشحنها لتسويتها قبل إنشاء رحلة جديدة";
     }
     if (m.contains("insufficient wallet balance") &&
         m.contains("creation fee")) {

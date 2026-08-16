@@ -2,18 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-import 'package:alatarekak/core/constant/imagesUrl.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
+import 'package:alatarekak/core/them/text_style_app.dart';
+import 'package:alatarekak/core/utils/class/format_money.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/widgets/my_button.dart';
+import 'package:alatarekak/core/utils/widgets/trip_card_parts.dart';
 import 'package:alatarekak/features/trip_booking/data/model/booking_me_model.dart';
 import 'package:alatarekak/features/trip_booking/presantion/manger/cubit/booking_me_cubit.dart';
 import 'package:alatarekak/features/trip_details/presantaion/view/widget/status_trip.dart';
 
+/// بطاقة حجز في «حجوزاتي».
+///
+/// أُعيد بناؤها على لبنات بطاقة الرحلة المشتركة ([TripAvatar]،
+/// [TripLocationLine]، [TripInfoChip]) فصارت تُقرأ كبقية قوائم التطبيق،
+/// وبمقاسات متجاوبة بدل الثوابت التي كانت تتمدّد على الشاشات الصغيرة.
 class BookingItem extends StatefulWidget {
   final BookingMe booking;
   final VoidCallback onTapDetails;
@@ -32,6 +39,8 @@ class _BookingItemState extends State<BookingItem> {
   late final StatusInfo statusInfoRide;
   late final StatusInfo statusInfobooking;
 
+  BookingMe get b => widget.booking;
+
   @override
   void initState() {
     statusInfoRide = getStatusInfo(widget.booking.rideStatus);
@@ -41,67 +50,40 @@ class _BookingItemState extends State<BookingItem> {
 
   @override
   Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(20.r);
+
     return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 3,
+      shadowColor: MyColors.shadowMedium,
+      color: MyColors.surface,
+      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      shape: RoundedRectangleBorder(
+        borderRadius: radius,
+        side: BorderSide(color: MyColors.border, width: 1),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: radius,
         onTap: widget.onTapDetails,
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: EdgeInsets.all(16.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(context),
-              SizedBox(height: 16.h),
-              _buildTripDetails(),
-              SizedBox(height: 16.h),
+              _buildHeader(),
+              SizedBox(height: 14.h),
               Divider(height: 1, color: MyColors.divider),
-              SizedBox(height: 16.h),
-              _buildPricingInfo(),
-              SizedBox(height: 16.h),
-              _buildAdditionalInfo(),
-              SizedBox(height: 16.h),
-              BlocBuilder<BookingMeCubit, BookingMeState>(
-                builder: (context, state) {
-                  if (state is BookingMeButtonloading) {
-                    return const CircularProgressIndicator();
-                  } else if (state is BookingMeCanceled) {
-                    return MyButton(
-                      onPressed: () {},
-                      child: const Text("تم الغاء الحجز"),
-                    );
-                  } else if (state is BookingMeRated) {
-                    return RatingBarIndicator(
-                      rating: state.rate,
-                      itemBuilder: (context, index) => const Icon(
-                        Icons.star,
-                        color: Colors.amber,
-                      ),
-                      itemCount: 5,
-                      itemSize: 20.0,
-                      direction: Axis.horizontal,
-                    );
-                  } else if (state is BookingMeWholeCanceled) {
-                    return MyButton(
-                      onPressed: () {},
-                      child: const Text("تم الغاء الحجز بالكامل"),
-                    );
-                  } else if (state is BookingMeDriverNoShowReported) {
-                    return MyButton(
-                      onPressed: () {},
-                      child: const Text("تم تسجيل بلاغ عدم حضور السائق"),
-                    );
-                  } else if (state is BookingMeFinish) {
-                    return _buildFeedBackButton(
-                        context, widget.booking.userDriver);
-                  }
-
-                  return _buildActionButtons(context, widget.booking.status,
-                      widget.booking.userDriver);
-                },
-              )
+              SizedBox(height: 14.h),
+              _buildRoute(),
+              SizedBox(height: 14.h),
+              _buildWhen(),
+              SizedBox(height: 8.h),
+              _buildNumbers(),
+              SizedBox(height: 12.h),
+              _buildContacts(),
+              SizedBox(height: 12.h),
+              _buildMeta(),
+              SizedBox(height: 14.h),
+              _buildActionArea(),
             ],
           ),
         ),
@@ -109,523 +91,436 @@ class _BookingItemState extends State<BookingItem> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        InkWell(
-          onTap: () {
-            // Get.toNamed(RouteName.profile ,arguments:  widget.booking.driverId)
-          },
-          borderRadius: BorderRadius.circular(30),
-          child: Stack(
-            alignment: Alignment.bottomRight,
-            children: [
-              // Driver avatar
-              Container(
-                width: 50.w,
-                height: 50.w,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: MyColors.primary.withOpacity(0.2),
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: MyColors.shadowLight,
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: ClipOval(
-                  child: (widget.booking.driverAvatar.isEmpty)
-                      ? Image.asset(
-                          ImagesUrl.profileImage,
-                          fit: BoxFit.cover,
-                        )
-                      : Image.network(
-                          widget.booking.driverAvatar,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Image.asset(
-                              ImagesUrl.profileImage,
-                              fit: BoxFit.cover,
-                            );
-                          },
-                        ),
-                ),
-              ),
+  // ━━━━━━━━━━━━━━━━ الرأس ━━━━━━━━━━━━━━━━
 
-              // Online status indicator
-              Container(
-                width: 12.w,
-                height: 12.w,
-                decoration: BoxDecoration(
-                  color: statusInfobooking.color,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: MyColors.surface,
-                    width: 2,
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        TripAvatar(
+          avatar: b.driverAvatar,
+          size: 46,
+          onTap: () =>
+              Get.toNamed(RouteName.profile, arguments: b.userDriver),
+        ),
+        SizedBox(width: 12.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                b.driverName.trim().isEmpty ? 'سائق الرحلة' : b.driverName,
+                style: AppTextStyles.bodyLarge
+                    .copyWith(fontSize: 15.sp, fontWeight: FontWeight.w700),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: 3.h),
+              Text('حجز رقم ${b.bookingId}',
+                  style: AppTextStyles.labelSmall.copyWith(fontSize: 11.sp)),
+            ],
+          ),
+        ),
+        SizedBox(width: 8.w),
+        TripStatusBadge(status: b.status),
+      ],
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━ المسار ━━━━━━━━━━━━━━━━
+
+  Widget _buildRoute() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TripLocationLine(
+          icon: Icons.circle,
+          iconColor: MyColors.primary,
+          text: b.pickupAddress,
+        ),
+        const TripRouteConnector(),
+        TripLocationLine(
+          icon: Icons.location_pin,
+          iconColor: MyColors.accent,
+          text: b.destinationAddress,
+        ),
+      ],
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━ الموعد ━━━━━━━━━━━━━━━━
+
+  Widget _buildWhen() {
+    final departed = b.departureTime.isBefore(DateTime.now());
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: TripInfoChip(
+                expand: true,
+                icon: Icons.calendar_today_rounded,
+                label: _formatDate(b.departureTime),
+                color: MyColors.primary,
+              ),
+            ),
+            SizedBox(width: 8.w),
+            Expanded(
+              child: TripInfoChip(
+                expand: true,
+                icon: Icons.access_time_rounded,
+                label: _formatTime(b.departureTime),
+                color: MyColors.accent,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 8.h),
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+          decoration: BoxDecoration(
+            color: departed ? MyColors.surfaceAlt : MyColors.warningLight,
+            borderRadius: BorderRadius.circular(10.r),
+            border: Border.all(
+              color: departed
+                  ? MyColors.border
+                  : MyColors.warning.withValues(alpha: 0.35),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                departed ? Icons.flag_rounded : Icons.schedule_rounded,
+                size: 15.sp,
+                color: departed ? MyColors.textSecondary : MyColors.warning,
+              ),
+              SizedBox(width: 6.w),
+              Flexible(
+                child: Text(
+                  timeUntil(b.departureTime),
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                    color: MyColors.textPrimary,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
         ),
-        SizedBox(width: 12.w),
+      ],
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━ الأرقام ━━━━━━━━━━━━━━━━
+
+  Widget _buildNumbers() {
+    return Row(
+      children: [
         Expanded(
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              widget.booking.driverName,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: MyColors.textPrimary,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.right,
-            ),
+          child: _Stat(
+            icon: Icons.event_seat_rounded,
+            value: '${b.seats}',
+            label: 'مقعد',
+            color: MyColors.success,
           ),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: statusInfobooking.color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: statusInfobooking.color,
-              width: 1,
-            ),
-          ),
-          child: Text(
-            statusInfobooking.text,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: statusInfobooking.color,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTripDetails() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 12),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(Icons.my_location, size: 18, color: MyColors.accent),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                "من: ${widget.booking.pickupAddress}",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: MyColors.textPrimary,
-                ),
-              ),
-            ),
-          ],
-        ),
-        Padding(
-          padding: EdgeInsetsGeometry.symmetric(vertical: 10.h),
-          child: Center(
-            child: FaIcon(
-              FontAwesomeIcons.route,
-              size: 25.w,
-              color: MyColors.textSecondary,
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(Icons.location_on, size: 18, color: MyColors.accent),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                "إلى: ${widget.booking.destinationAddress}",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: MyColors.textPrimary,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.calendar_today,
-                size: 16, color: MyColors.textSecondary),
-            const SizedBox(width: 8),
-            Text(
-              _formatDate(widget.booking.bookingDate),
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: MyColors.accent,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Icon(Icons.access_time, size: 16, color: MyColors.textSecondary),
-            const SizedBox(width: 8),
-            Text(
-              _formatTime(widget.booking.departureTime),
-              style: TextStyle(
-                  fontSize: 13,
-                  color: MyColors.accent,
-                  fontWeight: FontWeight.bold),
-            ),
-            SizedBox(
-              width: 30.w,
-            ),
-          ],
-        ),
-        Center(
-          child: Card(
-            margin: const EdgeInsets.all(10),
-            elevation: 0,
-            color: MyColors.accentLight,
-            child: Padding(
-              padding: const EdgeInsetsGeometry.all(8),
-              child: Text(
-                timeUntil(widget.booking.departureTime),
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                    color: MyColors.accent),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPricingInfo() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _buildInfoItem(
-            "عدد المقاعد", "${widget.booking.seats}", Icons.event_seat),
-        _buildInfoItem("سعر المقعد", "${widget.booking.pricePerSeat} ل.س",
-            Icons.attach_money),
-        _buildInfoItem(
-            "السعر الكلي", "${widget.booking.totalPrice} ل.س", Icons.payment),
-      ],
-    );
-  }
-
-  Widget _buildInfoItem(String title, String value, IconData icon) {
-    return Column(
-      children: [
-        Icon(icon, size: 18, color: MyColors.accent),
-        const SizedBox(height: 4),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 12,
-            color: MyColors.textHint,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: MyColors.textPrimary,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAdditionalInfo() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        _buildAdditionalInfoItem(
-            "المركبة", widget.booking.vehicleType, Icons.directions_car),
-        _buildAdditionalInfoItem(
-            "طريقة الدفع", widget.booking.paymentMethod, Icons.credit_card),
-        _buildAdditionalInfoItem(
-            "حالة الرحلة", statusInfobooking.text, Icons.trip_origin),
-      ],
-    );
-  }
-
-  Widget _buildAdditionalInfoItem(String title, String value, IconData icon) {
-    return Column(
-      children: [
-        Icon(icon, size: 16, color: MyColors.textHint),
-        const SizedBox(height: 4),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 11,
-            color: MyColors.textHint,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
+        SizedBox(width: 8.w),
+        Expanded(
+          flex: 2,
+          child: _Stat(
+            icon: Icons.sell_rounded,
+            value: Money.format(b.pricePerSeat),
+            label: 'ل.س للمقعد',
             color: MyColors.textSecondary,
           ),
         ),
+        SizedBox(width: 8.w),
+        Expanded(
+          flex: 2,
+          child: _Stat(
+            icon: Icons.payments_rounded,
+            value: Money.format(b.totalPrice),
+            label: 'الإجمالي',
+            color: MyColors.warning,
+            emphasized: true,
+          ),
+        ),
       ],
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━ أرقام التواصل ━━━━━━━━━━━━━━━━
+
+  /// رقما التواصل: رقم السائق (للاتصال به) ورقم الراكب المسجَّل في هذا
+  /// الحجز (ليعرف على أي رقم سيصله الاتصال). كلاهما يصل من الخادم ولم
+  /// يكن يُعرض أيّ منهما.
+  Widget _buildContacts() {
+    final driverPhone = b.driverCommunicationNumber.trim();
+    final myPhone = b.passengerCommunicationNumber.trim();
+    if (driverPhone.isEmpty && myPhone.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      decoration: BoxDecoration(
+        color: MyColors.background,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: MyColors.border, width: 1),
+      ),
+      child: Column(
+        children: [
+          if (driverPhone.isNotEmpty)
+            _PhoneRow(
+              icon: Icons.support_agent_rounded,
+              label: 'رقم السائق',
+              phone: driverPhone,
+              onCall: () => _dial(driverPhone),
+            ),
+          if (driverPhone.isNotEmpty && myPhone.isNotEmpty) ...[
+            SizedBox(height: 8.h),
+            Divider(height: 1, color: MyColors.divider),
+            SizedBox(height: 8.h),
+          ],
+          if (myPhone.isNotEmpty)
+            _PhoneRow(
+              icon: Icons.person_rounded,
+              label: 'رقمي في هذا الحجز',
+              phone: myPhone,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _dial(String phone) async {
+    final uri = Uri(scheme: 'tel', path: phone.replaceAll(' ', ''));
+    if (!await launchUrl(uri)) {
+      if (!mounted) return;
+      showMySnackBar(context, 'تعذّر فتح تطبيق الاتصال');
+    }
+  }
+
+  // ━━━━━━━━━━━━━━━━ تفاصيل ثانوية ━━━━━━━━━━━━━━━━
+
+  Widget _buildMeta() {
+    final isCash = b.paymentMethod.toLowerCase() == 'cash';
+
+    return Row(
+      children: [
+        Expanded(
+          child: TripInfoChip(
+            expand: true,
+            icon: Icons.directions_car_rounded,
+            label: b.vehicleType.trim().isEmpty ? 'مركبة' : b.vehicleType,
+            color: MyColors.textSecondary,
+          ),
+        ),
+        SizedBox(width: 8.w),
+        Expanded(
+          child: TripInfoChip(
+            expand: true,
+            icon: isCash
+                ? Icons.payments_rounded
+                : Icons.account_balance_wallet_rounded,
+            label: isCash ? 'نقداً للسائق' : 'من المحفظة',
+            color: MyColors.blue,
+          ),
+        ),
+        // حالة الرحلة لا يرسلها هذا المسار دائماً — تُخفى بدل عرض
+        // مربّع «غير معروف»
+        if (statusInfoRide.isKnown) ...[
+          SizedBox(width: 8.w),
+          Expanded(
+            child: TripInfoChip(
+              expand: true,
+              icon: Icons.trip_origin_rounded,
+              label: statusInfoRide.text,
+              color: statusInfoRide.color,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━ الإجراءات ━━━━━━━━━━━━━━━━
+
+  Widget _buildActionArea() {
+    return BlocBuilder<BookingMeCubit, BookingMeState>(
+      builder: (context, state) {
+        if (state is BookingMeButtonloading) {
+          return SizedBox(
+            height: 46.h,
+            child: Center(
+              child: SizedBox(
+                width: 22.w,
+                height: 22.w,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2.5, color: MyColors.primary),
+              ),
+            ),
+          );
+        }
+        if (state is BookingMeCanceled) {
+          return MyButton(
+            onPressed: () {},
+            child: const Text("تم الغاء الحجز"),
+          );
+        }
+        if (state is BookingMeRated) {
+          return Center(
+            child: RatingBarIndicator(
+              rating: state.rate,
+              itemBuilder: (context, index) =>
+                  Icon(Icons.star_rounded, color: MyColors.warning),
+              itemCount: 5,
+              itemSize: 22.sp,
+              unratedColor: MyColors.border,
+            ),
+          );
+        }
+        if (state is BookingMeWholeCanceled) {
+          return MyButton(
+            onPressed: () {},
+            child: const Text("تم الغاء الحجز بالكامل"),
+          );
+        }
+        if (state is BookingMeDriverNoShowReported) {
+          return MyButton(
+            onPressed: () {},
+            child: const Text("تم تسجيل بلاغ عدم حضور السائق"),
+          );
+        }
+        if (state is BookingMeFinish) {
+          return _buildFeedBackButton(context, b.userDriver);
+        }
+        return _buildActionButtons(context, b.status, b.userDriver);
+      },
     );
   }
 
   Widget _buildActionButtons(
       BuildContext context, String bookingState, int userId) {
-    final departure = widget.booking.departureTime;
-    final now = DateTime.now();
-    final difference = departure.difference(now);
+    final departed = b.departureTime.difference(DateTime.now()).inSeconds <= 0;
 
-    return Row(
-      children: [
-        switch (bookingState) {
-          "completed" => Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () => _showRatingDialog(context, userId),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: MyColors.accent,
-                  foregroundColor: MyColors.textOnDark,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  elevation: 6,
-                ),
-                icon: const Icon(Icons.star_rate, size: 22), 
-                label: const Text(
-                  "الرحلة انتهت - قيم الآن",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-          "cancelled" => Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () async {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: MyColors.error,
-                  foregroundColor: MyColors.textOnDark,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 4,
-                ),
-                icon: const Icon(Icons.cancel, size: 20),
-                label: const Text(
-                  "تم الالغاء",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-          "pending" => Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                  final seatsToCancel = await _showCancelSeatsDialog();
-                  if (seatsToCancel != null) {
-                    final confirm = await _showConfirmationDialog(
-                      "هل أنت متأكد انك تريد الغاء حجز مقعد  $seatsToCancel .",
-                    );
-                    if (confirm ?? false) {
-                      _cancelSeats(seatsToCancel);
-                    }
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: MyColors.accent,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 4,
-                ).copyWith(
-                  backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                    (states) => states.contains(WidgetState.pressed)
-                        ? MyColors.accent.withOpacity(0.8)
-                        : MyColors.accent,
-                  ),
-                ),
-                icon: const Icon(Icons.cancel, size: 20),
-                label: const Text(
-                  "إلغاء الحجز",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-          "finished" => Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: MyColors.success,
-                  foregroundColor: MyColors.textOnDark,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 4,
-                ),
-                icon: const Icon(Icons.check_circle, size: 20),
-                label: const Text(
-                  "انتهت الرحلة",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-          "canceled" => Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("تم إلغاء الحجز مسبقاً")),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: MyColors.error,
-                  foregroundColor: MyColors.textOnDark,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 4,
-                ),
-                icon: const Icon(Icons.block, size: 20),
-                label: const Text(
-                  "الحجز ملغي",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-          _ => difference.inSeconds <= 0
-              ? Expanded(
-                  child: Row(children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () async {
-                          final confirm = await _showConfirmationDialog(
-                            "هل أنت متأكد من إنهاء الرحلة؟ تأكيد الخيار هذا يدل على وصلك الى الموقع المحدد و نجاح الرحلة ",
-                          );
-                          if (confirm ?? false) {
-                            context
-                                .read<BookingMeCubit>()
-                                .finishTrip(widget.booking.bookingId);
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: MyColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 4,
-                        ).copyWith(
-                          backgroundColor:
-                              WidgetStateProperty.resolveWith<Color>(
-                            (states) => states.contains(WidgetState.pressed)
-                                ? MyColors.primary.withOpacity(0.8)
-                                : MyColors.primary,
-                          ),
-                        ),
-                        icon: const Icon(Icons.check, size: 20),
-                        label: const Text(
-                          "إنهاء الرحلة",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 8.w),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () async {
-                          final confirm = await _showConfirmationDialog(
-                            "هل أنت متأكد أن السائق لم يحضر؟ سيتم تسجيل بلاغ ومراجعته من فريق الدعم.",
-                          );
-                          if (confirm ?? false) {
-                            context
-                                .read<BookingMeCubit>()
-                                .reportDriverNoShow(widget.booking.rideId);
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: MyColors.error,
-                          foregroundColor: MyColors.textOnDark,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 4,
-                        ),
-                        icon: const Icon(Icons.report_problem, size: 20),
-                        label: const Text(
-                          "السائق لم يحضر",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ]),
-                )
-              : Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      final seatsToCancel = await _showCancelSeatsDialog();
-                      if (seatsToCancel != null) {
-                        final confirm = await _showConfirmationDialog(
-                          "هل أنت متأكد من إلغاء $seatsToCancel مقعد(مقاعد)؟ قد يتم خصم جزء من المبلغ أو كامل المبلغ.",
-                        );
-                        if (confirm ?? false) {
-                          _cancelSeats(seatsToCancel);
-                        }
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: MyColors.accent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 4,
-                    ).copyWith(
-                      backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                        (states) => states.contains(WidgetState.pressed)
-                            ? MyColors.accent.withOpacity(0.8)
-                            : MyColors.accent,
-                      ),
-                    ),
-                    icon: const Icon(Icons.cancel, size: 20),
-                    label: const Text(
-                      "إلغاء الحجز",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
+    switch (bookingState) {
+      case 'completed':
+        return _Action(
+          icon: Icons.star_rate_rounded,
+          label: 'انتهت الرحلة — قيّم السائق',
+          color: MyColors.accent,
+          onTap: () => _showRatingDialog(context, userId),
+        );
+
+      case 'cancelled':
+      case 'canceled':
+        return _Action(
+          icon: Icons.block_rounded,
+          label: 'الحجز ملغى',
+          color: MyColors.error,
+          onTap: null,
+        );
+
+      case 'rejected':
+        return _Action(
+          icon: Icons.cancel_rounded,
+          label: 'رُفض طلب الحجز',
+          color: MyColors.error,
+          onTap: null,
+        );
+
+      case 'finished':
+        return _Action(
+          icon: Icons.check_circle_rounded,
+          label: 'انتهت الرحلة',
+          color: MyColors.success,
+          onTap: null,
+        );
+
+      case 'pending':
+        return _Action(
+          icon: Icons.close_rounded,
+          label: 'إلغاء الطلب',
+          color: MyColors.error,
+          outlined: true,
+          onTap: _askCancelSeats,
+        );
+
+      default:
+        // بعد موعد الانطلاق: تأكيد الوصول أو الإبلاغ عن غياب السائق.
+        // وقبله: إلغاء الحجز فقط.
+        if (!departed) {
+          return _Action(
+            icon: Icons.close_rounded,
+            label: 'إلغاء الحجز',
+            color: MyColors.error,
+            outlined: true,
+            onTap: _askCancelSeats,
+          );
         }
-      ],
+        return Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: _Action(
+                icon: Icons.check_rounded,
+                label: 'تأكيد الوصول',
+                color: MyColors.primary,
+                onTap: () async {
+                  // الكيوبت يُلتقط قبل الانتظار: استعمال context بعد فجوة
+                  // غير متزامنة يعتمد على بقاء الشجرة قائمة
+                  final cubit = context.read<BookingMeCubit>();
+                  final confirm = await _showConfirmationDialog(
+                    'هل أنت متأكد من إنهاء الرحلة؟ تأكيدك يعني وصولك إلى '
+                    'الموقع المحدد ونجاح الرحلة.',
+                  );
+                  if (!(confirm ?? false) || !mounted) return;
+                  cubit.finishTrip(b.bookingId);
+                },
+              ),
+            ),
+            SizedBox(width: 8.w),
+            Expanded(
+              flex: 2,
+              child: _Action(
+                icon: Icons.report_problem_rounded,
+                label: 'لم يحضر',
+                color: MyColors.error,
+                outlined: true,
+                onTap: () async {
+                  final cubit = context.read<BookingMeCubit>();
+                  final confirm = await _showConfirmationDialog(
+                    'هل أنت متأكد أن السائق لم يحضر؟ سيُسجَّل بلاغ '
+                    'ويراجعه فريق الدعم.',
+                  );
+                  if (!(confirm ?? false) || !mounted) return;
+                  cubit.reportDriverNoShow(b.rideId);
+                },
+              ),
+            ),
+          ],
+        );
+    }
+  }
+
+  Future<void> _askCancelSeats() async {
+    final seatsToCancel = await _showCancelSeatsDialog();
+    if (seatsToCancel == null || !mounted) return;
+
+    final whole = seatsToCancel >= b.seats;
+    final confirm = await _showConfirmationDialog(
+      whole
+          ? 'هل أنت متأكد من إلغاء الحجز بالكامل؟ قد يُخصم جزء من المبلغ '
+              'حسب قربك من موعد الانطلاق.'
+          : 'هل أنت متأكد من إلغاء $seatsToCancel مقعد؟ قد يُخصم جزء من '
+              'المبلغ حسب قربك من موعد الانطلاق.',
     );
+    if (!(confirm ?? false) || !mounted) return;
+    _cancelSeats(seatsToCancel);
   }
 
   /// إلغاء كل المقاعد يمر عبر إلغاء الحجز الكامل، والجزئي عبر cancel-seats
@@ -1076,5 +971,182 @@ class _BookingItemState extends State<BookingItem> {
 
   void _showThankYouMessage(BuildContext context) {
     showMySnackBar(context, "شكرا لك على تقييمك ");
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━ لبنات محلّية ━━━━━━━━━━━━━━━━━━━
+
+/// خانة رقمية داخل البطاقة — رقم فوق تسميته، بعرض متساوٍ مع أخواتها.
+class _Stat extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+  final bool emphasized;
+
+  const _Stat({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+    this.emphasized = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 6.w),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: emphasized ? 0.12 : 0.06),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+            color: color.withValues(alpha: emphasized ? 0.3 : 0.15), width: 1),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 15.sp, color: color),
+          SizedBox(height: 5.h),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: emphasized ? 15.sp : 14.sp,
+                fontWeight: FontWeight.bold,
+                color: emphasized ? color : MyColors.textPrimary,
+              ),
+            ),
+          ),
+          SizedBox(height: 2.h),
+          Text(
+            label,
+            style: TextStyle(fontSize: 10.sp, color: MyColors.textHint),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// سطر رقم تواصل — يُتاح الاتصال منه حين يكون الرقم لطرف آخر.
+class _PhoneRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String phone;
+  final VoidCallback? onCall;
+
+  const _PhoneRow({
+    required this.icon,
+    required this.label,
+    required this.phone,
+    this.onCall,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 16.sp, color: MyColors.textSecondary),
+        SizedBox(width: 8.w),
+        Text(label,
+            style: AppTextStyles.bodySmall.copyWith(fontSize: 12.sp)),
+        SizedBox(width: 8.w),
+        Expanded(
+          child: Text(
+            phone,
+            textAlign: TextAlign.left,
+            textDirection: TextDirection.ltr,
+            style: TextStyle(
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w700,
+              color: MyColors.textPrimary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        if (onCall != null) ...[
+          SizedBox(width: 6.w),
+          Material(
+            color: MyColors.success.withValues(alpha: 0.12),
+            shape: const CircleBorder(),
+            child: InkWell(
+              onTap: onCall,
+              customBorder: const CircleBorder(),
+              child: Padding(
+                padding: EdgeInsets.all(7.w),
+                child: Icon(Icons.call_rounded,
+                    size: 16.sp, color: MyColors.success),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// زرّ إجراء بشكل واحد لكل حالات البطاقة — والمعطّل يُقرأ معطّلاً.
+class _Action extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback? onTap;
+  final bool outlined;
+
+  const _Action({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+    this.outlined = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final shape =
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r));
+    final text = Text(
+      label,
+      style: TextStyle(fontSize: 13.5.sp, fontWeight: FontWeight.bold),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+
+    return SizedBox(
+      height: 46.h,
+      width: double.infinity,
+      child: outlined
+          ? OutlinedButton.icon(
+              onPressed: onTap,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: color,
+                side: BorderSide(
+                    color: color.withValues(alpha: 0.5), width: 1.2),
+                padding: EdgeInsets.symmetric(horizontal: 10.w),
+                shape: shape,
+              ),
+              icon: Icon(icon, size: 17.sp),
+              label: text,
+            )
+          : ElevatedButton.icon(
+              onPressed: onTap,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: color,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: color.withValues(alpha: 0.12),
+                disabledForegroundColor: color,
+                elevation: onTap == null ? 0 : 2,
+                shadowColor: color.withValues(alpha: 0.35),
+                padding: EdgeInsets.symmetric(horizontal: 10.w),
+                shape: shape,
+              ),
+              icon: Icon(icon, size: 17.sp),
+              label: text,
+            ),
+    );
   }
 }

@@ -361,6 +361,12 @@ List<GetPage<dynamic>> appRoute = [
               remoteData:
                   BookingUserTripRemoteData(api: getit.get<DioConSumer>()))),
         ),
+        // حجوزاتي كراكب — تبويب «حجوزاتي» في الشريط السفلي
+        BlocProvider(
+          create: (_) => BookingMeCubit(BookingMeRepo(
+              remoteDataSource:
+                  BookingRemoteDataSource(api: getit.get<DioConSumer>()))),
+        ),
         BlocProvider(
           create: (_) => ProfileCubit(ProfileRepoIm(
               profileRemoteDateSourceIm:

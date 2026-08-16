@@ -248,7 +248,11 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
     );
   }
 
-  Row buildCommincationNumber(BookingModel booking) {
+  /// رقم التواصل قد لا يصل من الخادم. كان الاحتياطي رقماً ثابتاً مكتوباً
+  /// في الشيفرة — أي رقم شخص حقيقي يُعرض لراكب لا علاقة له به. الصواب
+  /// إخفاء السطر حتى يصل رقم فعلي.
+  Widget buildCommincationNumber(BookingModel booking) {
+    if (booking.numberPhone.trim().isEmpty) return const SizedBox.shrink();
     return Row(
       children: [
         Icon(Icons.phone, size: 16, color: MyColors.textSecondary),

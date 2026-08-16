@@ -1,5 +1,9 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+
+import 'package:alatarekak/core/utils/functions/json_parse.dart';
+
 class BookingMeModel {
   final bool success;
   final List<BookingMe> data;
@@ -9,14 +13,41 @@ class BookingMeModel {
     required this.data,
   });
 
+  /// يقبل أشكال التغليف الثلاثة التي رصدناها على مسارات هذا الخادم:
+  /// قائمة مباشرة تحت `data`، أو مُرقِّم Laravel (`data.data`)، أو مفتاح
+  /// `bookings`. الاشتراط على شكل واحد كان يُرجع قائمة فارغة صامتة —
+  /// فتظهر شاشة «لا حجوزات» لمن له حجز فعلي.
   factory BookingMeModel.fromJson(Map<String, dynamic> json) {
+    final raw = _listFrom(json);
+
+    assert(() {
+      if (raw == null) {
+        debugPrint('⚠️ BookingMeModel: لم أجد قائمة الحجوزات. '
+            'مفاتيح الرد: ${json.keys.join(', ')}');
+      }
+      return true;
+    }());
+
     return BookingMeModel(
-      success: json['success'] ?? false,
-      data: (json['data'] as List<dynamic>?)
-              ?.map((e) => BookingMe.fromJson(e))
-              .toList() ??
-          [],
+      success: json['success'] == true || json['status'] == 'success',
+      data: (raw ?? const [])
+          .whereType<Map>()
+          .map((e) => BookingMe.fromJson(Map<String, dynamic>.from(e)))
+          .toList(),
     );
+  }
+
+  static List<dynamic>? _listFrom(Map<String, dynamic> json) {
+    for (final key in const ['data', 'bookings']) {
+      final value = json[key];
+
+      final direct = asList(value);
+      if (direct != null) return direct;
+
+      final paginated = asList(asMap(value)?['data']);
+      if (paginated != null) return paginated;
+    }
+    return null;
   }
 
   Map<String, dynamic> toJson() {

@@ -1,9 +1,27 @@
+import 'package:flutter/foundation.dart';
+
+import 'package:alatarekak/core/utils/functions/json_parse.dart';
 import 'package:alatarekak/features/trip_create/data/model/booking_model.dart';
 import 'package:alatarekak/features/trip_create/data/model/distan_model.dart';
 import 'package:alatarekak/features/trip_create/data/model/driver_model.dart';
 import 'package:alatarekak/features/trip_create/data/model/duration_model.dart';
 import 'package:alatarekak/features/trip_create/data/model/location_model.dart';
 
+/// الرحلة كما تصل من الخادم — بشكليها.
+///
+/// الخادم يرسل الرحلة بصورتين مختلفتين حسب المسار:
+///
+/// * **محوَّلة** (البحث وتفاصيل الرحلة): كائنات متداخلة —
+///   `driver: {...}`، `pickup: {address, coordinates}`،
+///   `distance: {meters, kilometers}`، `departure`.
+/// * **خام** (إنشاء الرحلة وبعض المسارات الأخرى): صفّ قاعدة بيانات مسطّح —
+///   `driver_id`، `pickup_address` + `pickup_location`، `distance` بالأمتار،
+///   `departure_time`، `available_seats`.
+///
+/// التفكيك يقبل الشكلين لأن الفرق بينهما قرار في الخادم لا في الواجهة،
+/// وقد تغيّر أكثر من مرة. ما يستحيل بدونه بناء الرحلة (المعرّف وموعد
+/// الانطلاق) يرفع خطأً يسمّي الحقل ويعدّد ما وصل فعلاً — فيُشخَّص أي
+/// تغيير لاحق من رسالة واحدة.
 class TripModel {
   final int id;
   final DriverModel driver;
@@ -20,7 +38,11 @@ class TripModel {
   final String paymentMethod;
   final String bookingType;
   final String? notes;
-  final DateTime createdAt;
+
+  /// اختياري: الصفّ الخام لا يحمل `created_at` دائماً، وهو يُستعمل للعرض
+  /// فقط («أُنشئت قبل ساعة») فلا يُبرَّر إسقاط الشاشة لغيابه.
+  final DateTime? createdAt;
+
   final int chosenRouteIndex;
   final String communicationNumber;
   final List<BookingModel> booking;
@@ -47,55 +69,140 @@ class TripModel {
     required this.booking,
   });
 
+  /// المفاتيح التي قد تُغلَّف بها رحلة مفردة.
+  static const _objectWrappers = ['data', 'ride', 'trip'];
+
+  /// المفاتيح التي قد تُغلَّف بها قائمة رحلات.
+  static const _listWrappers = ['data', 'rides', 'trips'];
+
+  /// يزيل المغلَّف إن وُجد: `{status, message, ride: {...}}` وما شابهه.
+  static Map<String, dynamic> _unwrap(Map<String, dynamic> json) {
+    for (final key in _objectWrappers) {
+      final inner = asMap(json[key]);
+      // مُرقِّم Laravel يضع قائمة تحت `data` لا كائناً — ليس مغلَّف رحلة
+      if (inner != null && inner['data'] is! List) return inner;
+    }
+    return json;
+  }
+
+  /// يُنبّه في وضع التطوير حين لا يُطابَق حقل مهم بأيّ من أسمائه المعروفة،
+  /// فيُقرأ الاسم الفعلي من سطر واحد بدل تخمين المفاتيح.
+  static void _warnIfUnread(String field, dynamic value,
+      Map<String, dynamic> data) {
+    assert(() {
+      if (value == null) {
+        debugPrint('⚠️ TripModel: «$field» لم يُطابَق. '
+            'مفاتيح الرد: ${data.keys.join(', ')}');
+      }
+      return true;
+    }());
+  }
+
+  /// المقاعد المحجوزة من قائمة الحجوزات حين لا يرسل الخادم عدّاداً لها.
+  ///
+  /// رد البحث لا يحمل `seats_booked` إطلاقاً، و`passengers_confirmed` شيء
+  /// آخر (عدد من أكّد *انتهاء* الرحلة). فحين تصل قائمة الحجوزات تُجمع
+  /// مقاعد الحجوزات القائمة منها بدل عرض صفر مضلِّل.
+  static int _bookedFrom(List<dynamic> bookings) {
+    var total = 0;
+    for (final b in bookings.whereType<Map>()) {
+      final status = asString(b['status'])?.toLowerCase() ?? '';
+      if (status == 'cancelled' || status == 'rejected') continue;
+      total += asInt(b['seats']) ?? 0;
+    }
+    return total;
+  }
+
   /// لتحويل JSON كائن رحلة واحدة
   factory TripModel.fromMap(Map<String, dynamic> json) {
-    // إذا الرد ملفوف بـ { data: {...} } خذ الداخل، وإلا استخدم json نفسه
-    final data =
-        (json['data'] is Map) ? Map<String, dynamic>.from(json['data']) : json;
+    final data = _unwrap(json);
+    final rawBookings = asList(data['bookings']) ?? const [];
+
+    // الشكل الغنيّ يجمع المقاعد في كائن `{available, booked, total}`،
+    // والمسطّح يبعثرها حقولاً مفردة. والمسار كذلك: `route.index` هنا
+    // مقابل `chosen_route_index` هناك.
+    final seats = asMap(data['seats']) ?? const <String, dynamic>{};
+    final route = asMap(data['route']) ?? const <String, dynamic>{};
+
+    // `driver_id` وحده شكل معروف لا عيب، فلا يُنبَّه عليه
+    _warnIfUnread('driver', pick(data, const ['driver', 'driver_id']), data);
+    _warnIfUnread(
+        'seats',
+        seats['available'] ??
+            pick(data, const [
+              'seats_available',
+              'available_seats',
+              'remaining_seats',
+              'seats_left',
+            ]),
+        data);
 
     return TripModel(
-      id: data['id'],
-      driver: DriverModel.fromJson(data['driver']),
-      pickup: LocationModel.fromJson(data['pickup']),
-      destination: LocationModel.fromJson(data['destination']),
-      departure: DateTime.parse(data['departure']).toLocal(),
-      seatsAvailable: data['seats_available'],
-      seatsBooked: data['seats_booked'],
-      pricePerSeat: data['price_per_seat'],
-      status: data['status'],
-      distance: DistanceModel.fromJson(data['distance']),
-      duration: DurationInfoModel.fromJson(data['duration']),
-      vehicleType: data['vehicle_type'],
-      paymentMethod: data['payment_method'],
-      bookingType: data['booking_type'],
-      notes: data['notes'],
-      createdAt: DateTime.parse(data['created_at']),
-      chosenRouteIndex: data['chosen_route_index'],
-      communicationNumber: data['communication_number'],
-      booking: (data['bookings'] as List?)
-              ?.map((e) => BookingModel.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
+      id: requireField(asInt(data['id']), 'TripModel', 'id', data),
+      driver: DriverModel.fromAny(pick(data, ['driver', 'driver_id'])),
+      pickup: LocationModel.fromTrip(data, 'pickup'),
+      destination: LocationModel.fromTrip(data, 'destination'),
+      departure: requireField(asDate(pick(data, ['departure', 'departure_time'])),
+          'TripModel', 'departure', data),
+      seatsAvailable: asInt(seats['available']) ??
+          asInt(pick(data, const [
+            'seats_available',
+            'available_seats',
+            'remaining_seats',
+            'seats_left',
+          ])) ??
+          0,
+      seatsBooked: asInt(seats['booked']) ??
+          asInt(pick(data, const [
+            'seats_booked',
+            'booked_seats',
+            'reserved_seats',
+          ])) ??
+          _bookedFrom(rawBookings),
+      pricePerSeat: asString(data['price_per_seat']) ?? '0',
+      status: asString(data['status']) ?? '',
+      distance: DistanceModel.fromAny(data['distance']),
+      duration: DurationInfoModel.fromAny(data['duration']),
+      vehicleType: asString(data['vehicle_type']) ?? '',
+      paymentMethod: asString(data['payment_method']) ?? '',
+      bookingType: asString(data['booking_type']) ?? '',
+      notes: asString(data['notes']),
+      createdAt: asDate(data['created_at']),
+      chosenRouteIndex:
+          asInt(route['index']) ?? asInt(data['chosen_route_index']) ?? 0,
+      communicationNumber: asString(data['communication_number']) ?? '',
+      booking: rawBookings
+          .whereType<Map>()
+          .map((e) => BookingModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList(),
     );
   }
 
   static List<TripModel> fromJson(dynamic json) {
+    if (json is List) return _mapAll(json);
+
     if (json is Map<String, dynamic>) {
-      final body = json['data'] ?? json; // يدعم وجود/عدم وجود data
-      if (body is List) {
-        return body
-            .map((e) => TripModel.fromMap(e as Map<String, dynamic>))
-            .toList();
-      } else if (body is Map<String, dynamic>) {
-        return [TripModel.fromMap(body)];
+      for (final key in _listWrappers) {
+        final value = json[key];
+
+        final list = asList(value);
+        if (list != null) return _mapAll(list);
+
+        // مُرقِّم Laravel: `{rides: {current_page: .., data: [...]}}`
+        final paginated = asList(asMap(value)?['data']);
+        if (paginated != null) return _mapAll(paginated);
       }
-    } else if (json is List) {
-      return json
-          .map((e) => TripModel.fromMap(e as Map<String, dynamic>))
-          .toList();
+      // رحلة مفردة، مغلَّفة أو غير مغلَّفة — يتكفّل بها `_unwrap`
+      return [TripModel.fromMap(json)];
     }
+
     throw Exception("صيغة JSON غير مدعومة");
   }
+
+  static List<TripModel> _mapAll(List<dynamic> items) => items
+      .whereType<Map>()
+      .map((e) => TripModel.fromMap(Map<String, dynamic>.from(e)))
+      .toList();
 
   Map<String, dynamic> toJson() {
     return {
@@ -114,7 +221,7 @@ class TripModel {
       'payment_method': paymentMethod,
       'booking_type': bookingType,
       'notes': notes,
-      'created_at': createdAt.toIso8601String(),
+      'created_at': createdAt?.toIso8601String(),
       'chosen_route_index': chosenRouteIndex,
       'communication_number': communicationNumber,
     };

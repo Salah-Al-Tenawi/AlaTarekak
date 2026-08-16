@@ -50,6 +50,8 @@ class ApiEndPoint {
   // epy — المحفظة تُنشأ برقم الهاتف مباشرة بلا رمز تحقق
   static const getbalance = "$baserUrl/wallet/balance";
   static const createWalletDirect = "$baserUrl/wallet/create-direct";
+  // كشف الحساب — وهو المصدر الوحيد الذي يكشف cash_ride_debt
+  static const walletTransactions = "$baserUrl/wallet/transactions";
 
   // bookings — حجوزاتي كراكب + إجراءات الحجز (cancel / cancel-seats / passenger-confirm / accept / reject)
   static const bookings = "$baserUrl/bookings";

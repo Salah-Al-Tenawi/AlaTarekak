@@ -5,6 +5,7 @@ import 'package:get/get_core/get_core.dart';
 import 'package:get/get_navigation/get_navigation.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
+import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/functions/my_dilaog.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/animations/app_animations.dart';
@@ -23,6 +24,24 @@ class _BookingMeListState extends State<BookingMeList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: MyColors.background,
+      // الشاشة تُعرض كتبويب داخل الرئيسية التي لا تضع رأساً عاماً — كل
+      // تبويب يوفّر رأسه بنفسه. وزر الرجوع مُلغى لأنها ليست شاشة مكدّسة.
+      appBar: AppBar(
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        centerTitle: true,
+        title: Text('حجوزاتي',
+            style:
+                AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
+        actions: [
+          IconButton(
+            onPressed: _refreshData,
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'تحديث',
+          ),
+        ],
+      ),
       body: BlocConsumer<BookingMeCubit, BookingMeState>(
         listener: (context, state) {
           if (state is BookingMeCanceled) {

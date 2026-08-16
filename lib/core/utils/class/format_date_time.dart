@@ -7,13 +7,20 @@ class DateTimeUtils {
   }
 
   // تنسيق الوقت فقط (ساعة:دقيقة + ص/م)
+  //
+  // الصيغة تُبنى يدوياً لا بـ DateFormat('a'): الأخيرة تُخرج "AM/PM"
+  // بالإنجليزية ما لم تُهيَّأ بيانات المحليّة العربية، وقاعدتنا ألّا يظهر
+  // نصّ إنجليزي للمستخدم.
   static String formatTime(DateTime date) {
-    return DateFormat('hh:mm a').format(date);
+    final hour12 = date.hour % 12 == 0 ? 12 : date.hour % 12;
+    final period = date.hour >= 12 ? 'م' : 'ص';
+    return '${hour12.toString().padLeft(2, '0')}:'
+        '${date.minute.toString().padLeft(2, '0')} $period';
   }
 
   // تنسيق التاريخ والوقت معاً
   static String formatDateTime(DateTime date) {
-    return DateFormat('dd/MM/yyyy - hh:mm a').format(date);
+    return '${formatDate(date)} - ${formatTime(date)}';
   }
 
   // حساب الوقت المتبقي للرحلة

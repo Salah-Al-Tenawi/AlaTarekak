@@ -127,13 +127,17 @@ void main() {
           'يجب إنشاء محفظة إلكترونية قبل إنشاء رحلة بالدفع النقدي');
     });
 
-    test('دين متراكم → الرسالة تحتفظ بالمبلغ القادم من الخادم', () {
+    test('دين متراكم → توجيه إلى المحفظة بلا استخراج المبلغ من النصّ', () {
       final message = HandelErorrMessage.createWithRoute(
           'You have an outstanding debt of 2,500.00 SYP from previous cash '
           'rides. Please top up your wallet to clear it before creating '
           'another ride.');
-      expect(message, contains('2,500.00 ل.س'));
-      expect(message, contains('اشحن محفظتك'));
+      expect(message, contains('رسوم مستحقّة'));
+      expect(message, contains('محفظتك'));
+      // المبلغ صار يُقرأ من meta.cash_ride_debt في كشف الحساب وتعرضه
+      // شاشة المحفظة، فلا يُستخرج من نصّ الخطأ — الاستخراج النصّي هشّ
+      // وينكسر بأي تغيير في صياغة الخادم.
+      expect(message, isNot(contains('2,500')));
     });
 
     test('رصيد غير كافٍ → الرسالة تحتفظ بالرسوم والرصيد بالترتيب', () {

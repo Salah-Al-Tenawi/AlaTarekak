@@ -10,7 +10,7 @@ import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/features/home/preantion/manger/cubit/home_nav_cubit_cubit.dart';
 import 'package:alatarekak/features/home/preantion/view/widget/home_botom_nav_bar.dart';
 import 'package:alatarekak/features/home/preantion/view/widget/home_drawer.dart';
-import 'package:alatarekak/features/booking_user_in_trip/presantion/view/booking_user_in_trip.dart';
+import 'package:alatarekak/features/trip_booking/presantion/view/booking_me_list.dart';
 import 'package:alatarekak/features/trip_me/presantion/view/trip_me_list.dart';
 import 'package:alatarekak/features/trip_search/presantion/view/trip_search.dart';
 
@@ -75,7 +75,14 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               controller: _pageController,
               physics: const NeverScrollableScrollPhysics(),
               children: const [
-                BookingUserINTrip(),
+                // تبويب «حجوزاتي» = حجوزات المستخدم كراكب.
+                //
+                // كان يعرض BookingUserINTrip — وهي شاشة السائق لحجوزات
+                // رحلةٍ بعينها، تُغذّى بوسائط من شاشة تفاصيل الرحلة. وبلا
+                // وسائط تبقى قائمتها فارغة أبداً، فتظهر صورة «لا حجوزات»
+                // مهما حجز المستخدم. وبقيت BookingMeList — الموصولة بـ
+                // GET /api/bookings — مسجَّلة كمسار لا يناديه أحد.
+                BookingMeList(),
                 TripMeList(),
                 TripSearch(),
                 ChatListScreen(),

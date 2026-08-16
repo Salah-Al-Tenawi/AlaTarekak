@@ -39,8 +39,36 @@ final class WalletErorr extends WalletState {
 final class WalletLoaded extends WalletState {
   final BalanceModel balance;
 
-  const WalletLoaded({required this.balance});
+  /// كشف الحساب — يحمل الرصيد الأدقّ والرسوم المستحقّة وأحدث الحركات.
+  /// يبقى null إن تعذّر جلبه، فالرصيد وحده يكفي لعرض الشاشة.
+  final WalletStatement? statement;
+
+  /// صفحات إضافية قيد الجلب في التمرير اللانهائي.
+  final bool loadingMore;
+
+  const WalletLoaded({
+    required this.balance,
+    this.statement,
+    this.loadingMore = false,
+  });
+
+  double get debt => statement?.cashRideDebt ?? 0;
+  bool get hasDebt => debt > 0;
+
+  WalletLoaded copyWith({WalletStatement? statement, bool? loadingMore}) =>
+      WalletLoaded(
+        balance: balance,
+        statement: statement ?? this.statement,
+        loadingMore: loadingMore ?? this.loadingMore,
+      );
 
   @override
-  List<Object> get props => [balance.walletNumber, balance.balance];
+  List<Object> get props => [
+        balance.walletNumber,
+        balance.balance,
+        statement?.items.length ?? -1,
+        statement?.cashRideDebt ?? -1,
+        statement?.currentPage ?? -1,
+        loadingMore,
+      ];
 }

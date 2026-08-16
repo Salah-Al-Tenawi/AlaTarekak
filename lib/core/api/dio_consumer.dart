@@ -32,7 +32,24 @@ class DioConSumer extends ApiConSumer {
           requestBody: true,
           requestHeader: true,
           responseHeader: true,
-          error: true));
+          error: true,
+          logPrint: _logInChunks));
+    }
+  }
+
+  /// سجلّ أندرويد يقصّ السطر الواحد عند نحو ألف محرف، فتصل أجسام الردود
+  /// الطويلة مبتورة في منتصف حقل — وهو ما يجعل تشخيص اختلاف شكل الرد
+  /// عن النموذج تخميناً. التقسيم هنا يضمن وصول الجسم كاملاً.
+  static void _logInChunks(Object? line) {
+    final text = line?.toString() ?? '';
+    const limit = 800;
+    if (text.length <= limit) {
+      debugPrint(text);
+      return;
+    }
+    for (var i = 0; i < text.length; i += limit) {
+      final end = i + limit < text.length ? i + limit : text.length;
+      debugPrint(text.substring(i, end));
     }
   }
 

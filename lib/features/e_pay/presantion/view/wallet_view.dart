@@ -10,9 +10,11 @@ import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/animations/app_animations.dart';
+import 'package:alatarekak/core/utils/class/format_money.dart';
 import 'package:alatarekak/core/utils/functions/input_valid.dart';
 import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
 import 'package:alatarekak/features/e_pay/data/model/balance_model.dart';
+import 'package:alatarekak/features/e_pay/domain/entity/wallet_transaction.dart';
 import 'package:alatarekak/features/e_pay/presantion/manger/cubit/wallet_cubit.dart';
 
 class WalletView extends StatelessWidget {
@@ -58,8 +60,8 @@ class WalletView extends StatelessWidget {
           if (state is WalletErorr) {
             return _WalletErrorView(message: state.message);
           }
-          final balance = (state as WalletLoaded).balance;
-          return FadeSlideIn(child: _WalletLoadedView(balance: balance));
+          return FadeSlideIn(
+              child: _WalletLoadedView(state: state as WalletLoaded));
         },
       ),
     );
@@ -69,22 +71,59 @@ class WalletView extends StatelessWidget {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // LOADED VIEW  (balance card + recharge)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-class _WalletLoadedView extends StatelessWidget {
-  final BalanceModel balance;
-  const _WalletLoadedView({required this.balance});
+class _WalletLoadedView extends StatefulWidget {
+  final WalletLoaded state;
+  const _WalletLoadedView({required this.state});
+
+  @override
+  State<_WalletLoadedView> createState() => _WalletLoadedViewState();
+}
+
+class _WalletLoadedViewState extends State<_WalletLoadedView> {
+  final _scroll = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(() {
+      if (_scroll.position.pixels >=
+          _scroll.position.maxScrollExtent - 200) {
+        context.read<WalletCubit>().loadMoreTransactions();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final st = widget.state.statement;
     return RefreshIndicator(
       onRefresh: () async => context.read<WalletCubit>().getBalance(),
       child: SingleChildScrollView(
+        controller: _scroll,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
         child: Column(
           children: [
-            _BalanceCard(balance: balance),
+            _BalanceCard(balance: widget.state.balance),
+            if (widget.state.hasDebt) ...[
+              SizedBox(height: 12.h),
+              _DebtCard(debt: widget.state.debt),
+            ],
             SizedBox(height: 16.h),
             const _RechargeCard(),
+            if (st != null && st.items.isNotEmpty) ...[
+              SizedBox(height: 16.h),
+              _StatementCard(
+                statement: st,
+                loadingMore: widget.state.loadingMore,
+              ),
+            ],
             SizedBox(height: 32.h),
           ],
         ),
@@ -608,4 +647,175 @@ class _WalletErrorView extends StatelessWidget {
       ),
     );
   }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+// Debt Card
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+/// رسوم إنشاء رحلات نقدية مؤجَّلة. تمنع السائق من إنشاء رحلة نقدية
+/// جديدة حتى تُسدَّد، وتُسدَّد تلقائياً عند أول شحن يكفي لتغطيتها.
+class _DebtCard extends StatelessWidget {
+  final double debt;
+  const _DebtCard({required this.debt});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: MyColors.warningLight,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: MyColors.warning.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.account_balance_outlined,
+              color: MyColors.warning, size: 22.sp),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('عليك رسوم مستحقّة',
+                    style: AppTextStyles.labelLarge
+                        .copyWith(color: MyColors.warning)),
+                SizedBox(height: 4.h),
+                Text(
+                  '${_money(debt)} ل.س من رحلات نقدية سابقة. اشحن محفظتك بما '
+                  'يغطّيها لتتمكّن من إنشاء رحلات نقدية جديدة — تُسدَّد '
+                  'تلقائياً عند الشحن.',
+                  style: AppTextStyles.bodySmall.copyWith(
+                      color: MyColors.textSecondary, height: 1.6),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// صيغة المبالغ صارت مشتركة بين كل شاشات المال — انظر [Money].
+String _money(double v) => Money.format(v);
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+// Statement
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+class _StatementCard extends StatelessWidget {
+  final WalletStatement statement;
+  final bool loadingMore;
+  const _StatementCard({required this.statement, required this.loadingMore});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: MyColors.surface,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: MyColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 8.h),
+            child: Row(
+              children: [
+                Icon(Icons.receipt_long_outlined,
+                    size: 18.sp, color: MyColors.primary),
+                SizedBox(width: 8.w),
+                Text('كشف الحساب', style: AppTextStyles.labelLarge),
+                const Spacer(),
+                Text('${statement.total} حركة',
+                    style: AppTextStyles.labelSmall
+                        .copyWith(color: MyColors.textSecondary)),
+              ],
+            ),
+          ),
+          const Divider(height: 0, thickness: 0.5),
+          ...statement.items.map((t) => _TransactionTile(tx: t)),
+          if (loadingMore)
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 14.h),
+              child: Center(
+                child: SizedBox(
+                  width: 20, height: 20,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: MyColors.primary),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TransactionTile extends StatelessWidget {
+  final WalletTransaction tx;
+  const _TransactionTile({required this.tx});
+
+  @override
+  Widget build(BuildContext context) {
+    // حركات الصفر سجلّات تدقيق لا حركات مالية: بلا مبلغ وبلون خافت،
+    // حتى لا يقرأ المستخدم «تأجيل الرسم» على أنه خصم من رصيده.
+    final audit = tx.isAuditOnly;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 11.h),
+      child: Row(
+        children: [
+          Container(
+            width: 34.w,
+            height: 34.w,
+            decoration: BoxDecoration(
+              color: tx.color.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(10.r),
+            ),
+            child: Icon(tx.icon, size: 17.sp, color: tx.color),
+          ),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(tx.label,
+                    style: AppTextStyles.bodySmall.copyWith(
+                        color: MyColors.textPrimary,
+                        fontWeight: FontWeight.w600),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+                if (tx.createdAt != null) ...[
+                  SizedBox(height: 2.h),
+                  Text(_when(tx.createdAt!),
+                      style: AppTextStyles.labelSmall
+                          .copyWith(color: MyColors.textHint)),
+                ],
+              ],
+            ),
+          ),
+          SizedBox(width: 8.w),
+          if (audit)
+            Text('سجلّ',
+                style: AppTextStyles.labelSmall
+                    .copyWith(color: MyColors.textHint))
+          else
+            Text(
+              '${tx.isCredit ? '+' : '−'}${_money(tx.amount)}',
+              style: AppTextStyles.bodyMedium.copyWith(
+                  color: tx.color, fontWeight: FontWeight.w700),
+            ),
+        ],
+      ),
+    );
+  }
+
+  String _when(DateTime d) =>
+      '${d.year}/${d.month.toString().padLeft(2, '0')}/'
+      '${d.day.toString().padLeft(2, '0')} · '
+      '${d.hour.toString().padLeft(2, '0')}:'
+      '${d.minute.toString().padLeft(2, '0')}';
 }

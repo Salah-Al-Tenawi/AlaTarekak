@@ -64,7 +64,12 @@ class ApiInterCeptor extends QueuedInterceptor {
       return handler.next(err);
     }
 
-    // أكواد توجب الخروج الفوري بلا محاولة refresh
+    // أكواد توجب الخروج الفوري بلا محاولة refresh.
+    //
+    // وجود `code` غير مشروط: بعض معالِجات الخادم تُرجع 401 بجسم
+    // {"message": "Token has expired"} بلا `status` ولا `code`. عندها
+    // يبقى code=null فلا يطابق شيئاً هنا، ويمضي التدفّق إلى التجديد —
+    // وهو التصرّف الصحيح لتوكن منتهٍ.
     const fatalCodes = {
       'TOKEN_INVALIDATED',
       'USER_INACTIVE',

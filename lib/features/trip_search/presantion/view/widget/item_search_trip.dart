@@ -5,8 +5,9 @@ import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/class/format_date_time.dart';
+import 'package:alatarekak/core/utils/class/format_money.dart';
+import 'package:alatarekak/core/utils/widgets/trip_card_parts.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
-import 'package:alatarekak/features/trip_details/presantaion/view/widget/status_trip.dart';
 
 class ItemSearchTrip extends StatelessWidget {
   final TripModel trip;
@@ -14,12 +15,12 @@ class ItemSearchTrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusInfo = getStatusInfo(trip.status);
+    final radius = BorderRadius.circular(20.r);
 
     return Card(
       margin: EdgeInsets.symmetric(vertical: 8.h, horizontal: 16.w),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: radius,
         side: BorderSide(color: MyColors.border, width: 1),
       ),
       elevation: 3,
@@ -27,7 +28,7 @@ class ItemSearchTrip extends StatelessWidget {
       color: MyColors.surface,
       child: InkWell(
         onTap: () => Get.toNamed(RouteName.tripDetails, arguments: trip.id),
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: radius,
         child: Padding(
           padding: EdgeInsets.all(16.w),
           child: Column(
@@ -36,59 +37,38 @@ class ItemSearchTrip extends StatelessWidget {
               // ━━ رأس البطاقة: السائق + الحالة ━━
               Row(
                 children: [
-                  _DriverAvatar(avatar: trip.driver.avatar),
+                  TripAvatar(avatar: trip.driver.avatar),
                   SizedBox(width: 12.w),
                   Expanded(
+                    // مسار البحث يرسل `driver_id` بلا كائن سائق، فيصل
+                    // الاسم فارغاً ويظهر سطر خالٍ. البديل تسمية عامة إلى
+                    // أن يرسل الخادم الكائن.
                     child: Text(
-                      trip.driver.name,
+                      trip.driver.name.trim().isEmpty
+                          ? 'سائق الرحلة'
+                          : trip.driver.name,
                       style: AppTextStyles.bodyLarge
                           .copyWith(fontWeight: FontWeight.w600),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   SizedBox(width: 8.w),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 10.w, vertical: 5.h),
-                    decoration: BoxDecoration(
-                      color: statusInfo.color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20.r),
-                    ),
-                    child: Text(
-                      statusInfo.text,
-                      style: TextStyle(
-                        color: statusInfo.color,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11.sp,
-                      ),
-                    ),
-                  ),
+                  TripStatusBadge(status: trip.status),
                 ],
               ),
 
               SizedBox(height: 14.h),
-
-              // ━━ خط فاصل ━━
               Divider(height: 1, color: MyColors.divider),
-
               SizedBox(height: 14.h),
 
               // ━━ المسار ━━
-              _LocationLine(
+              TripLocationLine(
                 icon: Icons.circle,
                 iconColor: MyColors.primary,
                 text: trip.pickup.address,
               ),
-              Padding(
-                padding: EdgeInsets.only(right: 8.w),
-                child: Container(
-                  width: 2,
-                  height: 18.h,
-                  margin: EdgeInsets.symmetric(vertical: 4.h),
-                  color: MyColors.border,
-                ),
-              ),
-              _LocationLine(
+              const TripRouteConnector(),
+              TripLocationLine(
                 icon: Icons.location_pin,
                 iconColor: MyColors.accent,
                 text: trip.destination.address,
@@ -99,13 +79,13 @@ class ItemSearchTrip extends StatelessWidget {
               // ━━ التاريخ والوقت ━━
               Row(
                 children: [
-                  _InfoChip(
+                  TripInfoChip(
                     icon: Icons.calendar_today_rounded,
                     label: DateTimeUtils.formatDate(trip.departure),
                     color: MyColors.primary,
                   ),
                   SizedBox(width: 8.w),
-                  _InfoChip(
+                  TripInfoChip(
                     icon: Icons.access_time_rounded,
                     label: DateTimeUtils.formatTime(trip.departure),
                     color: MyColors.accent,
@@ -119,17 +99,23 @@ class ItemSearchTrip extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: _InfoChip(
+                    child: TripInfoChip(
+                      expand: true,
                       icon: Icons.monetization_on_rounded,
-                      label: '${trip.pricePerSeat} ل.س / راكب',
+                      label: '${Money.withCurrency(trip.pricePerSeat)} / راكب',
                       color: MyColors.warning,
                     ),
                   ),
                   SizedBox(width: 8.w),
                   Expanded(
-                    child: _InfoChip(
+                    child: TripInfoChip(
+                      expand: true,
                       icon: Icons.event_seat_rounded,
-                      label: '${trip.seatsAvailable} مقاعد متاحة',
+                      // صفر هنا قد يعني «لم يصل العدّاد» لا «ممتلئة»،
+                      // فلا يُعرض رقم يوحي بغير الحقيقة
+                      label: trip.seatsAvailable > 0
+                          ? '${trip.seatsAvailable} مقاعد متاحة'
+                          : 'مقاعد متاحة',
                       color: MyColors.success,
                     ),
                   ),
@@ -139,104 +125,6 @@ class ItemSearchTrip extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _DriverAvatar extends StatelessWidget {
-  final String? avatar;
-  const _DriverAvatar({required this.avatar});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 42.w,
-      height: 42.w,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: MyColors.primary.withValues(alpha: 0.25),
-          width: 2,
-        ),
-        image: avatar != null
-            ? DecorationImage(
-                image: NetworkImage(avatar!),
-                fit: BoxFit.cover,
-              )
-            : null,
-        color: MyColors.primary.withValues(alpha: 0.08),
-      ),
-      child: avatar == null
-          ? Icon(Icons.person_rounded, color: MyColors.primary, size: 20)
-          : null,
-    );
-  }
-}
-
-class _InfoChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-
-  const _InfoChip(
-      {required this.icon, required this.label, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 7.h),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: color.withValues(alpha: 0.18), width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: color),
-          SizedBox(width: 5.w),
-          Flexible(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 11.sp,
-                color: color,
-                fontWeight: FontWeight.w500,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LocationLine extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String text;
-
-  const _LocationLine(
-      {required this.icon, required this.iconColor, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 16, color: iconColor),
-        SizedBox(width: 10.w),
-        Expanded(
-          child: Text(
-            text,
-            style: AppTextStyles.bodySmall
-                .copyWith(color: MyColors.textPrimary, fontSize: 13.sp),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
     );
   }
 }

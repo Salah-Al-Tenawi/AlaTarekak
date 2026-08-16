@@ -238,4 +238,49 @@ void main() {
           [isA<BookingMeButtonloading>(), isA<BookingMeCommented>()],
     );
   });
+
+  group('BookingMeModel — أشكال تغليف قائمة الحجوزات', () {
+    Map<String, dynamic> booking() => {
+          'id': 7,
+          'seats': 2,
+          'status': 'confirmed',
+          'total_price': 14000,
+          'ride': {
+            'id': 2,
+            'pickup_address': 'دمشق',
+            'destination_address': 'حمص',
+            'departure_time': '2026-08-16T13:55:00+03:00',
+            'driver': {'id': 2, 'name': 'أحمد العظمة', 'rating': 0},
+          },
+        };
+
+    test('قائمة مباشرة تحت data', () {
+      final m = BookingMeModel.fromJson({'success': true, 'data': [booking()]});
+      expect(m.data, hasLength(1));
+      expect(m.data.single.bookingId, 7);
+      expect(m.data.single.driverName, 'أحمد العظمة');
+    });
+
+    test('مُرقِّم Laravel تحت data.data لا يُقرأ فارغاً', () {
+      final m = BookingMeModel.fromJson({
+        'success': true,
+        'data': {'current_page': 1, 'last_page': 1, 'data': [booking()]},
+      });
+      expect(m.data, hasLength(1),
+          reason: 'الاشتراط على قائمة مباشرة كان يُظهر «لا حجوزات» لمن له حجز');
+    });
+
+    test('مفتاح bookings بدل data', () {
+      final m = BookingMeModel.fromJson({
+        'status': 'success',
+        'bookings': [booking()],
+      });
+      expect(m.data, hasLength(1));
+      expect(m.success, isTrue);
+    });
+
+    test('رد بلا قائمة يعطي فارغاً بلا انهيار', () {
+      expect(BookingMeModel.fromJson({'success': true}).data, isEmpty);
+    });
+  });
 }

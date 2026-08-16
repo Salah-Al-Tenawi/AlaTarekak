@@ -1,3 +1,5 @@
+import 'package:alatarekak/core/utils/functions/json_parse.dart';
+
 class DistanceModel {
   final int meters;
   final double kilometers;
@@ -8,10 +10,21 @@ class DistanceModel {
   });
 
   factory DistanceModel.fromJson(Map<String, dynamic> json) {
+    final meters = asInt(json['meters']) ?? 0;
     return DistanceModel(
-      meters: json['meters'],
-      kilometers: json['kilometers'].toDouble(),
+      meters: meters,
+      kilometers: asDouble(json['kilometers']) ?? meters / 1000,
     );
+  }
+
+  /// المسافة تصل كائناً `{meters, kilometers}` في الرد المحوَّل، ورقم
+  /// أمتار مفرداً في الصفّ الخام (`"distance": 47818`).
+  factory DistanceModel.fromAny(dynamic value) {
+    final map = asMap(value);
+    if (map != null) return DistanceModel.fromJson(map);
+
+    final meters = asInt(value) ?? 0;
+    return DistanceModel(meters: meters, kilometers: meters / 1000);
   }
 
   Map<String, dynamic> toJson() {

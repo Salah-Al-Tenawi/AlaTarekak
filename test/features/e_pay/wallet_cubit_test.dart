@@ -14,6 +14,11 @@ void main() {
 
   setUp(() {
     repo = MockEPayRepo();
+    // getBalance صار يتبعه جلب كشف الحساب (مصدر الرصيد الأدقّ والدين).
+    // تعذّره لا يمنع عرض المحفظة، فالافتراضي هنا فشل صامت.
+    when(() => repo.getTransactions(
+            page: any(named: 'page'), perPage: any(named: 'perPage')))
+        .thenAnswer((_) async => left(const Filuar(message: 'no statement')));
   });
 
   group('WalletCubit — الرصيد (SAF-04: لا عرض رصيد إلا من رد الخادم)', () {
@@ -140,5 +145,55 @@ void main() {
             'تعذر إنشاء المحفظة، حاول مجدداً'),
       ],
     );
+  });
+
+  group('WalletCubit — مغادرة الشاشة والطلب في الطريق', () {
+    /// شاشة المحفظة تُغلَق بالانتقال منها (إلى «مركباتي» مثلاً)، فيعود ردّ
+    /// الرصيد إلى كيوبت مُغلَق. بلا فحص isClosed يُرفع
+    /// `StateError: Cannot emit new states after calling close` من مسار
+    /// غير متزامن لا يلتقطه أحد، فيظهر للمستخدم انهياراً بلا سبب ظاهر.
+    Future<void> expectNoEmitAfterClose(
+        Future<void> Function(WalletCubit) act) async {
+      final cubit = WalletCubit(repo);
+      final pending = act(cubit);
+      await cubit.close();
+      await expectLater(pending, completes);
+    }
+
+    test('نجاح الرصيد بعد الإغلاق لا يرفع StateError', () async {
+      when(() => repo.getBalance()).thenAnswer((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        return right(BalanceModel(walletNumber: '0999999999', balance: '10'));
+      });
+
+      await expectNoEmitAfterClose((c) => c.getBalance());
+    });
+
+    test('فشل الرصيد بعد الإغلاق لا يرفع StateError', () async {
+      when(() => repo.getBalance()).thenAnswer((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        return left(const Filuar(message: 'Server error'));
+      });
+
+      await expectNoEmitAfterClose((c) => c.getBalance());
+    });
+
+    test('غياب المحفظة بعد الإغلاق لا يرفع StateError', () async {
+      when(() => repo.getBalance()).thenAnswer((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        return left(const Filuar(message: 'Wallet not found'));
+      });
+
+      await expectNoEmitAfterClose((c) => c.getBalance());
+    });
+
+    test('فشل التفعيل بعد الإغلاق لا يرفع StateError', () async {
+      when(() => repo.createWalletDirect(any())).thenAnswer((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        return left(const Filuar(message: 'Server error'));
+      });
+
+      await expectNoEmitAfterClose((c) => c.activateWallet('0912345678'));
+    });
   });
 }

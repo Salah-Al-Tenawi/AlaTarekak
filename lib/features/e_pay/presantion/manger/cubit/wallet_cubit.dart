@@ -4,6 +4,7 @@ import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/service/wallet_provision_service.dart';
 import 'package:alatarekak/features/e_pay/data/model/balance_model.dart';
 import 'package:alatarekak/features/e_pay/data/repo/e_pay_repo_im.dart';
+import 'package:alatarekak/features/e_pay/domain/entity/wallet_transaction.dart';
 
 part 'wallet_state.dart';
 
@@ -12,8 +13,13 @@ class WalletCubit extends Cubit<WalletState> {
   WalletCubit(this._repo) : super(WalletInitial());
 
   Future<void> getBalance({bool allowProvisionRetry = true}) async {
+    if (isClosed) return;
     emit(WalletLoading());
     final response = await _repo.getBalance();
+    // شاشة المحفظة تُغلَق بمغادرتها (الانتقال إلى «مركباتي» مثلاً) بينما
+    // الطلب ما زال في الطريق، فيعود الرد إلى كيوبت مُغلَق. بلا هذا الفحص
+    // يُرفع StateError من داخل مسار غير متزامن لا يلتقطه أحد.
+    if (isClosed) return;
     await response.fold((erorr) async {
       if (!_isWalletMissing(erorr.message)) {
         emit(WalletErorr(
@@ -35,6 +41,53 @@ class WalletCubit extends Cubit<WalletState> {
       emit(WalletNotActivated());
     }, (balance) async {
       emit(WalletLoaded(balance: balance));
+      // كشف الحساب يُجلب بعد عرض الرصيد لا قبله: هو مصدر الرسوم
+      // المستحقّة وأحدث الحركات، لكن تعذّره يجب ألّا يمنع عرض المحفظة.
+      await loadStatement();
+    });
+  }
+
+  /// أول صفحة من كشف الحساب — تحمل معها الرصيد الأدقّ والدين.
+  Future<void> loadStatement() async {
+    final current = state;
+    if (current is! WalletLoaded) return;
+
+    final result = await _repo.getTransactions(page: 1);
+    if (isClosed) return;
+    result.fold((_) {}, (statement) {
+      final s = state;
+      if (s is WalletLoaded) emit(s.copyWith(statement: statement));
+    });
+  }
+
+  /// الصفحة التالية عند بلوغ نهاية القائمة.
+  Future<void> loadMoreTransactions() async {
+    final current = state;
+    if (current is! WalletLoaded) return;
+    final st = current.statement;
+    if (st == null || !st.hasMore || current.loadingMore) return;
+
+    emit(current.copyWith(loadingMore: true));
+    final result = await _repo.getTransactions(page: st.currentPage + 1);
+    if (isClosed) return;
+
+    result.fold((_) {
+      final s = state;
+      if (s is WalletLoaded) emit(s.copyWith(loadingMore: false));
+    }, (next) {
+      final s = state;
+      if (s is! WalletLoaded) return;
+      emit(s.copyWith(
+        loadingMore: false,
+        statement: WalletStatement(
+          items: [...?s.statement?.items, ...next.items],
+          balance: next.balance,
+          cashRideDebt: next.cashRideDebt,
+          currentPage: next.currentPage,
+          lastPage: next.lastPage,
+          total: next.total,
+        ),
+      ));
     });
   }
 
@@ -42,6 +95,7 @@ class WalletCubit extends Cubit<WalletState> {
   /// التسجيل (فشل عابر وقتها، أو حساب أُنشئ قبل هذه الميزة). خطوة واحدة
   /// بلا رمز تحقق.
   Future<void> activateWallet(String phoneNumber) async {
+    if (isClosed) return;
     emit(WalletActivating());
     final response = await _repo.createWalletDirect(phoneNumber);
     if (isClosed) return;
@@ -53,6 +107,7 @@ class WalletCubit extends Cubit<WalletState> {
         if (isClosed) return;
         return getBalance(allowProvisionRetry: false);
       }
+      if (isClosed) return;
       emit(WalletActivationFailed(
           message: HandelErorrMessage.createWalletDirect(erorr.message)));
     }, (_) async {
