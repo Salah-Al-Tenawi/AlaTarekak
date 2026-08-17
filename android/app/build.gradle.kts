@@ -8,6 +8,20 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// FCM: مُلحق google-services يفشل البناء إن غاب google-services.json،
+// والملف يُنزَّل من وحدة تحكم Firebase ولا يدخل git. فيُطبَّق متى وُجد
+// فقط — كما يُقرأ key.properties أدناه — ليبقى البناء عاملاً لمن لم
+// يضعه بعد، وتُفعَّل الإشعارات لحظة وضعه بلا تعديل شيفرة.
+val googleServicesFile = file("google-services.json")
+if (googleServicesFile.exists()) {
+    apply(plugin = "com.google.gms.google-services")
+} else {
+    logger.lifecycle(
+        "[FCM] google-services.json غير موجود في android/app — " +
+            "إشعارات Firebase معطّلة في هذا البناء.",
+    )
+}
+
 // بيانات توقيع الإصدار — تُقرأ من android/key.properties (خارج git).
 // انظر docs/release_signing.md لتفاصيل النسخ الاحتياطي.
 val keystoreProperties = Properties()
