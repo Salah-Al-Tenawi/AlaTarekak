@@ -7,6 +7,13 @@ import 'package:alatarekak/features/profiles/domain/entity/comment_entity.dart';
 import 'package:alatarekak/features/profiles/domain/entity/profile_entity.dart';
 
 abstract class ProfileRepo {
+  /// آخر نسخة مخزَّنة من الملف — متاحة فوراً وبلا شبكة، `null` إن لم
+  /// يُخزَّن شيء بعد.
+  ///
+  /// كان الكاش احتياطاً عند فشل الشبكة **فقط**: كل فتح لتبويب «حسابي»
+  /// يبدأ بمؤشّر تحميل وينتظر الخادم، رغم أن النسخة المخزَّنة جاهزة.
+  ProfileEntity? getCachedProfile(int userid);
+
   Future<Either<Filuar, ProfileEntity>> showProfile(int userid);
   
   Future<Either<Filuar, ProfileEntity>> updateProfile(

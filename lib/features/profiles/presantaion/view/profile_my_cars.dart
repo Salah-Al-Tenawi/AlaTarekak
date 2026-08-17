@@ -40,7 +40,7 @@ class ProfileMyCarsScreen extends StatelessWidget {
           appBar: AppBar(
             elevation: 0,
             leading: IconButton(
-              icon: Icon(Icons.arrow_forward_ios_rounded,
+              icon: Icon(Icons.arrow_back_ios_rounded,
                   size: 20),
               onPressed: () => Get.back(result: true),
             ),

@@ -12,8 +12,19 @@ class Profile extends StatefulWidget {
   State<Profile> createState() => _ProfileState();
 }
 
-class _ProfileState extends State<Profile> {
+class _ProfileState extends State<Profile>
+    with AutomaticKeepAliveClientMixin {
   late final int _userId;
+
+  /// تبويب «حسابي» أحد صفحات `PageView` في الرئيسية، وهي تتخلّص من
+  /// الصفحات غير المعروضة. فكان `initState` يُعاد في **كل** تنقّل إلى
+  /// التبويب، ومعه طلب جديد إلى الخادم وشاشة تحميل — والملف الشخصي لا
+  /// يتغيّر بين ضغطتين.
+  ///
+  /// التحديث يبقى متاحاً: السحب للأسفل، وكل شاشة تُعدّل الملف تستدعي
+  /// [_load] عند عودتها، ورفعُ مستندات التوثيق يُبطل الكاش من مستودعه.
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -33,5 +44,8 @@ class _ProfileState extends State<Profile> {
   }
 
   @override
-  Widget build(BuildContext context) => ProfileBody(onRefresh: _load);
+  Widget build(BuildContext context) {
+    super.build(context); // يلزمه AutomaticKeepAliveClientMixin
+    return ProfileBody(onRefresh: _load);
+  }
 }

@@ -51,6 +51,16 @@ class ProfileRepoIm extends ProfileRepo {
   /// لا يصل التطبيق أبداً: لا تظهر شارة الحالة، ويظلّ المستخدم قادراً
   /// على رفع طلب توثيق جديد فوق طلبٍ معلّق.
   @override
+  ProfileEntity? getCachedProfile(int userid) {
+    try {
+      return profileLocalDataSourceIm.getProfile(userid);
+    } catch (_) {
+      // كاش تالف أو صندوق غير مفتوح — لا يمنع فتح الشاشة
+      return null;
+    }
+  }
+
+  @override
   Future<Either<Filuar, ProfileEntity>> showProfile(int userid) async {
     try {
       final profile = await profileRemoteDateSourceIm.showProfile(userid);

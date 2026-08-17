@@ -29,7 +29,9 @@ class ProfileCubit extends Cubit<ProfileState> {
     final response = await profileRepoIm.showProfile(userid);
     return response.fold(
       (error) {
-        emit(ProfileErrorState(message: error.message));
+        emit(ProfileErrorState(
+            message: HandelErorrMessage.showProfile(error.message)));
+        // نصّ الاستثناء تشخيصي لا يُعرض — يبقى كما أرسله الخادم
         throw Exception(error.message);
       },
       (profileEntity) {
@@ -44,11 +46,23 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   Future<ProfileEntity> showMyProfile() async {
     final myId = myid();
-    emit(const ProfileLoadingState());
-    final response = await profileRepoIm.showProfile(myId!);
+
+    // النسخة المخزَّنة تُعرض فوراً ثم تُستبدل بما يردّه الخادم. كانت
+    // الشاشة تبدأ بمؤشّر تحميل في كل مرة رغم وجودها — والكاش لا يُقرأ
+    // إلا حين تفشل الشبكة.
+    final cached = profileRepoIm.getCachedProfile(myId!);
+    if (cached != null) {
+      emit(ProfileLoadedState(
+          mode: ProfileMode.myView, profileEntity: cached));
+    } else {
+      emit(const ProfileLoadingState());
+    }
+
+    final response = await profileRepoIm.showProfile(myId);
     return response.fold(
       (error) {
-        emit(ProfileErrorState(message: error.message));
+        emit(ProfileErrorState(
+            message: HandelErorrMessage.showProfile(error.message)));
         throw Exception(error.message);
       },
       (myProfile) {
@@ -148,7 +162,9 @@ class ProfileCubit extends Cubit<ProfileState> {
 
     response.fold(
       (error) => emit(ProfileErrorState(
-        message: error.message,
+        // حفظ المركبة يمرّ على PUT /profile نفسه، فرسالة «لا يمكن التعديل
+        // أثناء مراجعة طلب التوثيق» تصل من هنا أيضاً
+        message: HandelErorrMessage.updateProfile(error.message),
         profileEntity: profile,
       )),
       (updated) {
