@@ -9,6 +9,7 @@ import 'package:alatarekak/core/service/chat_socket_service.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/animations/app_animations.dart';
+import 'package:alatarekak/core/utils/class/format_date_time.dart';
 import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
 import 'package:alatarekak/features/chat/domain/entity/conversation_entity.dart';
 import 'package:alatarekak/features/chat/presentation/manager/conversation_cubit/conversation_cubit.dart';
@@ -31,40 +32,62 @@ class ChatListScreen extends StatelessWidget {
       ),
       body: BlocBuilder<ConversationCubit, ConversationState>(
         builder: (context, state) {
+          // الحالة الابتدائية كانت تُرسم `SizedBox.shrink()` — شاشة بيضاء
+          // لا محتوى فيها ولا شيء يُسحب، ولا شيء يُطلق التحميل. الإطلاق
+          // الوحيد كان `..loadConversations()` في مزوّد المسار، وهو كسول:
+          // إن لم يُنشأ الكيوبت بذلك المسار بقيت الشاشة فارغة إلى الأبد.
+          // الآن تشفي الشاشة نفسها، كما في «رحلاتي».
+          if (state is ConversationInitial) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted) {
+                context.read<ConversationCubit>().loadConversations();
+              }
+            });
+            return const Center(child: LoadingWidgetSize150());
+          }
+
           if (state is ConversationLoading) {
             return const Center(child: LoadingWidgetSize150());
           }
-          if (state is ConversationError) {
-            return _ErrorView(
-              message: state.message,
-              onRetry: () =>
-                  context.read<ConversationCubit>().loadConversations(),
-            );
-          }
-          if (state is ConversationLoaded) {
-            if (state.conversations.isEmpty) {
-              return const _EmptyView();
-            }
-            return RefreshIndicator(
-              color: MyColors.accent,
-              onRefresh: () =>
-                  context.read<ConversationCubit>().loadConversations(),
-              child: ListView.separated(
-                padding:
-                    EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                itemCount: state.conversations.length,
-                separatorBuilder: (_, __) => SizedBox(height: 8.h),
-                itemBuilder: (_, i) => StaggeredItem(
-                  index: i,
-                  child: _ConversationCard(conv: state.conversations[i]),
-                ),
-              ),
-            );
-          }
-          return const SizedBox.shrink();
+
+          // السحب للتحديث يغطّي **كل** الحالات بعد التحميل. كان محصوراً في
+          // فرع القائمة غير الفارغة، فتُحبَس الشاشة على الفراغ أو الخطأ بلا
+          // سبيل لإعادة المحاولة بالسحب.
+          return RefreshIndicator(
+            color: MyColors.accent,
+            onRefresh: () =>
+                context.read<ConversationCubit>().loadConversations(),
+            child: _buildBody(context, state),
+          );
         },
       ),
     );
+  }
+
+  /// جسم الشاشة بعد التحميل — كل فرع منه **قابل للتمرير** حتى يستجيب
+  /// `RefreshIndicator` للسحب، فالمؤشّر لا يعمل على محتوى ثابت.
+  Widget _buildBody(BuildContext context, ConversationState state) {
+    if (state is ConversationError) {
+      return _ErrorView(
+        message: state.message,
+        onRetry: () => context.read<ConversationCubit>().loadConversations(),
+      );
+    }
+
+    if (state is ConversationLoaded && state.conversations.isNotEmpty) {
+      return ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        itemCount: state.conversations.length,
+        separatorBuilder: (_, __) => SizedBox(height: 8.h),
+        itemBuilder: (_, i) => StaggeredItem(
+          index: i,
+          child: _ConversationCard(conv: state.conversations[i]),
+        ),
+      );
+    }
+
+    return const _EmptyView();
   }
 }
 
@@ -203,7 +226,13 @@ class _ConversationCard extends StatelessWidget {
                   children: [
                     if (conv.lastMessage != null)
                       Text(
-                        _formatTime(conv.lastMessage!.createdAt),
+                        // `updated_at` تاريخ ISO سليم على المحادثة، بينما
+                        // `last_message.created_at` يصل نصّاً نسبياً
+                        // إنجليزياً — نُقدّم الأول ونترجم الثاني عند غيابه
+                        DateTimeUtils.chatListTime([
+                          conv.updatedAt,
+                          conv.lastMessage!.createdAt,
+                        ]),
                         style: AppTextStyles.labelSmall.copyWith(
                           color:
                               unread > 0 ? MyColors.accent : MyColors.textHint,
@@ -241,41 +270,56 @@ class _ConversationCard extends StatelessWidget {
     );
   }
 
-  String _formatTime(String dateStr) {
-    try {
-      final dt = DateTime.parse(dateStr).toLocal();
-      final now = DateTime.now();
-      if (dt.day == now.day) {
-        return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-      }
-      return '${dt.day}/${dt.month}';
-    } catch (_) {
-      return dateStr; // relative string e.g. "5 minutes ago"
-    }
-  }
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━
+/// يملأ الشاشة **ويقبل التمرير دائماً**، فيستجيب لسحب التحديث فوقه.
+class _ScrollableCenter extends StatelessWidget {
+  final Widget child;
+  const _ScrollableCenter({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Center(child: child),
+        ),
+      ),
+    );
+  }
+}
+
 class _EmptyView extends StatelessWidget {
   const _EmptyView();
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.chat_bubble_outline_rounded,
-              size: 64, color: MyColors.textHint),
-          SizedBox(height: 16.h),
-          Text('لا توجد محادثات بعد',
-              style: AppTextStyles.titleMedium
-                  .copyWith(color: MyColors.textSecondary)),
-          SizedBox(height: 6.h),
-          Text('ابدأ محادثة مع أحد المستخدمين',
-              style:
-                  AppTextStyles.bodySmall.copyWith(color: MyColors.textHint)),
-        ],
+    return _ScrollableCenter(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 32.w),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.chat_bubble_outline_rounded,
+                size: 60.sp, color: MyColors.textHint),
+            SizedBox(height: 16.h),
+            Text('لا توجد محادثات بعد',
+                style: AppTextStyles.titleMedium.copyWith(
+                    fontSize: 17.sp, color: MyColors.textSecondary)),
+            SizedBox(height: 6.h),
+            Text('ابدأ محادثة مع أحد المستخدمين',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodySmall
+                    .copyWith(fontSize: 13.sp, color: MyColors.textHint)),
+            SizedBox(height: 10.h),
+            Text('اسحب للأسفل للتحديث',
+                style: AppTextStyles.labelSmall
+                    .copyWith(fontSize: 11.sp, color: MyColors.textHint)),
+          ],
+        ),
       ),
     );
   }
@@ -289,25 +333,45 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.wifi_off_rounded, size: 48, color: MyColors.error),
-          SizedBox(height: 12.h),
-          Text(message,
-              style: AppTextStyles.bodySmall
-                  .copyWith(color: MyColors.textSecondary),
-              textAlign: TextAlign.center),
-          SizedBox(height: 16.h),
-          ElevatedButton(
-            onPressed: onRetry,
-            style: ElevatedButton.styleFrom(
-                backgroundColor: MyColors.accent, elevation: 0),
-            child: Text('إعادة المحاولة',
-                style: AppTextStyles.buttonLarge),
-          ),
-        ],
+    return _ScrollableCenter(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 32.w),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.wifi_off_rounded, size: 46.sp, color: MyColors.error),
+            SizedBox(height: 12.h),
+            Text(message,
+                style: AppTextStyles.bodySmall.copyWith(
+                    fontSize: 13.sp,
+                    color: MyColors.textSecondary,
+                    height: 1.6),
+                textAlign: TextAlign.center),
+            SizedBox(height: 16.h),
+            SizedBox(
+              height: 46.h,
+              child: ElevatedButton(
+                onPressed: onRetry,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: MyColors.accent,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r)),
+                ),
+                child: Text('إعادة المحاولة',
+                    style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white)),
+              ),
+            ),
+            SizedBox(height: 10.h),
+            Text('أو اسحب للأسفل للتحديث',
+                style: AppTextStyles.labelSmall
+                    .copyWith(fontSize: 11.sp, color: MyColors.textHint)),
+          ],
+        ),
       ),
     );
   }

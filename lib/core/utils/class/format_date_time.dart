@@ -1,5 +1,15 @@
 import 'package:intl/intl.dart';
 
+/// صيغ العدد الأربع لوحدة زمنية واحدة في العربية.
+class _UnitForms {
+  final String singular; // واحد:    «دقيقة»
+  final String dual; //     اثنان:   «دقيقتين»
+  final String few; //      ٣–١٠:    «دقائق»
+  final String many; //     ١١+:     «دقيقة»
+
+  const _UnitForms(this.singular, this.dual, this.few, this.many);
+}
+
 class DateTimeUtils {
   // تنسيق التاريخ فقط (يوم/شهر/سنة)
   static String formatDate(DateTime date) {
@@ -22,6 +32,95 @@ class DateTimeUtils {
   static String formatDateTime(DateTime date) {
     return '${formatDate(date)} - ${formatTime(date)}';
   }
+
+  /// وقت آخر رسالة في بطاقة المحادثة — الساعة إن كانت اليوم، وإلا يوم/شهر.
+  ///
+  /// الخادم يرسل اللحظة نفسها بصيغتين في `GET /chat/conversations`:
+  /// `updated_at` تاريخاً ISO على المحادثة، و`last_message.created_at`
+  /// نصّاً نسبياً إنجليزياً («9 minutes ago»). نجرّب المرشّحين بالترتيب
+  /// ونأخذ أول تاريخ صالح، فإن لم يوجد ترجمنا النصّ النسبي — فلا يظهر
+  /// إنجليزي في الواجهة بحال.
+  static String chatListTime(List<String?> candidates) {
+    for (final raw in candidates) {
+      if (raw == null || raw.trim().isEmpty) continue;
+      final dt = DateTime.tryParse(raw)?.toLocal();
+      if (dt == null) continue;
+
+      final now = DateTime.now();
+      final sameDay =
+          dt.year == now.year && dt.month == now.month && dt.day == now.day;
+      if (sameDay) {
+        return '${dt.hour.toString().padLeft(2, '0')}:'
+            '${dt.minute.toString().padLeft(2, '0')}';
+      }
+      return '${dt.day}/${dt.month}';
+    }
+
+    final fallback =
+        candidates.firstWhere((c) => c != null && c.trim().isNotEmpty,
+            orElse: () => null);
+    return fallback == null ? '' : arabicRelative(fallback);
+  }
+
+  /// «9 minutes ago» → «قبل ٩ دقائق».
+  ///
+  /// المفرد والمثنّى وجمع القلّة (٣–١٠) وجمع الكثرة (١١+) صيغ مختلفة في
+  /// العربية، فتُكتب كلها بدل «قبل 9 دقيقة».
+  static String arabicRelative(String english) {
+    final text = english.trim();
+    final lower = text.toLowerCase();
+    if (lower == 'just now' || lower == 'now' || lower == 'a moment ago') {
+      return 'الآن';
+    }
+
+    final match = RegExp(
+      r'^(?:about\s+)?(\d+|an?)\s+'
+      r'(second|minute|hour|day|week|month|year)s?\s+ago$',
+      caseSensitive: false,
+    ).firstMatch(text);
+    // صيغة لا نعرفها — تُترك كما وصلت بدل اختراع ترجمة خاطئة
+    if (match == null) return text;
+
+    final rawCount = match.group(1)!.toLowerCase();
+    final count = (rawCount == 'a' || rawCount == 'an')
+        ? 1
+        : int.tryParse(rawCount) ?? 1;
+    final forms = _units[match.group(2)!.toLowerCase()]!;
+
+    if (count == 1) return 'قبل ${forms.singular}';
+    if (count == 2) return 'قبل ${forms.dual}';
+    if (count <= 10) return 'قبل $count ${forms.few}';
+    return 'قبل $count ${forms.many}';
+  }
+
+  static const Map<String, _UnitForms> _units = {
+    'second': _UnitForms('ثانية', 'ثانيتين', 'ثوانٍ', 'ثانية'),
+    'minute': _UnitForms('دقيقة', 'دقيقتين', 'دقائق', 'دقيقة'),
+    'hour': _UnitForms('ساعة', 'ساعتين', 'ساعات', 'ساعة'),
+    'day': _UnitForms('يوم', 'يومين', 'أيام', 'يوماً'),
+    'week': _UnitForms('أسبوع', 'أسبوعين', 'أسابيع', 'أسبوعاً'),
+    'month': _UnitForms('شهر', 'شهرين', 'أشهر', 'شهراً'),
+    'year': _UnitForms('سنة', 'سنتين', 'سنوات', 'سنة'),
+  };
+
+  /// «الأحد، 17 آب» — صيغة التاريخ المعتمدة في شاشات إنشاء الرحلة.
+  static String arabicDate(DateTime date) =>
+      '${getArabicDayName(date)}، ${date.day} ${arabicMonths[date.month - 1]}';
+
+  static const List<String> arabicMonths = [
+    'كانون الثاني',
+    'شباط',
+    'آذار',
+    'نيسان',
+    'أيار',
+    'حزيران',
+    'تموز',
+    'آب',
+    'أيلول',
+    'تشرين الأول',
+    'تشرين الثاني',
+    'كانون الأول',
+  ];
 
   // حساب الوقت المتبقي للرحلة
   static String getRemainingTime(DateTime departure) {
