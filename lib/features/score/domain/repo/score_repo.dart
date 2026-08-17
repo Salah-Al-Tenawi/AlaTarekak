@@ -10,6 +10,14 @@ abstract class ScoreRepo {
   /// (تُخزن تلقائياً، وتسقط للكاش عند فشل الشبكة)
   Future<Either<Filuar, ScoreEntity>> getScore();
 
-  /// §5.2 — سجل التغيرات (limit أقصاه 50)
-  Future<Either<Filuar, List<ScoreHistoryEntity>>> getHistory({int limit = 20});
+  /// آخر صفحة أولى مخزَّنة من السجل — تُعرض فوراً وبلا شبكة، ثم تُستبدل
+  /// بما يردّه الخادم. `null` إن لم يُخزَّن شيء بعد.
+  ScoreHistoryPage? getCachedHistory();
+
+  /// §5.2 — صفحة من سجل التغيرات (`/score/transactions`).
+  /// تُرجع الصفحة بترقيمها لا القائمة وحدها، فالسجل قد يتجاوز مئة حركة.
+  Future<Either<Filuar, ScoreHistoryPage>> getHistory({
+    int page = 1,
+    int perPage = 20,
+  });
 }

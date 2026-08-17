@@ -78,7 +78,9 @@ class ApiEndPoint {
 
   // score (§5)
   static const score = "$baserUrl/score";
-  static const scoreHistory = "$score/history";
+  /// سجلّ حركة النقاط. كان `/score/history` في المواصفة، وشحنه الباك إند
+  /// على `/score/transactions` بشكل رد مختلف كلياً.
+  static const scoreTransactions = "$score/transactions";
 
   // support & complaints
   static const complaints = "$baserUrl/complaints";

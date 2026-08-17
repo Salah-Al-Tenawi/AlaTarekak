@@ -33,10 +33,30 @@ class ScoreRepoIm extends ScoreRepo {
   }
 
   @override
-  Future<Either<Filuar, List<ScoreHistoryEntity>>> getHistory(
-      {int limit = 20}) async {
+  ScoreHistoryPage? getCachedHistory() {
     try {
-      return right(await remoteDataSource.getHistory(limit: limit));
+      return localDataSource.getHistoryFirstPage();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<Either<Filuar, ScoreHistoryPage>> getHistory({
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    try {
+      final result =
+          await remoteDataSource.getHistory(page: page, perPage: perPage);
+      // الصفحة الأولى وحدها تُخزَّن: هي ما يُعرض فوراً عند الفتح،
+      // وما بعدها يُجلب بالترقيم. والحفظ لا يُفشل الجلب.
+      if (page == 1) {
+        try {
+          await localDataSource.saveHistoryFirstPage(result);
+        } catch (_) {}
+      }
+      return right(result);
     } on ServerExpcptions catch (e) {
       return left(e.error);
     }

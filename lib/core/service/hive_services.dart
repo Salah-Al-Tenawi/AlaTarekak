@@ -81,6 +81,7 @@ class HiveKeys {
 
   // مفاتيح صندوق الكاش العام
   static const String score = "score";
+  static const String scoreHistory = "score_history";
   static const String notifications = "notifications";
   static const String complaints = "complaints";
 }

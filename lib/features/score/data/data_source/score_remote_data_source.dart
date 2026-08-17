@@ -7,7 +7,7 @@ import 'package:alatarekak/features/score/data/model/score_model.dart';
 
 abstract class ScoreRemoteDataSource {
   Future<ScoreModel> getScore();
-  Future<List<ScoreHistoryModel>> getHistory({int limit});
+  Future<ScoreHistoryPageModel> getHistory({int page, int perPage});
 }
 
 class ScoreRemoteDataSourceIm extends ScoreRemoteDataSource {
@@ -31,17 +31,24 @@ class ScoreRemoteDataSourceIm extends ScoreRemoteDataSource {
         (json as Map<String, dynamic>)['data'] as Map<String, dynamic>);
   }
 
+  /// `/score/transactions` — صفحة من سجلّ النقاط.
+  ///
+  /// الرد `{success, data: [...], meta: {total, per_page, current_page,
+  /// last_page}}`، فتُقرأ الصفحة كاملة بترقيمها: القائمة وحدها لا تكفي
+  /// لمعرفة هل بقي المزيد.
   @override
-  Future<List<ScoreHistoryModel>> getHistory({int limit = 20}) async {
+  Future<ScoreHistoryPageModel> getHistory({
+    int page = 1,
+    int perPage = 20,
+  }) async {
     final json = await api.get(
-      ApiEndPoint.scoreHistory,
-      queryParameters: {'limit': limit.clamp(1, 50)},
+      ApiEndPoint.scoreTransactions,
+      queryParameters: {
+        'page': page < 1 ? 1 : page,
+        'per_page': perPage.clamp(1, 50),
+      },
     );
     if (!ApiEnvelope.isOk(json)) _throwFrom(json);
-    final rawItems = (json as Map<String, dynamic>)['data'] as List? ?? [];
-    return rawItems
-        .whereType<Map<String, dynamic>>()
-        .map(ScoreHistoryModel.fromJson)
-        .toList();
+    return ScoreHistoryPageModel.fromJson(json);
   }
 }

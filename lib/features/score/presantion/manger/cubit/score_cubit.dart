@@ -41,8 +41,8 @@ class ScoreCubit extends Cubit<ScoreState> {
     if (isClosed) return;
 
     result.fold(
-      (failure) => emit(
-          ScoreError(message: HandelErorrMessage.errServer)),
+      (failure) =>
+          emit(ScoreError(message: HandelErorrMessage.score(failure.message))),
       (score) {
         _cached = score;
         emit(ScoreLoaded(score: score));
@@ -50,27 +50,115 @@ class ScoreCubit extends Cubit<ScoreState> {
     );
   }
 
-  /// §5.2 — جلب السجل (يتطلب تحميل النقاط أولاً أو يجلبها تلقائياً)
-  Future<void> loadHistory({int limit = 20}) async {
+  // ---------------------------------------------------------------
+  // سجلّ الحركات (§5.2) — `/score/transactions` مُرقَّم، فالسجل يتراكم
+  // بلا حدّ ولا يصلح جلبه دفعة واحدة.
+  // ---------------------------------------------------------------
+
+  static const int _perPage = 20;
+
+  final List<ScoreHistoryEntity> _history = [];
+  int _currentPage = 1;
+  int _total = 0;
+  bool _hasMore = false;
+  bool _isLoadingMore = false;
+
+  /// §5.2 — الصفحة الأولى (يتطلب تحميل النقاط أولاً أو يجلبها تلقائياً).
+  /// تُستدعى أيضاً عند السحب للتحديث فتبدأ الترقيم من جديد.
+  Future<void> loadHistory() async {
+    // النقاط والسجل المخزَّنان يُعرضان فوراً — كان الرأس يظهر بالرقم
+    // القديم بينما يبقى ما تحته فارغاً حتى يردّ الخادم، أو أبداً بلا شبكة
+    if (_history.isEmpty) {
+      final cachedScore = _repo.getCachedScore();
+      final cachedHistory = _repo.getCachedHistory();
+      if (cachedScore != null && cachedHistory != null) {
+        _cached = cachedScore;
+        _history.addAll(cachedHistory.items);
+        _total = cachedHistory.total;
+        _hasMore = false; // الكاش لا يعرف كم بقي — التحديث الشبكي يصحّح
+        _emitHistory();
+      }
+    }
+
     if (_cached == null) {
       final scoreResult = await _repo.getScore();
       if (isClosed) return;
-      scoreResult.fold((_) {}, (s) => _cached = s);
+      // سبب الفشل يُحمل معه: «انتهت الجلسة» و«محاولات كثيرة» ليستا
+      // «خطأ غير متوقع»، والمستخدم يتصرّف بناءً على الفرق
+      String? failureMessage;
+      scoreResult.fold((f) => failureMessage = f.message, (s) => _cached = s);
       if (_cached == null) {
-        emit(ScoreError(message: HandelErorrMessage.errServer));
+        emit(ScoreError(
+            message: HandelErorrMessage.score(failureMessage ?? '')));
         return;
       }
     }
 
-    final result = await _repo.getHistory(limit: limit);
+    final result = await _repo.getHistory(page: 1, perPage: _perPage);
     if (isClosed) return;
 
     result.fold(
-      (failure) =>
-          emit(ScoreError(message: HandelErorrMessage.errServer)),
-      (history) =>
-          emit(ScoreHistoryLoaded(score: _cached!, history: history)),
+      (failure) {
+        // فشل السحب للتحديث فوق سجلّ معروض: إبقاؤه أصدق من مسح الشاشة
+        // كلها ووضع رسالة خطأ مكان بيانات ما زالت صالحة.
+        if (_history.isNotEmpty) {
+          _emitHistory();
+        } else {
+          emit(ScoreError(
+              message: HandelErorrMessage.score(failure.message)));
+        }
+      },
+      (page) {
+        _history
+          ..clear()
+          ..addAll(page.items);
+        _currentPage = page.currentPage;
+        _total = page.total;
+        _hasMore = page.hasMore;
+        _isLoadingMore = false;
+        _emitHistory();
+      },
     );
+  }
+
+  /// الصفحة التالية عند بلوغ نهاية القائمة.
+  Future<void> loadMoreHistory() async {
+    if (!_hasMore || _isLoadingMore || state is! ScoreHistoryLoaded) return;
+    _isLoadingMore = true;
+    _emitHistory();
+
+    final result =
+        await _repo.getHistory(page: _currentPage + 1, perPage: _perPage);
+    if (isClosed) return;
+    _isLoadingMore = false;
+
+    result.fold(
+      (_) => _emitHistory(), // فشل صامت — نبقي ما حُمّل
+      (page) {
+        _currentPage = page.currentPage > _currentPage
+            ? page.currentPage
+            : _currentPage + 1;
+        // حركة جديدة تُسجَّل بين طلبين تُزيح الترقيم فيتكرر صفّ على حدّ
+        // الصفحة — نُسقطه بالمعرّف بدل عرضه مرتين.
+        final seen = _history.map((e) => e.id).toSet();
+        _history.addAll(page.items.where((e) => !seen.contains(e.id)));
+        _total = page.total;
+        _hasMore = page.hasMore;
+        _emitHistory();
+      },
+    );
+  }
+
+  void _emitHistory() {
+    final score = _cached;
+    if (score == null) return;
+    emit(ScoreHistoryLoaded(
+      score: score,
+      history: List.unmodifiable(_history),
+      hasMore: _hasMore,
+      loadingMore: _isLoadingMore,
+      total: _total,
+    ));
   }
 
   /// تحديث صامت بعد عمليات تغيّر النقاط (إلغاء رحلة/حجز، إكمال رحلة...)
@@ -80,6 +168,8 @@ class ScoreCubit extends Cubit<ScoreState> {
     result.fold((_) {}, (score) {
       _cached = score;
       if (state is ScoreLoaded) emit(ScoreLoaded(score: score));
+      // الرأس يعرض النقاط فوق السجل — تحديثها يجب أن يصل للشاشتين
+      if (state is ScoreHistoryLoaded) _emitHistory();
     });
   }
 }
