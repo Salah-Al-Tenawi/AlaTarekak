@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/service/chat_socket_service.dart';
 import 'package:alatarekak/features/chat/domain/entity/conversation_entity.dart';
 import 'package:alatarekak/features/chat/domain/repo/chat_repo.dart';
@@ -25,7 +26,7 @@ class ConversationCubit extends Cubit<ConversationState> {
     final result = await chatRepo.getConversations();
     if (isClosed) return;
     result.fold(
-      (error) => emit(ConversationError(error.message)),
+      (error) => emit(ConversationError(HandelErorrMessage.chat(error.message))),
       (conversations) {
         emit(ConversationLoaded(conversations));
         _subscribeToConversations(conversations);
@@ -71,7 +72,7 @@ class ConversationCubit extends Cubit<ConversationState> {
     final result = await chatRepo.startConversation(userId: userId);
     if (isClosed) return;
     result.fold(
-      (error) => emit(ConversationError(error.message)),
+      (error) => emit(ConversationError(HandelErorrMessage.chat(error.message))),
       (conversationId) => emit(ConversationStarted(conversationId)),
     );
   }

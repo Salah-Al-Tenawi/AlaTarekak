@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/service/chat_socket_service.dart';
 import 'package:alatarekak/features/chat/data/model/message_model.dart';
 import 'package:alatarekak/features/chat/domain/entity/message_entity.dart';
@@ -37,7 +38,7 @@ class MessageCubit extends Cubit<MessageState> {
     );
     if (isClosed) return;
     result.fold(
-      (error) => emit(MessageError(error.message)),
+      (error) => emit(MessageError(HandelErorrMessage.chat(error.message))),
       (msgs) {
         _messages.addAll(msgs);
         _hasMore = msgs.length >= _pageSize;

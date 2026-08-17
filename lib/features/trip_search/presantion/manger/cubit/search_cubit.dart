@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_search/data/repo/search_repo_im.dart';
 
@@ -16,7 +17,11 @@ class SearchCubit extends Cubit<SearchState> {
         sourcelat, sourcelng, destlat, destlng, departureDate, seatsRequired);
 
     response.fold((erorr) {
-      emit(SearchErorr(error: erorr.message));
+      emit(SearchErorr(
+        error: HandelErorrMessage.search(erorr.message),
+        needsVerification:
+            HandelErorrMessage.isPassengerNotVerified(erorr.message),
+      ));
     }, (listTrip) {
       emit(SearchSucces(trips: listTrip));
     });

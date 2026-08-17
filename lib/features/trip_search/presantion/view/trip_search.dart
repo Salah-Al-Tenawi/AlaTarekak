@@ -133,12 +133,12 @@ class _TripSearchState extends State<TripSearch>
           }
         }
         if (state is SearchErorr) {
-          final msg = state.error.contains('verified as a passenger')
-              ? 'يجب توثيق هويتك أولاً'
-              : 'حدثت مشكلة، حاول مجدداً';
+          // كانت الترجمة هنا مطابقةً يدوية على نصّ إنجليزي واحد، فكل رسالة
+          // أخرى — انتهاء الجلسة، تجاوز حدّ الطلبات، تاريخ ماضٍ — تسقط إلى
+          // «حدثت مشكلة». صارت الحالة تصل معرَّبة من الكيوبت.
           ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(msg)));
-          if (state.error.contains('verified as a passenger')) {
+              .showSnackBar(SnackBar(content: Text(state.error)));
+          if (state.needsVerification) {
             Get.toNamed(RouteName.verfiyUser, arguments: 'passanger');
           }
         }

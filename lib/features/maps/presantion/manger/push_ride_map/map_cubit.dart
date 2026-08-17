@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/maps/data/model/place_suggestion.dart';
 import 'package:alatarekak/features/maps/data/repo/map_repo.dart';
 import 'map_state.dart';
@@ -204,7 +205,7 @@ class MapCubit extends Cubit<MapState> {
             startLocation!, endLocation!);
 
     response.fold(
-      (failure) => emit(MapError(failure.message)),
+      (failure) => emit(MapError(HandelErorrMessage.routeOptions(failure.message))),
       (routes) {
         if (routes.isEmpty) {
           emit(MapError("لم يتم العثور على مسارات"));

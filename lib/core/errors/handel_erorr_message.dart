@@ -101,7 +101,20 @@ class HandelErorrMessage {
 
   static String login(String message) => _auth(message, {
         "invalid credentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+        // 403 EMAIL_NOT_VERIFIED — الواجهة تنقله إلى شاشة الرمز، وهذا
+        // النصّ احتياطٌ لو تعذّر الانتقال
+        "email address is not verified":
+            "لم يتم تأكيد بريدك الإلكتروني بعد — أدخل رمز التحقق المُرسل إليك",
       });
+
+  /// الحساب موجود وكلمة مروره صحيحة، لكن بريده غير مؤكَّد.
+  ///
+  /// ليس فشل دخول بل **خطوة ناقصة**: الواجهة تنقله إلى شاشة إدخال الرمز
+  /// بدل أن تتركه أمام رسالة لا يعرف ما يفعل بعدها. يرسله الخادم بحالة
+  /// 403 مع `code: EMAIL_NOT_VERIFIED` — والنصّ احتياط لو غاب الكود.
+  static bool isEmailNotVerified(String message) =>
+      message.toLowerCase().contains("email address is not verified") ||
+      message.toLowerCase().contains("email is not verified");
 
   static String singin(String message) => _auth(message, {
         "already registered":
@@ -110,6 +123,11 @@ class HandelErorrMessage {
             "تعذر إرسال رمز التحقق إلى بريدك، يرجى المحاولة مرة أخرى",
         "registration failed": errServer,
       });
+
+  /// تسجيل الخروج — فشله لا يمنع الخروج محلياً، لكن الرسالة كانت تُعرض
+  /// كما وصلت من الخادم.
+  static String logout(String message) =>
+      _match(message, {}, fallback: "فشل تسجيل الخروج، حاول مجدداً");
 
   // =====================================================================
   // §2 استعادة كلمة المرور
@@ -139,6 +157,19 @@ class HandelErorrMessage {
         "already verified": "هذا البريد مؤكد مسبقاً، يمكنك تسجيل الدخول",
         "failed to send": "تعذر إرسال البريد، حاول مجدداً",
       });
+
+  // =====================================================================
+  // §5 نقاط الثقة
+  // =====================================================================
+
+  /// `/score` و`/score/transactions` — مساران للقراءة فقط، فأخطاؤهما
+  /// الواقعية هي أخطاء الوصول لا أخطاء منطق العمل: جلسة منتهية، أو تجاوز
+  /// حدّ الطلبات. وكلاهما يلتقطه [_common] قبل أي خريطة.
+  ///
+  /// الخريطة فارغة عن قصد: لا نعرف رسالة خاصة يرسلها الخادم هنا، واختراع
+  /// مفاتيح لا وجود لها يعطي وهم التغطية ولا يترجم شيئاً. القيمة كلها في
+  /// تمرير رسالة الخادم إلى [_common] بدل رميها.
+  static String score(String message) => _match(message, {});
 
   // =====================================================================
   // §6 الملف الشخصي
@@ -185,9 +216,18 @@ class HandelErorrMessage {
   // =====================================================================
 
   static String search(String message) => _match(message, {
+        // البحث يتطلب توثيق الراكب — والواجهة تُتبع الرسالة بتوجيهه إلى
+        // شاشة التوثيق، فالنصّ هنا يمهّد لها لا يكتفي بالاعتذار
+        "must be verified as a passenger":
+            "يجب توثيق حسابك كراكب قبل البحث عن الرحلات",
         "search failed": "فشل البحث، يرجى المحاولة مرة أخرى",
         "departure_date": "يرجى اختيار تاريخ اليوم أو تاريخ لاحق",
       }, fallback: "فشل البحث، يرجى المحاولة مرة أخرى");
+
+  /// هل رُفض الطلب لأن الراكب غير موثَّق؟ الواجهة تنقله إلى شاشة التوثيق
+  /// بدل تركه أمام رسالة لا يعرف ما يفعل بعدها.
+  static bool isPassengerNotVerified(String message) =>
+      message.toLowerCase().contains("verified as a passenger");
 
   static String routeOptions(String message) => _match(message, {
         "failed to get route options": "تعذر حساب المسار، حاول مجدداً",

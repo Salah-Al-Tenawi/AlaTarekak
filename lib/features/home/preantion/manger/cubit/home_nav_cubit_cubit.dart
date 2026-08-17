@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/route_manager.dart';
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/service/chat_socket_service.dart';
 import 'package:alatarekak/core/service/hive_services.dart';
@@ -20,7 +21,7 @@ class HomeNavCubit extends Cubit<int> {
       (error) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(error.message),
+            content: Text(HandelErorrMessage.logout(error.message)),
             backgroundColor: MyColors.error,
           ),
         );

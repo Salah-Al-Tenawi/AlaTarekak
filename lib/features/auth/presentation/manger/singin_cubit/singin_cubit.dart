@@ -1,3 +1,4 @@
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/auth/domain/usecase/params/sing_up_params.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -50,7 +51,8 @@ class SinginCubit extends Cubit<SinginState> {
     emit(SinginResendOtpLoading());
     final response = await authRepoIm.resendOtpSinging(email);
     response.fold(
-      (e) => emit(SinginResendOtpError(e.message)),
+      (e) => emit(
+          SinginResendOtpError(HandelErorrMessage.emailVerification(e.message))),
       (_) => startOtpTimer(),
     );
   }
@@ -64,7 +66,9 @@ class SinginCubit extends Cubit<SinginState> {
 
   response.fold(
     (e) {
-      emit(SinginErorre(e.message));
+      // نفس الحالة تُبثّ من التسجيل ومن تأكيد الرمز، والشاشتان لا تفرّقان
+      // بينهما — فالترجمة هنا حيث تُعرف العملية الفاشلة
+      emit(SinginErorre(HandelErorrMessage.emailVerification(e.message)));
     },
     (auth) {
       emit(SinginSuccess(authModel: auth));
@@ -113,7 +117,7 @@ class SinginCubit extends Cubit<SinginState> {
 
   response.fold(
     (failure) {
-      emit(SinginErorre(failure.message));
+      emit(SinginErorre(HandelErorrMessage.singin(failure.message)));
     },
     (succ) {
       emit(SingInGotoVerfiyOtp(email: email));

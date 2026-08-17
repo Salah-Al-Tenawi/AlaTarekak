@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/auth/data/repo/auth_repo_im.dart';
 import 'package:alatarekak/features/auth/domain/usecase/params/reset_password_params.dart';
 import 'dart:async';
@@ -19,11 +20,16 @@ class ForgetPasswordCubit extends Cubit<ForgetPasswordState> {
   bool get isOtpComplete => _currentOtp.length >= 6;
 
   // ━━ Step 1 — إرسال الإيميل ━━
+  //
+  // الحالة `ForgetPasswordErorr` واحدة تخدم أربع عمليات على ثلاث شاشات،
+  // وشاشة الرمز وحدها تخدم عمليتين (تحقق وإعادة إرسال) — فلا تستطيع أي
+  // شاشة أن تعرف أي عملية فشلت لتختار مترجمها. الترجمة هنا حيث تُعرف.
   Future<void> sendEmail(String email) async {
     emit(ForgetPasswordLoading());
     final response = await authRepoIm.forgotPassword(email);
     response.fold(
-      (error) => emit(ForgetPasswordErorr(message: error.message)),
+      (error) => emit(ForgetPasswordErorr(
+          message: HandelErorrMessage.forgetPassword(error.message))),
       (_) => emit(ForgetPasswordGoToOtp(email: email)),
     );
   }
@@ -55,7 +61,8 @@ class ForgetPasswordCubit extends Cubit<ForgetPasswordState> {
     emit(ForgetPasswordLoading());
     final response = await authRepoIm.resendOtpForgetPassword(email);
     response.fold(
-      (error) => emit(ForgetPasswordErorr(message: error.message)),
+      (error) => emit(ForgetPasswordErorr(
+          message: HandelErorrMessage.forgetPassword(error.message))),
       (_) => startOtpTimer(),
     );
   }
@@ -66,7 +73,8 @@ class ForgetPasswordCubit extends Cubit<ForgetPasswordState> {
     emit(ForgetPasswordLoading());
     final result = await authRepoIm.verifyOtpResetPassword(email, _currentOtp);
     result.fold(
-      (error) => emit(ForgetPasswordErorr(message: error.message)),
+      (error) => emit(ForgetPasswordErorr(
+          message: HandelErorrMessage.verifyOtpForgetPassword(error.message))),
       (token) => emit(ForgetPasswordOtpVerified(email: email, resetToken: token)),
     );
   }
@@ -101,7 +109,8 @@ class ForgetPasswordCubit extends Cubit<ForgetPasswordState> {
       ),
     );
     response.fold(
-      (error) => emit(ForgetPasswordErorr(message: error.message)),
+      (error) => emit(ForgetPasswordErorr(
+          message: HandelErorrMessage.resetPassword(error.message))),
       (_) => emit(ForgetPasswordResetSuccess()),
     );
   }

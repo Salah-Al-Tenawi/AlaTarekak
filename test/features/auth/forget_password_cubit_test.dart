@@ -41,15 +41,21 @@ void main() {
     );
 
     blocTest<ForgetPasswordCubit, ForgetPasswordState>(
-      'بريد غير مسجل: ForgetPasswordErorr',
+      'بريد غير مسجل: رسالة عربية لا نصّ الخادم',
       build: () {
         when(() => repo.forgotPassword(any())).thenAnswer((_) async =>
             left(const Filuar(message: 'No account found with this email')));
         return ForgetPasswordCubit(repo);
       },
       act: (cubit) => cubit.sendEmail('ghost@example.com'),
-      expect: () =>
-          [isA<ForgetPasswordLoading>(), isA<ForgetPasswordErorr>()],
+      expect: () => [
+        isA<ForgetPasswordLoading>(),
+        isA<ForgetPasswordErorr>()
+            .having((s) => s.message, 'message',
+                'لا يوجد حساب مسجل بهذا البريد الإلكتروني')
+            .having((s) => s.message, 'بلا إنجليزية',
+                isNot(contains('No account'))),
+      ],
     );
   });
 
@@ -85,6 +91,46 @@ void main() {
             .having((s) => s.email, 'email', 'me@example.com'),
       ],
     );
+
+    blocTest<ForgetPasswordCubit, ForgetPasswordState>(
+      'رمز خاطئ: رسالة عربية تشرح أنه غير صحيح أو منتهٍ',
+      build: () {
+        when(() => repo.verifyOtpResetPassword(any(), any())).thenAnswer(
+            (_) async => left(const Filuar(
+                message: 'Invalid or expired verification code')));
+        return ForgetPasswordCubit(repo);
+      },
+      act: (cubit) async {
+        cubit.onOtpChanged('000000');
+        await cubit.verifyOtp('me@example.com');
+      },
+      expect: () => [
+        isA<ForgetPasswordOtpChanged>(),
+        isA<ForgetPasswordLoading>(),
+        isA<ForgetPasswordErorr>()
+            .having((s) => s.message, 'message',
+                'الرمز غير صحيح أو منتهي الصلاحية')
+            .having((s) => s.message, 'بلا إنجليزية',
+                isNot(contains('Invalid or expired'))),
+      ],
+    );
+
+    // الشاشة نفسها تخدم إعادة الإرسال — ولو تُرجمت في الواجهة لاختلط
+    // مترجم العمليتين
+    blocTest<ForgetPasswordCubit, ForgetPasswordState>(
+      'فشل إعادة إرسال الرمز: رسالة عربية أيضاً',
+      build: () {
+        when(() => repo.resendOtpForgetPassword(any())).thenAnswer((_) async =>
+            left(const Filuar(message: 'Failed to send verification code')));
+        return ForgetPasswordCubit(repo);
+      },
+      act: (cubit) => cubit.resendOtp('me@example.com'),
+      expect: () => [
+        isA<ForgetPasswordLoading>(),
+        isA<ForgetPasswordErorr>().having((s) => s.message, 'message',
+            'تعذر إرسال رمز التحقق، يرجى المحاولة مرة أخرى'),
+      ],
+    );
   });
 
   group('ForgetPasswordCubit — الخطوة 3: إعادة التعيين', () {
@@ -101,8 +147,11 @@ void main() {
           [isA<ForgetPasswordLoading>(), isA<ForgetPasswordResetSuccess>()],
     );
 
+    // `ForgetPasswordErorr` حالة واحدة تخدم أربع عمليات على ثلاث شاشات،
+    // وشاشة الرمز وحدها تخدم عمليتين — فلم تكن أي شاشة تعرف أي مترجم
+    // تختار، وكانت تعرض نصّ الخادم كما وصل.
     blocTest<ForgetPasswordCubit, ForgetPasswordState>(
-      'رمز إعادة تعيين منتهي: ForgetPasswordErorr',
+      'رمز إعادة تعيين منتهي: يُطلب رمز جديد صراحةً',
       build: () {
         when(() => repo.resetPassword(any())).thenAnswer((_) async => left(
             const Filuar(
@@ -111,8 +160,14 @@ void main() {
       },
       act: (cubit) => cubit.resetPassword(
           resetToken: 'stale', newPassword: 'newPass123'),
-      expect: () =>
-          [isA<ForgetPasswordLoading>(), isA<ForgetPasswordErorr>()],
+      expect: () => [
+        isA<ForgetPasswordLoading>(),
+        isA<ForgetPasswordErorr>()
+            .having((s) => s.message, 'message',
+                'انتهت صلاحية رمز إعادة التعيين، يرجى طلب رمز جديد')
+            .having((s) => s.message, 'بلا إنجليزية',
+                isNot(contains('Reset token'))),
+      ],
     );
 
     blocTest<ForgetPasswordCubit, ForgetPasswordState>(

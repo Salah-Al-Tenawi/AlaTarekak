@@ -163,4 +163,76 @@ void main() {
           isFalse);
     });
   });
+
+  // ─────────────────────────────────────────────────────────────────────
+  // §5 نقاط الثقة — مساران للقراءة، فقيمة المترجم في _common لا في خريطة
+  // ─────────────────────────────────────────────────────────────────────
+
+  group('HandelErorrMessage — نقاط الثقة', () {
+    test('جلسة منتهية تُقال كما هي لا «خطأ غير متوقع»', () {
+      expect(HandelErorrMessage.score('Unauthenticated.'),
+          HandelErorrMessage.errSession);
+      expect(HandelErorrMessage.score('Unauthenticated.'),
+          isNot(HandelErorrMessage.errServer));
+    });
+
+    test('تجاوز حدّ الطلبات يقول كم ينتظر', () {
+      final message =
+          HandelErorrMessage.score('Too Many Attempts. Retry in 30 seconds');
+      expect(message, contains('30 ثانية'));
+      expect(message, isNot(HandelErorrMessage.errServer));
+    });
+
+    test('رسالة لا نعرفها → الاحتياطي العام لا نصّ الخادم', () {
+      const raw = 'Score service unavailable';
+      expect(HandelErorrMessage.score(raw), HandelErorrMessage.errServer);
+      expect(HandelErorrMessage.score(raw), isNot(contains(raw)));
+    });
+
+    test('رسالة فارغة (فشل بلا نصّ) لا ترمي', () {
+      expect(HandelErorrMessage.score(''), HandelErorrMessage.errServer);
+    });
+  });
+
+  group('HandelErorrMessage — البحث عن الرحلات', () {
+    test('راكب غير موثَّق: رسالة تمهّد لشاشة التوثيق', () {
+      const raw = 'You must be verified as a passenger to search rides';
+      expect(HandelErorrMessage.search(raw),
+          'يجب توثيق حسابك كراكب قبل البحث عن الرحلات');
+      expect(HandelErorrMessage.isPassengerNotVerified(raw), isTrue);
+    });
+
+    test('كاشف التوثيق لا يُطلق على أخطاء أخرى', () {
+      expect(HandelErorrMessage.isPassengerNotVerified('Search failed'),
+          isFalse);
+      expect(
+          HandelErorrMessage.isPassengerNotVerified(
+              'You must be verified as a driver'),
+          isFalse);
+    });
+
+    test('جلسة منتهية في البحث لا تسقط إلى «فشل البحث»', () {
+      expect(HandelErorrMessage.search('Unauthenticated.'),
+          HandelErorrMessage.errSession);
+    });
+
+    test('تاريخ ماضٍ يُقال صراحةً', () {
+      expect(
+          HandelErorrMessage.search(
+              'The departure_date must be a date after or equal to today'),
+          'يرجى اختيار تاريخ اليوم أو تاريخ لاحق');
+    });
+  });
+
+  group('HandelErorrMessage — تسجيل الخروج', () {
+    test('فشل غير معروف → رسالة الخروج لا الرسالة العامة', () {
+      expect(HandelErorrMessage.logout('Logout failed unexpectedly'),
+          'فشل تسجيل الخروج، حاول مجدداً');
+    });
+
+    test('جلسة منتهية أثناء الخروج تُترجَم أيضاً', () {
+      expect(HandelErorrMessage.logout('Unauthenticated.'),
+          HandelErorrMessage.errSession);
+    });
+  });
 }

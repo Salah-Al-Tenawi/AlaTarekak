@@ -1,4 +1,5 @@
 import 'package:alatarekak/core/errors/filuar.dart';
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/auth/data/model/user_model.dart';
 import 'package:alatarekak/features/auth/data/repo/auth_repo_im.dart';
 import 'package:alatarekak/features/auth/domain/usecase/params/sing_up_params.dart';
@@ -55,8 +56,10 @@ void main() {
       ],
     );
 
+    // كان هذا الاختبار يُثبّت تمرير النصّ الإنجليزي كما هو — والشاشة
+    // تعرض `state.message` مباشرة، فيقرأ المستخدم رسالة الخادم بالإنجليزية.
     blocTest<SinginCubit, SinginState>(
-      'بريد مسجل مسبقاً: يمرر رسالة الفشل',
+      'بريد مسجل مسبقاً: رسالة عربية تدلّه على تسجيل الدخول',
       build: () {
         when(() => repo.signIn(any())).thenAnswer((_) async =>
             left(const Filuar(message: 'Email already registered')));
@@ -67,7 +70,26 @@ void main() {
       expect: () => [
         isA<SinginLoading>(),
         isA<SinginErorre>()
-            .having((s) => s.message, 'message', 'Email already registered'),
+            .having((s) => s.message, 'message',
+                'هذا البريد الإلكتروني مسجل مسبقاً، يرجى تسجيل الدخول')
+            .having((s) => s.message, 'بلا إنجليزية',
+                isNot(contains('already registered'))),
+      ],
+    );
+
+    blocTest<SinginCubit, SinginState>(
+      'فشل تسجيل لا نعرفه لا يصل بنصّه الإنجليزي',
+      build: () {
+        when(() => repo.signIn(any())).thenAnswer((_) async =>
+            left(const Filuar(message: 'Unexpected database failure')));
+        return SinginCubit(repo);
+      },
+      act: (cubit) => cubit.signIn('يزن', 'صلاح', 'M', 'x@example.com',
+          'دمشق', '12345678', '12345678', '0999999999'),
+      expect: () => [
+        isA<SinginLoading>(),
+        isA<SinginErorre>().having(
+            (s) => s.message, 'message', HandelErorrMessage.errServer),
       ],
     );
   });
@@ -119,7 +141,30 @@ void main() {
       expect: () => [
         isA<SinginOtpChanged>(),
         isA<SinginLoading>(),
-        isA<SinginErorre>(),
+        isA<SinginErorre>()
+            .having((s) => s.message, 'message',
+                'الرمز غير صحيح أو منتهي الصلاحية')
+            .having((s) => s.message, 'بلا إنجليزية',
+                isNot(contains('Invalid or expired'))),
+      ],
+    );
+
+    // نفس الحالة (SinginErorre) تُبثّ من التسجيل ومن تأكيد الرمز، فلا
+    // تستطيع الشاشة أن تفرّق — لذلك تُترجم كلٌّ في موضعها من الكيوبت.
+    blocTest<SinginCubit, SinginState>(
+      'إعادة إرسال الرمز: فشلها معرَّب كذلك',
+      build: () {
+        when(() => repo.resendOtpSinging(any())).thenAnswer((_) async =>
+            left(const Filuar(message: 'Failed to send verification email')));
+        return SinginCubit(repo);
+      },
+      act: (cubit) => cubit.sendOtpAgain('new@example.com'),
+      expect: () => [
+        isA<SinginResendOtpLoading>(),
+        isA<SinginResendOtpError>()
+            .having((s) => s.message, 'message', 'تعذر إرسال البريد، حاول مجدداً')
+            .having((s) => s.message, 'بلا إنجليزية',
+                isNot(contains('Failed to send'))),
       ],
     );
   });

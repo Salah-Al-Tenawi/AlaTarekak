@@ -32,6 +32,8 @@ class VerifyOtpForgetPassword extends StatelessWidget {
           );
         }
         if (state is ForgetPasswordErorr) {
+          // الشاشة تخدم التحقق وإعادة الإرسال معاً — الكيوبت يعرف أيهما
+          // فشل ويُرسل الرسالة معرَّبة
           AppSnackBar.error(state.message);
         }
       },

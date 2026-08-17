@@ -21,11 +21,17 @@ final class SearchSucces extends SearchState {
 }
 
 final class SearchErorr extends SearchState {
+  /// رسالة عربية جاهزة للعرض — لا نصّ الخادم.
   final String error;
 
-  const SearchErorr({required this.error});
+  /// رُفض البحث لأن الراكب غير موثَّق: الشاشة تنقله إلى التوثيق بدل
+  /// تركه أمام رسالة لا يعرف ما يفعل بعدها. كانت الشاشة تستنتج ذلك
+  /// بمطابقة نصّ إنجليزي بيدها، وهو ما ألزمها بحمل الرسالة الخام.
+  final bool needsVerification;
+
+  const SearchErorr({required this.error, this.needsVerification = false});
 
   @override
-  List<Object> get props => [error];
+  List<Object> get props => [error, needsVerification];
 }
 

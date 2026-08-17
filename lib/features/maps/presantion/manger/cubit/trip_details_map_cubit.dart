@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/maps/data/repo/map_repo.dart';
 // فيه RouteModel
 
@@ -19,7 +20,10 @@ class TripDetailsMapCubit extends Cubit<TripDetailsMapState> {
         : await mapRepo.fetchRouteBYOpenRouteServices(start, end);
 
     result.fold(
-      (error) => emit(TripDetailsMapError(error.message)),
+      // خدمات المسار (GraphHopper / OpenRouteService) ترسل أخطاءها
+      // بالإنجليزية، وكانت تظهر للمستخدم بنصّها
+      (error) => emit(TripDetailsMapError(
+          HandelErorrMessage.routeOptions(error.message))),
       (routes) {
         final path = routes.first.path;
         emit(TripDetailsMapLoaded(path));
