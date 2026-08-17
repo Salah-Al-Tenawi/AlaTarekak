@@ -153,24 +153,54 @@ void main() {
     });
   });
 
-  group('شريط العدّ', () {
-    testWidgets('حجز واحد', (tester) async {
-      await pump(tester, [_booking()]);
-      expect(find.text('حجز واحد على هذه الرحلة'), findsOneWidget);
+  group('بطاقة الملخّص', () {
+    testWidgets('العدّ والمقاعد بصياغة عربية سليمة', (tester) async {
+      await pump(tester, [_booking(seats: 2)]);
+
+      expect(find.text('حجوزات رحلتك'), findsOneWidget);
+      expect(find.text('حجز واحد'), findsWidgets);
+      expect(find.text('بمجموع مقعدين'), findsOneWidget);
     });
 
-    testWidgets('حجزان', (tester) async {
-      await pump(tester, [_booking(id: 1), _booking(id: 2, phone: '')]);
-      expect(find.text('حجزان على هذه الرحلة'), findsOneWidget);
-    });
-
-    testWidgets('ثلاثة فأكثر', (tester) async {
+    testWidgets('حجزان بمجموع ثلاثة مقاعد', (tester) async {
       await pump(tester, [
-        _booking(id: 1, phone: ''),
-        _booking(id: 2, phone: ''),
-        _booking(id: 3, phone: ''),
+        _booking(id: 1, seats: 2),
+        _booking(id: 2, seats: 1, phone: ''),
       ]);
-      expect(find.text('3 حجوزات على هذه الرحلة'), findsOneWidget);
+      expect(find.text('حجزان'), findsOneWidget);
+      expect(find.text('بمجموع 3 مقاعد'), findsOneWidget);
+    });
+
+    testWidgets('الملغى لا يُحسب في المقاعد المشغولة', (tester) async {
+      await pump(tester, [
+        _booking(id: 1, seats: 2, status: 'confirmed'),
+        _booking(id: 2, seats: 3, status: 'cancelled', phone: ''),
+      ]);
+      expect(find.text('بمجموع مقعدين'), findsOneWidget);
+    });
+
+    testWidgets('الطلبات المعلّقة تُبرز وحدها', (tester) async {
+      await pump(tester, [
+        _booking(id: 1, status: 'pending'),
+        _booking(id: 2, status: 'confirmed', phone: ''),
+      ]);
+      expect(find.text('طلب بانتظارك'), findsOneWidget);
+    });
+
+    testWidgets('بلا طلبات معلّقة لا تظهر الشارة', (tester) async {
+      await pump(tester, [_booking(status: 'confirmed')]);
+      expect(find.textContaining('بانتظارك'), findsNothing);
+    });
+  });
+
+  group('الخروج من الشاشة', () {
+    testWidgets('زرّ رجوع موجود — الشاشة تُفتح بالدفع (الخطأ المُصلَح)',
+        (tester) async {
+      await pump(tester, [_booking()]);
+
+      final back = find.byTooltip('رجوع');
+      expect(back, findsOneWidget);
+      expect(find.text('حجوزات الرحلة'), findsOneWidget);
     });
   });
 

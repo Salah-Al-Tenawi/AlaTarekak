@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
+import 'package:alatarekak/features/trip_create/presantion/create_ride_guard.dart';
 import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/features/home/preantion/manger/cubit/home_nav_cubit_cubit.dart';
 import 'package:alatarekak/features/home/preantion/view/widget/home_botom_nav_bar.dart';
@@ -44,9 +45,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
          floatingActionButtonLocation: FloatingActionButtonLocation.startFloat, // 👈 أضف هذا السطر
   floatingActionButton: FloatingActionButton(
     backgroundColor: MyColors.accent,
-    onPressed: () {
-     Get.toNamed(RouteName.pushRideMap, arguments: TripFrom());
-    },
+    onPressed: () => CreateRideGuard.run(
+      context,
+      onAllowed: () =>
+          Get.toNamed(RouteName.pushRideMap, arguments: TripFrom()),
+    ),
     child: Icon(Icons.add ,color: MyColors.primary,),
   ),
         drawer: Drawer(child: HomeDrawer(scaffoldContext: context)),

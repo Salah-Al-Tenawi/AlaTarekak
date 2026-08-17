@@ -19,7 +19,7 @@ class TripMeRemoteDataSource {
   }
 
   Future<TripModel> showOneTrip(int tripId) async {
-    final response = await api.get("${ApiEndPoint.rides}/$tripId",
+    final response = await api.get("${ApiEndPoint.rides}/$tripId/passangers",
         header: {ApiKey.authorization: "Bearer ${mytoken()}"});
 
     return TripModel.fromMap(response);

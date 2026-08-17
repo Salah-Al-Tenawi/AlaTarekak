@@ -86,10 +86,18 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MyColors.background,
+      // زرّ الرجوع صريح: الشاشة تُفتح بالدفع من تفاصيل الرحلة، وكانت
+      // `automaticallyImplyLeading: false` باقية من أيام كونها تبويباً في
+      // الرئيسية — فبقي المستخدم محتجزاً فيها بلا مخرج إلا زرّ النظام.
+      // العيب نفسه أُصلح في الشاشة الأب من قبل.
       appBar: AppBar(
         elevation: 0,
-        automaticallyImplyLeading: false,
-        title: Text('الحجوزات',
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_rounded, size: 20.sp),
+          onPressed: () => Get.back(),
+          tooltip: 'رجوع',
+        ),
+        title: Text('حجوزات الرحلة',
             style:
                 AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
         centerTitle: true,
@@ -109,19 +117,16 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
         },
         child: usersBooking.isEmpty
             ? const _EmptyBookings()
-            : Column(
+            : ListView(
+                padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 20.h),
                 children: [
-                  _CountBar(count: usersBooking.length),
-                  Expanded(
-                    child: ListView.builder(
-                      padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 20.h),
-                      itemCount: usersBooking.length,
-                      itemBuilder: (context, index) => StaggeredItem(
-                        index: index,
-                        child: _BookingCard(booking: usersBooking[index]),
-                      ),
+                  _BookingsSummary(bookings: usersBooking),
+                  SizedBox(height: 16.h),
+                  for (int i = 0; i < usersBooking.length; i++)
+                    StaggeredItem(
+                      index: i,
+                      child: _BookingCard(booking: usersBooking[i]),
                     ),
-                  ),
                 ],
               ),
       ),
@@ -129,27 +134,105 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
   }
 }
 
-// ─── شريط العدّ ───────────────────────────────────────────────────────────────
+// ─── بطاقة الملخّص ────────────────────────────────────────────────────────────
 
-/// عدد الحجوزات ومجموع المقاعد المحجوزة — أول ما يبحث عنه السائق.
-class _CountBar extends StatelessWidget {
-  final int count;
-  const _CountBar({required this.count});
+/// ملخّص حجوزات الرحلة ببطاقة متدرّجة — النمط نفسه المستخدَم في بطاقة
+/// «موعد الانطلاق» في شاشة تفاصيل الرحلة، وهي الشاشة الأب لهذه. كان
+/// الملخّص سطراً عارياً لا يشبه شيئاً في التطبيق.
+class _BookingsSummary extends StatelessWidget {
+  final List<BookingModel> bookings;
+  const _BookingsSummary({required this.bookings});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 8.h),
-      child: Row(
+    // الملغى لا يُحسب في المقاعد المشغولة
+    const dead = {'cancelled', 'rejected', 'no_show'};
+    final active =
+        bookings.where((b) => !dead.contains(b.status.toLowerCase()));
+    final seats = active.fold<int>(0, (sum, b) => sum + b.seats);
+    final pending =
+        bookings.where((b) => b.status.toLowerCase() == 'pending').length;
+
+    return Container(
+      padding: EdgeInsets.all(18.w),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [MyColors.primary, MyColors.navy],
+        ),
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: [
+          BoxShadow(
+            color: MyColors.primary.withValues(alpha: 0.28),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.people_alt_rounded, size: 16.sp, color: MyColors.primary),
-          SizedBox(width: 8.w),
+          Row(
+            children: [
+              Icon(Icons.people_alt_rounded,
+                  color: MyColors.accent, size: 20.sp),
+              SizedBox(width: 8.w),
+              // مرن بدل `Spacer` وعرضٍ طبيعي: العنوان والشارة معاً يتجاوزان
+              // عرض البطاقة على الشاشات الضيقة ومع تكبير خطّ النظام
+              Expanded(
+                child: Text(
+                  'حجوزات رحلتك',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.75),
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              // الطلبات المعلّقة هي ما يحتاج قراراً — تُبرز وحدها
+              if (pending > 0) ...[
+                SizedBox(width: 8.w),
+                Flexible(
+                  child: Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                    decoration: BoxDecoration(
+                      color: MyColors.accent.withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(20.r),
+                    ),
+                    child: Text(
+                      _pendingLabel(pending),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          SizedBox(height: 14.h),
           Text(
-            _label(count),
-            style: AppTextStyles.labelMedium.copyWith(
-              fontSize: 13.sp,
-              color: MyColors.textSecondary,
-              fontWeight: FontWeight.w700,
+            _countLabel(bookings.length),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            'بمجموع ${_seatsLabel(seats)}',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.8),
+              fontSize: 12.sp,
             ),
           ),
         ],
@@ -157,11 +240,22 @@ class _CountBar extends StatelessWidget {
     );
   }
 
-  String _label(int n) {
-    if (n == 1) return 'حجز واحد على هذه الرحلة';
-    if (n == 2) return 'حجزان على هذه الرحلة';
-    return '$n حجوزات على هذه الرحلة';
+  String _countLabel(int n) {
+    if (n == 1) return 'حجز واحد';
+    if (n == 2) return 'حجزان';
+    return '$n حجوزات';
   }
+
+  String _seatsLabel(int n) {
+    if (n == 0) return 'لا مقاعد مشغولة';
+    if (n == 1) return 'مقعد واحد';
+    if (n == 2) return 'مقعدين';
+    if (n <= 10) return '$n مقاعد';
+    return '$n مقعداً';
+  }
+
+  String _pendingLabel(int n) =>
+      n == 1 ? 'طلب بانتظارك' : '$n طلبات بانتظارك';
 }
 
 // ─── بطاقة الحجز ──────────────────────────────────────────────────────────────
