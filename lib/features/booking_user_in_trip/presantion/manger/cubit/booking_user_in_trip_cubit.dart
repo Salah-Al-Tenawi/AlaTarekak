@@ -46,7 +46,7 @@ class BookingUserInTripCubit extends Cubit<BookingUserInTripState> {
   }
 
   Future<void> acceptPassanger(int bookingId) async {
-    emit(BookingUserInTripLoading());
+    emit(BookingUserInTripLoading(bookingId: bookingId));
 
     final response = await repo.acceptPassanger(bookingId);
     response.fold(
@@ -62,7 +62,7 @@ class BookingUserInTripCubit extends Cubit<BookingUserInTripState> {
   }
 
   Future<void> rejectPassanger(int bookingId) async {
-    emit(BookingUserInTripLoading());
+    emit(BookingUserInTripLoading(bookingId: bookingId));
 
     final response = await repo.rejectPassanger(bookingId);
     response.fold(
@@ -82,7 +82,7 @@ class BookingUserInTripCubit extends Cubit<BookingUserInTripState> {
 
   /// بلاغ السائق أن الراكب لم يحضر
   Future<void> passengerNoShow(int bookingId) async {
-    emit(BookingUserInTripLoading());
+    emit(BookingUserInTripLoading(bookingId: bookingId));
 
     final response = await repo.passengerNoShow(bookingId);
     response.fold(

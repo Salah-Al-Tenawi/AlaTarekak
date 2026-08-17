@@ -9,7 +9,18 @@ sealed class BookingUserInTripState extends Equatable {
 
 final class BookingUserInTripInitial extends BookingUserInTripState {}
 
-final class BookingUserInTripLoading extends BookingUserInTripState {}
+/// إجراء قيد التنفيذ على حجز بعينه.
+///
+/// كانت الحالة بلا معرّف، فيستبدل مؤشّر التحميل أزرار **كل** بطاقات
+/// الحجوزات لا بطاقة الحجز المعنيّ — فيبدو أن الشاشة كلها معطّلة.
+final class BookingUserInTripLoading extends BookingUserInTripState {
+  final int bookingId;
+
+  const BookingUserInTripLoading({required this.bookingId});
+
+  @override
+  List<Object> get props => [bookingId];
+}
 
 final class BookingUserInTripErorr extends BookingUserInTripState {
   final String message;
