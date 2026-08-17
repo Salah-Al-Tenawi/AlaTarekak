@@ -1,6 +1,7 @@
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:alatarekak/core/utils/functions/input_valid.dart';
+import 'package:alatarekak/core/utils/widgets/syrian_phone_field.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 class TextFieldsSingin extends StatelessWidget {
   final TextEditingController firstname;
@@ -107,14 +108,7 @@ class _TextFieldsSinginBodyState
         SizedBox(height: 14.h),
 
         /// رقم الهاتف — يُستخدم للتواصل وتُفتح عليه محفظة المستخدم تلقائياً
-        TextFormField(
-          controller: widget.phoneNumber,
-          keyboardType: TextInputType.phone,
-          validator: (val) => inputvaild(val!, "nubmerphone", 10, 10),
-          decoration: const InputDecoration(
-            hintText: "رقم الهاتف",
-          ),
-        ),
+        SyrianPhoneField(controller: widget.phoneNumber),
 
         SizedBox(height: 14.h),
 

@@ -8,6 +8,7 @@ import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/class/format_money.dart';
 import 'package:alatarekak/core/utils/class/syrian_phone.dart';
+import 'package:alatarekak/core/utils/widgets/syrian_phone_field.dart';
 import 'package:alatarekak/core/utils/functions/get_userid.dart';
 import 'package:alatarekak/core/utils/widgets/trip_card_parts.dart';
 import 'package:alatarekak/features/trip_create/data/model/booking_model.dart';
@@ -1025,58 +1026,16 @@ class _BookingDialogState extends State<_BookingDialog> {
   }
 
   Widget _phoneField() {
-    OutlineInputBorder border(Color color, [double width = 1]) =>
-        OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14.r),
-          borderSide: BorderSide(color: color, width: width),
-        );
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('رقم التواصل',
             style: AppTextStyles.labelMedium.copyWith(fontSize: 13.sp)),
         SizedBox(height: 8.h),
-        TextFormField(
+        SyrianPhoneField(
           controller: _phone,
-          keyboardType: TextInputType.phone,
-          // الرقم يُكتب ويُعرض يساراً حتى لا تنقلب خاناته في سطر عربي
-          textDirection: TextDirection.ltr,
-          textAlign: TextAlign.left,
-          style: TextStyle(
-              fontSize: 15.sp,
-              fontWeight: FontWeight.w600,
-              color: MyColors.textPrimary),
-          decoration: InputDecoration(
-            hintText: '0988626577',
-            hintStyle: TextStyle(
-                fontSize: 14.sp,
-                color: MyColors.textHint,
-                fontWeight: FontWeight.normal),
-            filled: true,
-            fillColor: MyColors.background,
-            prefixIcon:
-                Icon(Icons.phone_rounded, color: MyColors.accent, size: 20.sp),
-            contentPadding:
-                EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
-            border: border(MyColors.border),
-            enabledBorder: border(MyColors.border),
-            focusedBorder: border(MyColors.primary, 1.5),
-            errorBorder: border(MyColors.error),
-            focusedErrorBorder: border(MyColors.error, 1.5),
-            errorStyle: TextStyle(fontSize: 11.sp),
-          ),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'الرجاء إدخال رقم الهاتف';
-            }
-            return SyrianPhone.isValid(value) ? null : SyrianPhone.error;
-          },
-        ),
-        SizedBox(height: 6.h),
-        Text(
-          'يُقبل 0988626577 أو +963988626577',
-          style: TextStyle(fontSize: 11.sp, color: MyColors.textHint),
+          fillColor: MyColors.background,
+          helperText: 'يُقبل 0988626577 أو +963988626577',
         ),
       ],
     );

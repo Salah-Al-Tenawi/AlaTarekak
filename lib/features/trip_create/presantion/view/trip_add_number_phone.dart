@@ -6,7 +6,7 @@ import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
-import 'package:alatarekak/core/utils/functions/input_valid.dart';
+import 'package:alatarekak/core/utils/widgets/syrian_phone_field.dart';
 import 'package:alatarekak/core/utils/functions/my_dilaog.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_from.dart';
@@ -188,37 +188,17 @@ class _TripAddNumberPhoneState extends State<TripAddNumberPhone> {
                       final isValid = state is PushRideValidatePhoneState
                           ? state.isValid
                           : false;
-                      return TextFormField(
+                      return SyrianPhoneField(
+                        // بلا labelText: التلميح صار «رقم الهاتف» نفسه،
+                        // ولأن الشاشة تحمل عنوانها «رقم التواصل» فوق الحقل
                         controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                        textAlign: TextAlign.right,
-                        decoration: InputDecoration(
-                          labelText: "رقم الهاتف",
-                          hintText: "09XXXXXXXX",
-                          prefixIcon: Icon(Icons.phone_outlined,
-                              color: MyColors.accent),
-                          suffixIcon: Icon(
-                            isValid
-                                ? Icons.check_circle_rounded
-                                : Icons.radio_button_unchecked_rounded,
-                            color: isValid ? MyColors.success : MyColors.textHint,
-                          ),
-                          filled: true,
-                          fillColor: MyColors.surface,
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14.r),
-                              borderSide:
-                                  BorderSide(color: MyColors.border)),
-                          enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14.r),
-                              borderSide:
-                                  BorderSide(color: MyColors.border)),
-                          focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14.r),
-                              borderSide: BorderSide(
-                                  color: MyColors.primary, width: 1.5)),
+                        fillColor: MyColors.surface,
+                        suffixIcon: Icon(
+                          isValid
+                              ? Icons.check_circle_rounded
+                              : Icons.radio_button_unchecked_rounded,
+                          color: isValid ? MyColors.success : MyColors.textHint,
                         ),
-                        validator: (v) => inputvaild(v!, "nubmerphone", 10, 10),
                       );
                     },
                   ),
