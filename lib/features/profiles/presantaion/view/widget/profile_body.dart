@@ -10,6 +10,7 @@ import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/functions/show_image.dart';
+import 'package:alatarekak/features/score/domain/entity/score_entity.dart';
 import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
 import 'package:alatarekak/features/auth/data/repo/auth_repo_im.dart';
 import 'package:alatarekak/features/profiles/data/model/enum/profile_mode.dart';
@@ -17,6 +18,7 @@ import 'package:alatarekak/features/profiles/domain/entity/car_entity.dart';
 import 'package:alatarekak/features/profiles/domain/entity/profile_entity.dart';
 import 'package:alatarekak/features/profiles/presantaion/manger/profile_cubit.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/widget/profile_comments.dart';
+import 'package:alatarekak/features/profiles/presantaion/view/widget/verification_type_sheet.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/widget/profile_erorr.dart';
 
 class ProfileBody extends StatelessWidget {
@@ -470,6 +472,16 @@ class _MenuCard extends StatelessWidget {
             },
           ),
           _divider(),
+          // نقاط الثقة — الشارة تعرض الرقم الواصل من /profile، والشاشة
+          // تجلبه من /score مع سجلّ الحركة
+          _MenuItem(
+            icon: Icons.shield_outlined,
+            label: "نقاط الثقة",
+            badge: '${profile.scoreValue}',
+            badgeColor: _scoreBadgeColor(profile.scoreValue),
+            onTap: () => Get.toNamed(RouteName.profileScore),
+          ),
+          _divider(),
           _MenuItem(
             icon: Icons.verified_outlined,
             label: "توثيق الهوية",
@@ -519,6 +531,13 @@ class _MenuCard extends StatelessWidget {
     );
   }
 
+  /// لون شارة النقاط بحدّي العمل: 50 للإنشاء و40 للحجز.
+  Color _scoreBadgeColor(int score) {
+    if (score >= ScoreEntity.minScoreToCreate) return MyColors.success;
+    if (score >= ScoreEntity.minScoreToBook) return MyColors.warning;
+    return MyColors.error;
+  }
+
   String? _verBadgeText(String status) {
     switch (status) {
       case 'approved':
@@ -535,10 +554,11 @@ class _MenuCard extends StatelessWidget {
   void _onVerificationTap(BuildContext context) {
     final status = profile.verification;
     if (status == 'none') {
-      _showVerificationSheet(context);
+      VerificationTypeSheet.show(context);
       return;
     }
     final docs = profile.documents;
+    // ترجيح لا قفل: شاشة الحالة تعرضه مُبرزاً وتُبقي الخيار الآخر متاحاً
     final isDriver =
         docs?.licensePic != null || docs?.mechanicCardPic != null;
     Get.toNamed(
@@ -548,59 +568,6 @@ class _MenuCard extends StatelessWidget {
         'userType': isDriver ? 'driver' : 'passenger',
         'documents': docs,
       },
-    );
-  }
-
-  void _showVerificationSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r))),
-      backgroundColor: MyColors.surface,
-      builder: (_) => Padding(
-        padding: EdgeInsets.fromLTRB(24.w, 20.h, 24.w, 32.h),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40.w,
-                height: 4.h,
-                decoration: BoxDecoration(
-                    color: MyColors.surfaceAlt,
-                    borderRadius: BorderRadius.circular(2)),
-              ),
-            ),
-            SizedBox(height: 20.h),
-            Text('نوع التوثيق', style: AppTextStyles.titleLarge),
-            SizedBox(height: 6.h),
-            Text('اختر نوع التوثيق الذي تريد إتمامه',
-                style: AppTextStyles.bodySmall
-                    .copyWith(color: MyColors.textSecondary)),
-            SizedBox(height: 24.h),
-            _VerifyOption(
-              icon: Icons.person_outline_rounded,
-              title: 'توثيق كمستخدم',
-              subtitle: 'صورة الهوية الشخصية فقط',
-              onTap: () {
-                Get.back();
-                Get.toNamed(RouteName.verfiyUser, arguments: 'passenger');
-              },
-            ),
-            SizedBox(height: 12.h),
-            _VerifyOption(
-              icon: Icons.drive_eta_outlined,
-              title: 'توثيق كسائق',
-              subtitle: 'الهوية + رخصة القيادة + فحص السيارة',
-              onTap: () {
-                Get.back();
-                Get.toNamed(RouteName.verfiyUser, arguments: 'driver');
-              },
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -1273,65 +1240,6 @@ class _CommentsSection extends StatelessWidget {
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 // Verify Option
 // ━━━━━━━━━━━━━━━━━━━━━━━━
-class _VerifyOption extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-  const _VerifyOption(
-      {required this.icon,
-      required this.title,
-      required this.subtitle,
-      required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14.r),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-        decoration: BoxDecoration(
-          color: MyColors.background,
-          borderRadius: BorderRadius.circular(14.r),
-          border: Border.all(
-              color: MyColors.primary.withValues(alpha: 0.12)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                  color: MyColors.primary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12)),
-              child: Icon(icon, color: MyColors.primary, size: 22),
-            ),
-            SizedBox(width: 14.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: AppTextStyles.bodyMedium),
-                  SizedBox(height: 2.h),
-                  Text(subtitle,
-                      style: AppTextStyles.labelSmall
-                          .copyWith(color: MyColors.textSecondary)),
-                ],
-              ),
-            ),
-            Icon(Icons.arrow_back_ios_rounded,
-                size: 14, color: MyColors.textHint),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━
-// Menu Item
-// ━━━━━━━━━━━━━━━━━━━━━━━━
 class _MenuItem extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -1359,12 +1267,35 @@ class _MenuItem extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+        // الترتيب هنا ترتيب القراءة لا ترتيب البكسل: التطبيق كلّه RTL
+        // (main.dart)، و`Row` يوزّع أبناءه من اليمين. كان السطر مكتوباً
+        // معكوساً بيده — السهم أولاً والأيقونة آخراً — فوقعت الأيقونة
+        // أقصى اليسار والسهم أقصى اليمين، وهو مقلوب عن كل قائمة عربية.
+        //
+        // وسهم `arrow_forward_ios` يُعكس من تلقائه (`matchTextDirection`)
+        // فيشير يساراً — جهة الدخول في RTL.
         child: Row(
           children: [
-            Icon(Icons.arrow_back_ios_rounded,
-                size: 14, color: MyColors.textHint),
-            const Spacer(),
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                  color: MyColors.background,
+                  borderRadius: BorderRadius.circular(10)),
+              child: Icon(icon, color: MyColors.primary, size: 20),
+            ),
+            SizedBox(width: 12.w),
+            // Expanded لا Spacer: الاسم الطويل يُقصّ بدل أن يفيض
+            Expanded(
+              child: Text(
+                label,
+                style: AppTextStyles.bodyMedium,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             if (badge != null) ...[
+              SizedBox(width: 8.w),
               Container(
                 padding:
                     EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
@@ -1374,18 +1305,10 @@ class _MenuItem extends StatelessWidget {
                     style: AppTextStyles.labelSmall
                         .copyWith(color: bColor)),
               ),
-              SizedBox(width: 8.w),
             ],
-            Text(label, style: AppTextStyles.bodyMedium),
-            SizedBox(width: 12.w),
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                  color: MyColors.background,
-                  borderRadius: BorderRadius.circular(10)),
-              child: Icon(icon, color: MyColors.primary, size: 20),
-            ),
+            SizedBox(width: 8.w),
+            Icon(Icons.arrow_forward_ios_rounded,
+                size: 14, color: MyColors.textHint),
           ],
         ),
       ),

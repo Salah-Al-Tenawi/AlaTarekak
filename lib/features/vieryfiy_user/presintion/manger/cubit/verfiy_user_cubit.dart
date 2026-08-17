@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/vieryfiy_user/data/model/verifiy_user_modle.dart';
 import 'package:alatarekak/features/vieryfiy_user/data/repo/verfiy_user_repo.dart';
 import 'package:equatable/equatable.dart';
@@ -30,17 +31,30 @@ class VerifyUserCubit extends Cubit<VerfiyUserState> {
   Future<void> pickMechanic() async =>
       await _pickImage((file) => mechanicImage = file);
 
+  /// فتح المعرض واختيار صورة.
+  ///
+  /// `pickImage` يرمي `PlatformException` حين يرفض المستخدم إذن الصور
+  /// (أندرويد 13 فأحدث) أو حين يفشل المعرض — وكان الاستثناء يخرج من هنا
+  /// غير ملتقَط فتنهار الشاشة أثناء رفع المستندات.
   Future<void> _pickImage(Function(XFile) assign) async {
-    final XFile? picked = await _picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      assign(picked);
-      emit(VerfiyUserImagesUpdated(
-        frontIdImage: frontIdImage,
-        backIdImage: backIdImage,
-        driverLicenseImage: driverLicenseImage,
-        mechanicImage: mechanicImage,
-      ));
+    XFile? picked;
+    try {
+      picked = await _picker.pickImage(source: ImageSource.gallery);
+    } catch (e) {
+      if (isClosed) return;
+      emit(const VerfiyError(
+          'تعذّر فتح معرض الصور — تأكّد من السماح للتطبيق بالوصول إلى الصور'));
+      return;
     }
+
+    if (picked == null || isClosed) return; // ألغى الاختيار
+    assign(picked);
+    emit(VerfiyUserImagesUpdated(
+      frontIdImage: frontIdImage,
+      backIdImage: backIdImage,
+      driverLicenseImage: driverLicenseImage,
+      mechanicImage: mechanicImage,
+    ));
   }
 
   bool allImagesSelected(bool isDriver) {
@@ -63,7 +77,7 @@ class VerifyUserCubit extends Cubit<VerfiyUserState> {
       mechanicImage,
     );
     response.fold((erorr) {
-      emit(VerfiyError(erorr.message));
+      emit(VerfiyError(HandelErorrMessage.verfiyDriver(erorr.message)));
     }, (succses) {
       emit(VerfiySuccess(data: succses));
     });
@@ -77,7 +91,7 @@ class VerifyUserCubit extends Cubit<VerfiyUserState> {
       backIdImage,
     );
     response.fold((erorr) {
-      emit(VerfiyError(erorr.message));
+      emit(VerfiyError(HandelErorrMessage.verfiyPassanger(erorr.message)));
     }, (success) {
       emit(VerfiySuccess(data: success));
     });

@@ -15,9 +15,19 @@ class VerfiYUserRepo {
   /// رفع الطلب ينقل حالة التوثيق في الخادم إلى «قيد المراجعة»، فنُسقط
   /// نسخة الملف المخزّنة محلياً ليُجلب بحالته الجديدة عند أول عرض —
   /// وإلا بقيت الشارة غائبة وبقي زرّ رفع طلب جديد متاحاً فوق طلب معلّق.
+  /// فشل مسح الكاش لا يقلب رفعاً ناجحاً فشلاً.
+  ///
+  /// المستندات وصلت الخادم فعلاً حين نبلغ هنا. ولو رمى الكاش (صندوق
+  /// مغلق، قرص ممتلئ) لعاد للمستخدم «فشل الرفع» وأعاد الإرسال بلا داعٍ —
+  /// وأسوأ منه: قبل هذا الحارس كان الاستثناء يخرج غير ملتقَط فتنهار
+  /// الشاشة **بعد** نجاح الرفع.
+  ///
+  /// أسوأ ما يقع بابتلاعه: تبقى شارة التوثيق قديمة حتى أول تحديث للملف.
   Future<void> _invalidateCachedProfile() async {
-    final id = myid();
-    if (id != null) await ProfileLocalDataSourceIm().clearProfile(id);
+    try {
+      final id = myid();
+      if (id != null) await ProfileLocalDataSourceIm().clearProfile(id);
+    } catch (_) {}
   }
 
   Future<Either<Filuar, VerifiyUserModle>> verfiyDriver(
@@ -32,6 +42,12 @@ class VerfiYUserRepo {
       return right(response);
     } on ServerExpcptions catch (e) {
       return left(e.error);
+    } catch (e) {
+      // كل ما ليس ServerExpcptions كان يخرج من هنا غير ملتقَط فتنهار
+      // الشاشة عند الضغط على «إرسال»: تفكيك ردّ غير متوقَّع، أو تعذّر
+      // مسح كاش الملف الشخصي. أياً كان السبب فالانهيار ليس جواباً —
+      // تُترجَم الرسالة عربياً في الكيوبت وتُعرض للمستخدم.
+      return left(Filuar(message: e.toString()));
     }
   }
 
@@ -45,6 +61,8 @@ try {
       return right(response);
     } on ServerExpcptions catch (e) {
       return left(e.error);
+    } catch (e) {
+      return left(Filuar(message: e.toString()));
     }
   }
 }

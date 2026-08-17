@@ -5,6 +5,7 @@ import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/features/profiles/data/model/documents_model.dart';
+import 'package:alatarekak/features/profiles/presantaion/view/widget/verification_type_sheet.dart';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // args = { 'status': String, 'userType': String, 'documents': DocumentsModel? }
@@ -232,9 +233,11 @@ class _NoneBody extends StatelessWidget {
           label: 'بدء عملية التوثيق',
           icon: Icons.arrow_back_rounded,
           color: MyColors.primary,
-          onTap: () => Get.toNamed(
-            RouteName.verfiyUser,
-            arguments: isDriver ? 'driver' : 'passenger',
+          // النوع يُختار في كل مرة ولا يُقفَل على مستندات الطلب السابق:
+          // من رُفض طلبه كراكب له أن يتقدّم كسائق والعكس
+          onTap: () => VerificationTypeSheet.show(
+            context,
+            suggested: isDriver ? 'driver' : 'passenger',
           ),
         ),
         SizedBox(height: 12.h),
@@ -381,9 +384,11 @@ class _RejectedBody extends StatelessWidget {
           label: 'إعادة التقديم',
           icon: Icons.refresh_rounded,
           color: MyColors.error,
-          onTap: () => Get.toNamed(
-            RouteName.verfiyUser,
-            arguments: isDriver ? 'driver' : 'passenger',
+          // النوع يُختار في كل مرة ولا يُقفَل على مستندات الطلب السابق:
+          // من رُفض طلبه كراكب له أن يتقدّم كسائق والعكس
+          onTap: () => VerificationTypeSheet.show(
+            context,
+            suggested: isDriver ? 'driver' : 'passenger',
           ),
         ),
         SizedBox(height: 12.h),
@@ -775,10 +780,20 @@ class _PrimaryButton extends StatelessWidget {
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 18.sp),
             SizedBox(width: 8.w),
-            Text(label, style: AppTextStyles.buttonLarge),
+            // Flexible: نصّ الزرّ بمقاس ثابت لا يتجاوب (الملاحظة 16)،
+            // فيفيض على الشاشات الضيقة بخطوط مكبَّرة — يُقصّ بدل أن يفيض
+            Flexible(
+              child: Text(
+                label,
+                style: AppTextStyles.buttonLarge,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
       ),

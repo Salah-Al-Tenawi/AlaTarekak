@@ -24,7 +24,12 @@ class _VerfiyUserState extends State<VerfiyUser> {
   @override
   void initState() {
     super.initState();
-    userType = (Get.arguments as String).toLowerCase();
+    // `as String` كان تحويلاً غير محروس: فتحُ الشاشة بلا وسيط — من إشعار
+    // أو رابط عميق أو استدعاء نسي تمريره — يرمي TypeError في initState
+    // فتنهار الشاشة قبل أن تُرسم. والافتراض الأضيق (راكب) أسلم: يطلب
+    // صورتي الهوية وحدهما لا رخصةً وفحصَ مركبة لا يملكهما.
+    final raw = Get.arguments;
+    userType = raw is String ? raw.toLowerCase() : 'passenger';
   }
 
   @override
@@ -260,7 +265,7 @@ class _Header extends StatelessWidget {
               Align(
                 alignment: Alignment.centerRight,
                 child: IconButton(
-                  icon: Icon(Icons.arrow_forward_ios_rounded,
+                  icon: Icon(Icons.arrow_back_ios_rounded,
                       color: Colors.white, size: 20.sp),
                   onPressed: () => Get.back(),
                 ),
