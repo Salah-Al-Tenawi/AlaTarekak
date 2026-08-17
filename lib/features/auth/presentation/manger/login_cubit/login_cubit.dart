@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/service/push_token_service.dart';
 import 'package:alatarekak/features/auth/data/repo/auth_repo_im.dart';
 
@@ -13,6 +14,16 @@ class LoginCubit extends Cubit<LoginState> {
     emit(LoginLoading());
     final response = await authRepoIm.signInWithEmail(email, password);
     response.fold((error) {
+      // 403 EMAIL_NOT_VERIFIED: الحساب صحيح وينقصه تأكيد البريد وحده.
+      // الكود أوثق من النصّ، والنصّ احتياط لو غيّره الخادم أو أغفله.
+      //
+      // البريد يُؤخذ ممّا كتبه المستخدم قبل قليل لا من ردّ الخطأ: هو
+      // نفسه، ومتاح دائماً، ولا يوسّع كائن الفشل المشترك لأجل مسار واحد.
+      if (error.code == 'EMAIL_NOT_VERIFIED' ||
+          HandelErorrMessage.isEmailNotVerified(error.message)) {
+        emit(LoginEmailNotVerified(email.trim()));
+        return;
+      }
       emit(LoginError(error.message));
     }, (user) {
       // تسجيل توكن FCM لدى الباك إند بعد نجاح الدخول (لا يعطل التدفق إن فشل)

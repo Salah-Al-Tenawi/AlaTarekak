@@ -30,6 +30,16 @@ class ColumnButtonsLogin extends StatelessWidget {
           Get.toNamed(RouteName.singin);
         } else if (state is LoginNavigationToForgetPassword) {
           Get.toNamed(RouteName.forgetpassword);
+        } else if (state is LoginEmailNotVerified) {
+          // ينقصه رمز التحقق لا كلمة مرور — ننقله إلى الشاشة التي تُتمّه
+          // بدل تركه أمام رسالة خطأ لا مخرج منها
+          Get.toNamed(RouteName.verfiyEmailSingin, arguments: state.email);
+          showMySnackBar(
+            context,
+            'لم يتم تأكيد بريدك بعد — أدخل الرمز المُرسل إليك، '
+            'أو اطلب رمزاً جديداً',
+            duration: const Duration(seconds: 4),
+          );
         } else if (state is LoginError) {
           final message = HandelErorrMessage.login(state.message);
           showMySnackBar(context, message,

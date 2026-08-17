@@ -61,6 +61,73 @@ void main() {
       ],
     );
 
+    // 403 EMAIL_NOT_VERIFIED: الحساب قائم وكلمة مروره صحيحة، وينقصه رمز
+    // التحقق وحده. كان يُعامَل كفشل دخول عادي فيقف المستخدم أمام رسالة
+    // لا مخرج منها — لا سبيل إلى إدخال الرمز ولا إلى طلب رمز جديد.
+    blocTest<LoginCubit, LoginState>(
+      'بريد غير مؤكَّد: حالة تنقّل لا حالة خطأ',
+      build: () {
+        when(() => authRepo.signInWithEmail(any(), any())).thenAnswer(
+          (_) async => left(const Filuar(
+            message:
+                'Your email address is not verified. Please check your inbox '
+                'for the verification code.',
+            code: 'EMAIL_NOT_VERIFIED',
+          )),
+        );
+        return LoginCubit(authRepo);
+      },
+      act: (cubit) => cubit.login('itsalah736@gmail.com', '12345678'),
+      expect: () => [
+        isA<LoginLoading>(),
+        isA<LoginEmailNotVerified>()
+            .having((s) => s.email, 'البريد', 'itsalah736@gmail.com'),
+      ],
+    );
+
+    blocTest<LoginCubit, LoginState>(
+      'يُكتشف من النصّ أيضاً لو غاب الكود',
+      build: () {
+        when(() => authRepo.signInWithEmail(any(), any())).thenAnswer(
+          (_) async => left(const Filuar(
+              message: 'Your email address is not verified.')),
+        );
+        return LoginCubit(authRepo);
+      },
+      act: (cubit) => cubit.login('itsalah736@gmail.com', '12345678'),
+      expect: () => [isA<LoginLoading>(), isA<LoginEmailNotVerified>()],
+    );
+
+    blocTest<LoginCubit, LoginState>(
+      'البريد يُنظَّف من الفراغات قبل تمريره لشاشة الرمز',
+      build: () {
+        when(() => authRepo.signInWithEmail(any(), any())).thenAnswer(
+          (_) async => left(const Filuar(
+              message: 'x', code: 'EMAIL_NOT_VERIFIED')),
+        );
+        return LoginCubit(authRepo);
+      },
+      act: (cubit) => cubit.login('  itsalah736@gmail.com  ', '12345678'),
+      expect: () => [
+        isA<LoginLoading>(),
+        isA<LoginEmailNotVerified>()
+            .having((s) => s.email, 'البريد', 'itsalah736@gmail.com'),
+      ],
+    );
+
+    blocTest<LoginCubit, LoginState>(
+      'كلمة مرور خاطئة تبقى خطأً ولا تُخلط بالبريد غير المؤكَّد',
+      build: () {
+        when(() => authRepo.signInWithEmail(any(), any())).thenAnswer(
+            (_) async => left(const Filuar(
+                message: 'Invalid credentials',
+                code: 'INVALID_CREDENTIALS')));
+        return LoginCubit(authRepo);
+      },
+      act: (cubit) => cubit.login('test@example.com', 'wrong'),
+      expect: () => [isA<LoginLoading>(), isA<LoginError>()],
+    );
+
     blocTest<LoginCubit, LoginState>(
       'التنقل لإنشاء حساب ثم العودة للحالة الابتدائية',
       build: () => LoginCubit(authRepo),

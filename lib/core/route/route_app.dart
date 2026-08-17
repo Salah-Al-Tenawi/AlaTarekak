@@ -41,6 +41,7 @@ import 'package:alatarekak/features/auth/data/repo/auth_repo_im.dart';
 import 'package:alatarekak/features/auth/presentation/manger/forget_password_cubit/forget_password_cubit.dart';
 import 'package:alatarekak/features/auth/presentation/manger/login_cubit/login_cubit.dart';
 import 'package:alatarekak/features/auth/presentation/manger/singin_cubit/singin_cubit.dart';
+import 'package:alatarekak/features/auth/presentation/view/verfiy_email_Singin.dart';
 import 'package:alatarekak/features/auth/presentation/view/forget_password.dart';
 import 'package:alatarekak/features/auth/presentation/view/banned_screen.dart';
 import 'package:alatarekak/features/notifications/data/data_source/notifications_local_data_source.dart';
@@ -58,6 +59,11 @@ import 'package:alatarekak/features/profiles/presantaion/view/profile.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/profile_edit_screen.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/profile_personal_info.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/profile_my_cars.dart';
+import 'package:alatarekak/features/score/data/data_source/score_local_data_source.dart';
+import 'package:alatarekak/features/score/data/data_source/score_remote_data_source.dart';
+import 'package:alatarekak/features/score/data/repo/score_repo_im.dart';
+import 'package:alatarekak/features/score/presantion/manger/cubit/score_cubit.dart';
+import 'package:alatarekak/features/score/presantion/view/profile_score.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/profile_driver_verification.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/profile_settings.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/profile_support.dart';
@@ -163,13 +169,19 @@ List<GetPage<dynamic>> appRoute = [
       child: const ForgetPassword(),
     ),
   ),
-// GetPage(
-//     name: RouteName.verfiyEmailSingin,
-//     page: () => BlocProvider(
-//       create: (context) => SinginCubit(getit.get<AuthRepoIm>()),
-//       child: const VerfiyEmailSingin(),
-//     ),
-//   ),
+  // شاشة رمز تأكيد البريد.
+  //
+  // كان المسار معطَّلاً بالتعليق لأن التسجيل يفتح الشاشة بـ `Get.to`
+  // مباشرةً حاملاً كيوبته معه. لكن الدخول يحتاجها أيضاً — من يحاول
+  // الدخول ببريد غير مؤكَّد (403 EMAIL_NOT_VERIFIED) لا كيوبت تسجيل
+  // لديه، فيحتاج مساراً يبني واحداً جديداً.
+  GetPage(
+    name: RouteName.verfiyEmailSingin,
+    page: () => BlocProvider(
+      create: (context) => SinginCubit(getit.get<AuthRepoIm>()),
+      child: const VerfiyEmailSingin(),
+    ),
+  ),
 
   // proile
   GetPage(
@@ -496,6 +508,19 @@ List<GetPage<dynamic>> appRoute = [
               ..getBalance(),
             child: const WalletView(),
           )),
+
+  // نقاط الثقة — `loadHistory()` تجلب النقاط والسجل معاً في نداء واحد
+  GetPage(
+    name: RouteName.profileScore,
+    page: () => BlocProvider(
+      create: (_) => ScoreCubit(ScoreRepoIm(
+        remoteDataSource: ScoreRemoteDataSourceIm(api: getit.get<DioConSumer>()),
+        localDataSource: ScoreLocalDataSourceIm(),
+      ))
+        ..loadHistory(),
+      child: const ProfileScoreScreen(),
+    ),
+  ),
 
   // chat
   GetPage(

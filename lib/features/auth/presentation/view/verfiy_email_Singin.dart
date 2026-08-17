@@ -23,7 +23,22 @@ class _VerfiyEmailSinginState extends State<VerfiyEmailSingin> {
   @override
   void initState() {
     super.initState();
-    email = Get.arguments as String;
+    // الشاشة صارت تُفتح من مسارين: التسجيل (يمرّر البريد مع `Get.to`)،
+    // والدخول ببريد غير مؤكَّد (`Get.toNamed` بالاسم). و`as String` غير
+    // المحروس كان يرمي في initState لو فُتحت بلا وسيط.
+    final raw = Get.arguments;
+    email = raw is String ? raw.trim() : '';
+
+    if (email.isEmpty) {
+      // بلا بريد لا يمكن التحقق ولا إعادة الإرسال — لا نُبقيه أمام شاشة
+      // معطّلة
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.back();
+        AppSnackBar.error('تعذّر تحديد البريد الإلكتروني، أعد المحاولة');
+      });
+      return;
+    }
+
     context.read<SinginCubit>().startOtpTimer();
   }
 
@@ -36,7 +51,9 @@ class _VerfiyEmailSinginState extends State<VerfiyEmailSingin> {
         if (state is SinginSuccess) {
           // الانتقال أولاً: offAllNamed يزيل كل المسارات ومنها مسار الإشعار
           Get.offAllNamed(RouteName.home, arguments: true);
-          AppSnackBar.success("تم إنشاء الحساب بنجاح");
+          // تصلح للمسارين: من سجّل حساباً جديداً، ومن كان حسابه قائماً
+          // ودخل ببريد غير مؤكَّد — و«تم إنشاء الحساب» كذبٌ على الثاني
+          AppSnackBar.success("تم تأكيد بريدك الإلكتروني");
         }
         if (state is SinginErorre) {
           AppSnackBar.error(state.message);

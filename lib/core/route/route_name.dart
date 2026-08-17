@@ -62,6 +62,7 @@ static const chatScreen = "/ChatScreen";
   // profile sub-screens
   static const profilePersonalInfo = "/profilePersonalInfo";
   static const profileMyCars = "/profileMyCars";
+  static const profileScore = "/profileScore";
   static const profileDriverVerification = "/profileDriverVerification";
   static const profileSettings = "/profileSettings";
   static const profileSupport = "/profileSupport";
