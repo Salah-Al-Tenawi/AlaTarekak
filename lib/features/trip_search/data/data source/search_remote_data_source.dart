@@ -34,6 +34,20 @@ class SearchRemoteDataSource {
     return trips;
   }
 
+  /// `GET /rides/city-trips` — رحلات مدينة المستخدم بلا وسائط.
+  ///
+  /// يُقرأ بـ `TripModel.fromJson` نفسه الذي يقرأ نتائج البحث: مورد
+  /// الرحلات واحد، والقارئ يتسامح مع المغلَّف وشكلَي الصفّ (المحوَّل
+  /// والخام) على السواء.
+  Future<List<TripModel>> cityTrips() async {
+    final response = await api.get(
+      ApiEndPoint.cityTrips,
+      header: {ApiKey.authorization: "Bearer ${mytoken()}"},
+    );
+
+    return TripModel.fromJson(response);
+  }
+
   Future<TripModel> showOneTrip(int tripId) async {
     final response = await api.get("${ApiEndPoint.rides}/$tripId",
         header: {ApiKey.authorization: "Bearer ${mytoken()}"});

@@ -14,10 +14,16 @@ final class SearchLoading extends SearchState {}
 final class SearchSucces extends SearchState {
   final List<TripModel> trips;
 
-  const SearchSucces({required this.trips});
+  /// النتيجة من «رحلات مدينتي» لا من بحث بمعايير.
+  ///
+  /// الفارق يظهر حين تعود فارغة: «غيّر التاريخ أو الموقع» نصيحة لا معنى
+  /// لها لمن لم يُدخل تاريخاً ولا موقعاً.
+  final bool fromCity;
+
+  const SearchSucces({required this.trips, this.fromCity = false});
 
   @override
-  List<Object> get props => [trips];
+  List<Object> get props => [trips, fromCity];
 }
 
 final class SearchErorr extends SearchState {

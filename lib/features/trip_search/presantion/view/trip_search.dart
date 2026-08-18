@@ -92,7 +92,19 @@ class _TripSearchState extends State<TripSearch>
     return day;
   }
 
+  /// لم يُدخل المستخدم شيئاً بعد.
+  ///
+  /// الضغط على «بحث» حينها لا يعني خطأً، بل أنه لا يبحث عن مسار بعينه —
+  /// فنعرض له رحلات مدينته بدل ثلاث رسائل تطالبه بملء الحقول.
+  bool get _nothingEntered =>
+      sourceLat == null && destLat == null && selectedDate == null;
+
   void _validateAndSearch(BuildContext ctx) {
+    if (_nothingEntered) {
+      ctx.read<SearchCubit>().searchMyCity();
+      return;
+    }
+
     if (sourceLat == null) {
       ScaffoldMessenger.of(ctx).showSnackBar(
         const SnackBar(content: Text('اختر مكان الانطلاق')),
@@ -127,9 +139,12 @@ class _TripSearchState extends State<TripSearch>
       listener: (context, state) {
         if (state is SearchSucces) {
           if (state.trips.isEmpty) {
-            showNoTripsDialog(context);
+            showNoTripsDialog(context, fromCity: state.fromCity);
           } else {
-            Get.toNamed(RouteName.tripSearchList, arguments: state.trips);
+            Get.toNamed(
+              RouteName.tripSearchList,
+              arguments: {'trips': state.trips, 'fromCity': state.fromCity},
+            );
           }
         }
         if (state is SearchErorr) {

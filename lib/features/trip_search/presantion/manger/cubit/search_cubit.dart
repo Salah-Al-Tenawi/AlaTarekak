@@ -26,4 +26,23 @@ class SearchCubit extends SafeCubit<SearchState> {
       emit(SearchSucces(trips: listTrip));
     });
   }
+
+  /// رحلات مدينة المستخدم — تنطلق منها أو تتّجه إليها.
+  ///
+  /// يُستدعى حين يضغط «بحث» بلا إدخال شيء. الخادم يقرأ المدينة من عنوان
+  /// الحساب، فلا وسائط هنا: مَن لم يُحدّد مساراً بعينه يرى ما يخصّه بدل
+  /// ثلاث رسائل تطالبه بملء الحقول.
+  Future<void> searchMyCity() async {
+    emit(SearchLoading());
+    final response = await repoIm.cityTrips();
+
+    response.fold(
+      (erorr) => emit(SearchErorr(
+        error: HandelErorrMessage.search(erorr.message),
+        needsVerification:
+            HandelErorrMessage.isPassengerNotVerified(erorr.message),
+      )),
+      (trips) => emit(SearchSucces(trips: trips, fromCity: true)),
+    );
+  }
 }

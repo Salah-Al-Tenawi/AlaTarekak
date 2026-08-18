@@ -35,6 +35,14 @@ class SearchRepoIm {
   //   }
   // }
 
+  Future<Either<Filuar, List<TripModel>>> cityTrips() async {
+    try {
+      return right(await searchRemoteDataSource.cityTrips());
+    } on ServerExpcptions catch (e) {
+      return left(e.error);
+    }
+  }
+
   Future<Either<Filuar, TripModel>> showOneTrip(int tripId) async {
     try {
       final response = await searchRemoteDataSource.showOneTrip(tripId);
