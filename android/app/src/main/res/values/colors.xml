@@ -2,4 +2,5 @@
 <resources>
     <!-- لون خلفية أيقونة الإشعار — أساسي التطبيق (MyColors.primary) -->
     <color name="notification_color">#1B3B6F</color>
+	<color name="ic_launcher_background">#253C5B</color>
 </resources>

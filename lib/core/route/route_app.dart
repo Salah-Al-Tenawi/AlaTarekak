@@ -10,6 +10,7 @@ import 'package:alatarekak/features/chat/presentation/view/chat_screen.dart';
 import 'package:alatarekak/core/api/dio_consumer.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/service/locator_ser.dart';
+import 'package:alatarekak/features/policy/presantion/manger/cubit/policy_cubit.dart';
 import 'package:alatarekak/features/auth/data/data_source/auth_local_data_source.dart';
 import 'package:alatarekak/features/auth/data/data_source/auth_remote_data_source.dart';
 import 'package:alatarekak/features/booking_user_in_trip/data/data_source/booking_user_trip_remote_data.dart';
@@ -158,8 +159,13 @@ List<GetPage<dynamic>> appRoute = [
   ),
   GetPage(
       name: RouteName.singin,
-      page: () => BlocProvider(
-            create: (context) => SinginCubit(getit.get<AuthRepoIm>()),
+      // السياسات هنا أيضاً: سطر الموافقة نصّه من لوحة الأدمن
+      page: () => MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                  create: (context) => SinginCubit(getit.get<AuthRepoIm>())),
+              BlocProvider.value(value: getit.get<PolicyCubit>()..load()),
+            ],
             child: const Singin(),
           )),
   GetPage(
@@ -455,7 +461,10 @@ List<GetPage<dynamic>> appRoute = [
   ),
   GetPage(
     name: RouteName.profileSupport,
-    page: () => const ProfileSupportScreen(),
+    page: () => BlocProvider.value(
+      value: getit.get<PolicyCubit>()..load(),
+      child: const ProfileSupportScreen(),
+    ),
   ),
   GetPage(
     name: RouteName.profileComplaint,
@@ -511,7 +520,13 @@ List<GetPage<dynamic>> appRoute = [
   ),
 
   // policy
-  GetPage(name: RouteName.policy, page: () => const Policy()),
+  GetPage(
+    name: RouteName.policy,
+    page: () => BlocProvider.value(
+      value: getit.get<PolicyCubit>()..load(),
+      child: const Policy(),
+    ),
+  ),
 
   GetPage(
       name: RouteName.wallet,
