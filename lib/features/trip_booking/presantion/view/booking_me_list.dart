@@ -51,6 +51,12 @@ class _BookingMeListState extends State<BookingMeList> {
               "تم استرداد $refund ل.س من قيمة الحجز",
               title: "تم إلغاء الحجز",
             );
+          } else if (state is BookingMeOpenConversation) {
+            Get.toNamed(RouteName.chatScreen, arguments: {
+              'conversationId': state.conversationId,
+              'title': state.title ?? 'سائق الرحلة',
+              'avatar': state.avatar,
+            });
           } else if (state is BookingMeErorr) {
             // الرسالة معرّبة مسبقاً في الكيوبت حسب نوع العملية
             showMySnackBar(context, state.message);

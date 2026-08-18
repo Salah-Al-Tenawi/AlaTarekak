@@ -120,11 +120,27 @@ class _BookingItemState extends State<BookingItem> {
             ],
           ),
         ),
-        SizedBox(width: 8.w),
+        SizedBox(width: 4.w),
+        if (_chatAllowed) _ChatButton(booking: b),
+        SizedBox(width: 4.w),
         TripStatusBadge(status: b.status),
       ],
     );
   }
+
+  /// سياسة التطبيق: لا محادثة بلا حجز — والحجز هنا يجب أن يكون **قائماً**
+  /// لا مجرّد طلب أو حجزٍ انتهى بالرفض أو الإلغاء.
+  ///
+  /// `pending` مستثنى ليطابق جانب السائق: زرّ المراسلة في شاشة حجوزات
+  /// الرحلة لا يظهر إلا بعد قبول الحجز، فلا يصحّ أن يراسل الراكب طرفاً
+  /// لا يستطيع الردّ عليه من شاشته.
+  bool get _chatAllowed => const {
+        'confirmed',
+        'accepted',
+        'ongoing',
+        'completed',
+        'finished',
+      }.contains(b.status.trim().toLowerCase());
 
   // ━━━━━━━━━━━━━━━━ المسار ━━━━━━━━━━━━━━━━
 
@@ -1147,6 +1163,52 @@ class _Action extends StatelessWidget {
               icon: Icon(icon, size: 17.sp),
               label: text,
             ),
+    );
+  }
+}
+
+// ━━━━━━━━━━━━━━━━ مراسلة السائق ━━━━━━━━━━━━━━━━
+
+/// أيقونة فتح المحادثة مع سائق الحجز.
+///
+/// الخادم يعيد المحادثة القائمة إن وُجدت بدل إنشاء ثانية، فالأيقونة
+/// واحدة: تفتح الموجودة أو تُنشئها. ولا حاجة لجلب الرحلة لمعرفة السائق —
+/// [BookingMe] يحمل معرّفه واسمه وصورته.
+class _ChatButton extends StatelessWidget {
+  final BookingMe booking;
+  const _ChatButton({required this.booking});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<BookingMeCubit, BookingMeState>(
+      // الحالات الأخرى (إلغاء، تقييم…) تُعيد بناء منطقة الأزرار لا هذه
+      buildWhen: (_, curr) =>
+          curr is BookingMeloading || curr is BookingMeOpenConversation,
+      builder: (context, state) {
+        return IconButton(
+          tooltip: 'مراسلة السائق',
+          visualDensity: VisualDensity.compact,
+          constraints: BoxConstraints(minWidth: 38.w, minHeight: 38.w),
+          padding: EdgeInsets.zero,
+          onPressed: () => context.read<BookingMeCubit>().openChatWithDriver(
+                userId: booking.userDriver,
+                name: booking.driverName.trim().isEmpty
+                    ? 'سائق الرحلة'
+                    : booking.driverName,
+                avatar: booking.driverAvatar,
+              ),
+          icon: Container(
+            width: 34.w,
+            height: 34.w,
+            decoration: BoxDecoration(
+              color: MyColors.primary.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(10.r),
+            ),
+            child: Icon(Icons.chat_bubble_outline_rounded,
+                size: 18.sp, color: MyColors.primary),
+          ),
+        );
+      },
     );
   }
 }

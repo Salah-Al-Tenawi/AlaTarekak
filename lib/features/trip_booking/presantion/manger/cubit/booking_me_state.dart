@@ -77,3 +77,19 @@ final class BookingMeRated extends BookingMeState {
 }
 
 final class BookingMeCommented extends BookingMeState {}
+
+/// محادثة السائق جاهزة للفتح — الشاشة تنتقل إليها.
+final class BookingMeOpenConversation extends BookingMeState {
+  final int conversationId;
+  final String? title;
+  final String? avatar;
+
+  const BookingMeOpenConversation({
+    required this.conversationId,
+    this.title,
+    this.avatar,
+  });
+
+  @override
+  List<Object> get props => [conversationId, title ?? '', avatar ?? ''];
+}

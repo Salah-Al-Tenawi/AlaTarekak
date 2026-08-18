@@ -339,9 +339,16 @@ List<GetPage<dynamic>> appRoute = [
   GetPage(
       name: RouteName.bookingMeList,
       page: () => BlocProvider(
-            create: (context) => BookingMeCubit(BookingMeRepo(
+            create: (context) => BookingMeCubit(
+              BookingMeRepo(
+                  remoteDataSource:
+                      BookingRemoteDataSource(api: getit.get<DioConSumer>())),
+              // لمراسلة سائق الحجز — سياسة التطبيق: لا محادثة بلا حجز
+              chatRepo: ChatRepoImpl(
                 remoteDataSource:
-                    BookingRemoteDataSource(api: getit.get<DioConSumer>()))),
+                    ChatRemoteDataSourceImpl(api: getit.get<DioConSumer>()),
+              ),
+            ),
             child: const BookingMeList(),
           )),
   // home
@@ -375,9 +382,16 @@ List<GetPage<dynamic>> appRoute = [
         ),
         // حجوزاتي كراكب — تبويب «حجوزاتي» في الشريط السفلي
         BlocProvider(
-          create: (_) => BookingMeCubit(BookingMeRepo(
-              remoteDataSource:
-                  BookingRemoteDataSource(api: getit.get<DioConSumer>()))),
+          create: (_) => BookingMeCubit(
+            BookingMeRepo(
+                remoteDataSource:
+                    BookingRemoteDataSource(api: getit.get<DioConSumer>())),
+          // لمراسلة سائق الحجز — سياسة التطبيق: لا محادثة بلا حجز
+          chatRepo: ChatRepoImpl(
+            remoteDataSource:
+                ChatRemoteDataSourceImpl(api: getit.get<DioConSumer>()),
+          ),
+          ),
         ),
         BlocProvider(
           create: (_) => ProfileCubit(ProfileRepoIm(

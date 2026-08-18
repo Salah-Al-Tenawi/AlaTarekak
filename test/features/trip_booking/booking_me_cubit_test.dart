@@ -4,6 +4,7 @@ import 'package:alatarekak/features/profiles/domain/entity/comment_entity.dart';
 import 'package:alatarekak/features/trip_booking/data/model/booking_me_model.dart';
 import 'package:alatarekak/features/trip_booking/data/model/cancel_booking_model.dart';
 import 'package:alatarekak/features/trip_booking/data/repo/booking_me_repo.dart';
+import 'package:alatarekak/features/chat/domain/repo/chat_repo.dart';
 import 'package:alatarekak/features/trip_booking/presantion/manger/cubit/booking_me_cubit.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:dartz/dartz.dart';
@@ -11,6 +12,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockBookingMeRepo extends Mock implements BookingMeRepo {}
+
+class MockChatRepo extends Mock implements ChatRepo {}
 
 BookingMe _fakeBooking({int bookingId = 10}) => BookingMe(
       bookingId: bookingId,
@@ -282,5 +285,80 @@ void main() {
     test('رد بلا قائمة يعطي فارغاً بلا انهيار', () {
       expect(BookingMeModel.fromJson({'success': true}).data, isEmpty);
     });
+  });
+
+  // ---------------------------------------------------------------
+  // مراسلة السائق. سياسة التطبيق: لا محادثة بلا حجز — وكان الراكب الطرف
+  // الوحيد بلا طريق إليها من قائمة حجوزاته، بينما للسائق زرّ مراسلة في
+  // شاشة حجوزات رحلته.
+  // ---------------------------------------------------------------
+
+  group('BookingMeCubit — مراسلة السائق', () {
+    late MockChatRepo chatRepo;
+
+    setUp(() {
+      chatRepo = MockChatRepo();
+    });
+
+    blocTest<BookingMeCubit, BookingMeState>(
+      'فتح المحادثة يحمل معرّفها واسم السائق وصورته إلى الشاشة',
+      build: () {
+        when(() => chatRepo.startConversation(userId: 3))
+            .thenAnswer((_) async => right(77));
+        return BookingMeCubit(repo, chatRepo: chatRepo);
+      },
+      act: (cubit) => cubit.openChatWithDriver(
+          userId: 3, name: 'أحمد', avatar: 'a.png'),
+      expect: () => [
+        isA<BookingMeOpenConversation>()
+            .having((s) => s.conversationId, 'المحادثة', 77)
+            .having((s) => s.title, 'العنوان', 'أحمد')
+            .having((s) => s.avatar, 'الصورة', 'a.png'),
+      ],
+    );
+
+    blocTest<BookingMeCubit, BookingMeState>(
+      'ضغطتان متتاليتان لا تُنشئان محادثتين',
+      build: () {
+        when(() => chatRepo.startConversation(userId: any(named: 'userId')))
+            .thenAnswer((_) async {
+          await Future<void>.delayed(const Duration(milliseconds: 30));
+          return right(77);
+        });
+        return BookingMeCubit(repo, chatRepo: chatRepo);
+      },
+      act: (cubit) {
+        cubit.openChatWithDriver(userId: 3);
+        cubit.openChatWithDriver(userId: 3);
+      },
+      wait: const Duration(milliseconds: 80),
+      verify: (_) {
+        verify(() => chatRepo.startConversation(userId: 3)).called(1);
+      },
+    );
+
+    blocTest<BookingMeCubit, BookingMeState>(
+      'فشل فتح المحادثة يُعرَّب ولا يصل بنصّ الخادم',
+      build: () {
+        when(() => chatRepo.startConversation(userId: any(named: 'userId')))
+            .thenAnswer((_) async =>
+                left(const Filuar(message: 'Conversation not found')));
+        return BookingMeCubit(repo, chatRepo: chatRepo);
+      },
+      act: (cubit) => cubit.openChatWithDriver(userId: 3),
+      expect: () => [
+        isA<BookingMeErorr>()
+            .having((s) => s.message, 'الرسالة', 'المحادثة غير موجودة')
+            .having((s) => s.message, 'بلا إنجليزية',
+                isNot(contains('Conversation'))),
+      ],
+    );
+
+    blocTest<BookingMeCubit, BookingMeState>(
+      'بلا chatRepo لا يقع شيء — بقية الشاشة تعمل',
+      build: () => BookingMeCubit(repo),
+      act: (cubit) => cubit.openChatWithDriver(userId: 3),
+      expect: () => <BookingMeState>[],
+    );
   });
 }

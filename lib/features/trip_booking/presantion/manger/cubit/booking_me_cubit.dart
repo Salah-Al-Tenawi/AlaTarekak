@@ -1,16 +1,54 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/trip_booking/data/model/booking_me_model.dart';
 import 'package:alatarekak/features/trip_booking/data/model/cancel_booking_model.dart';
 import 'package:alatarekak/features/trip_booking/data/repo/booking_me_repo.dart';
+import 'package:alatarekak/features/chat/domain/repo/chat_repo.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'booking_me_state.dart';
 
-class BookingMeCubit extends Cubit<BookingMeState> {
+class BookingMeCubit extends SafeCubit<BookingMeState> {
   final BookingMeRepo _repo;
 
-  BookingMeCubit(this._repo) : super(BookingMeInitial());
+  /// اختياري: بدونه تختفي أيقونة مراسلة السائق ويبقى الباقي يعمل.
+  final ChatRepo? chatRepo;
+
+  /// طلب فتح محادثة قيد التنفيذ — يمنع إنشاء محادثتين بضغطتين متتاليتين.
+  bool _openingChat = false;
+
+  BookingMeCubit(this._repo, {this.chatRepo}) : super(BookingMeInitial());
+
+  /// مراسلة السائق — مسموحة بوجود حجز فعّال وحده (الواجهة تفرض ذلك).
+  ///
+  /// سياسة التطبيق: لا محادثة بلا حجز. والراكب كان الطرف الوحيد بلا
+  /// طريق إليها من قائمة حجوزاته، بينما للسائق زرّ مراسلة في شاشة
+  /// حجوزات رحلته.
+  ///
+  /// الخادم يعيد المحادثة القائمة إن وُجدت بدل إنشاء ثانية، فضغط الطرفين
+  /// معاً يوصلهما إلى المحادثة نفسها.
+  Future<void> openChatWithDriver({
+    required int userId,
+    String? name,
+    String? avatar,
+  }) async {
+    if (chatRepo == null || _openingChat) return;
+    _openingChat = true;
+
+    final result = await chatRepo!.startConversation(userId: userId);
+    _openingChat = false;
+    if (isClosed) return;
+
+    result.fold(
+      (error) => emit(
+          BookingMeErorr(message: HandelErorrMessage.chat(error.message))),
+      (conversationId) => emit(BookingMeOpenConversation(
+        conversationId: conversationId,
+        title: name,
+        avatar: avatar,
+      )),
+    );
+  }
 
   Future getMyBooking() async {
     emit(BookingMeListloading());
