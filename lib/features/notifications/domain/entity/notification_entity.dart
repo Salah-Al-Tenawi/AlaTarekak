@@ -78,7 +78,53 @@ class NotificationEntity {
     'seats_partially_cancelled': 'ألغى الراكب جزءاً من مقاعده',
     'no_show_recorded': 'تم تسجيل عدم حضورك',
     'driver_no_show_recorded': 'بلاغ عدم حضور بحقك',
+    // من مرجع الباك إند (ride_notifications_reference): يرسلهما
+    // RideController في مساره الموازي، وكانا يسقطان إلى عنوان الخادم
+    'booking_cancelled_by_passenger': 'ألغى الراكب حجزه',
+    'ride_finished': 'انتهت الرحلة',
   };
+
+  /// التصنيف المعروض — يُشتقّ من `type` لا من الحقل الواصل.
+  ///
+  /// `category` **غير موجود في قاعدة بيانات الباك إند إطلاقاً** (يُمرَّر
+  /// إلى FCM فقط)، فيسقط كل إشعار إلى `general`: الأيقونة نفسها واللون
+  /// نفسه للجميع، وشرط `category == 'chat'` لا يتحقق أبداً.
+  ///
+  /// و`type` موجود ومخزَّن، ويكفي لتصنيف كل نوع في مرجع الباك إند.
+  /// ويُقدَّم الحقل الواصل حين يصل بقيمة حقيقية، فإن عرّبه الباك إند
+  /// لاحقاً ساد على الاشتقاق.
+  String get displayCategory {
+    if (category.isNotEmpty && category != 'general') return category;
+    return categoryOf(type) ?? category;
+  }
+
+  /// تصنيف نوع الإشعار — مبني على مرجع الباك إند
+  /// (`ride_notifications_reference`).
+  static String? categoryOf(String? type) {
+    final t = type?.trim().toLowerCase();
+    if (t == null || t.isEmpty) return null;
+    if (t == 'chat_message') return 'chat';
+    if (t.startsWith('verification_')) return 'profile';
+    if (t.startsWith('wallet_') ||
+        t.startsWith('charge_request') ||
+        t.startsWith('withdraw_request') ||
+        t.startsWith('account_') ||
+        t.startsWith('complaint_')) {
+      return 'system';
+    }
+    // كل ما تبقّى في المرجع رحلات وحجوزات: ride_* و booking_* و
+    // passenger_* و driver_* و seats_* و no_show_* و confirm_*
+    if (t.startsWith('ride') ||
+        t.startsWith('booking') ||
+        t.startsWith('passenger') ||
+        t.startsWith('driver') ||
+        t.startsWith('seats') ||
+        t.startsWith('no_show') ||
+        t.startsWith('confirm')) {
+      return 'ride';
+    }
+    return null;
+  }
 
   /// تسميات التصنيفات بالعربية — الباك إند يرسلها إنجليزية (§10.3)
   static const Map<String, String> categoryLabels = {

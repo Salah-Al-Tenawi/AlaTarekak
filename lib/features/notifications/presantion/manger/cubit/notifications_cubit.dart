@@ -1,11 +1,11 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/notifications/domain/entity/notification_entity.dart';
 import 'package:alatarekak/features/notifications/domain/repo/notifications_repo.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'notifications_state.dart';
 
-class NotificationsCubit extends Cubit<NotificationsState> {
+class NotificationsCubit extends SafeCubit<NotificationsState> {
   final NotificationsRepo _repo;
 
   NotificationsCubit(this._repo) : super(NotificationsInitial());

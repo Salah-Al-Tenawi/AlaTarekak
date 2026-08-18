@@ -36,6 +36,9 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // يلزمه flutter_local_notifications 10+ حتى لو لم نستعمل
+        // الإشعارات المجدولة — انظر dependencies في آخر الملف.
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -45,7 +48,18 @@ android {
     }
 
     defaultConfig {
-        applicationId = "me.onwayride.app"
+        // ⚠️ مؤقّت — يُعاد إلى "me.onwayride.app" قبل النشر على Google Play.
+        //
+        // سجّل الباك-إند تطبيق أندرويد في مشروع Firebase باسم الحزمة
+        // GRADUATION.PROJECT بدل اسمنا، ومُلحق google-services يفشل البناء
+        // إن لم يطابق applicationId مدخلاً في الملف. غُيّر هنا لفكّ الحصار
+        // عن اختبار الإشعارات ريثما يُرسلون ملفاً مصحَّحاً.
+        //
+        // **applicationId هوية دائمة على Google Play لا تُغيَّر بعد أول
+        // نشر.** فقبل النشر: اطلب google-services.json لحزمة
+        // me.onwayride.app، أعِد السطر أدناه، وأعِد تثبيت التطبيق على
+        // أجهزة المجرِّبين (أندرويد يعتبره تطبيقاً آخر).
+        applicationId = "GRADUATION.PROJECT"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         // مثبتة صراحة وفق الـ SRS: يدعم التطبيق Android 8.0 (API 26) أو أحدث.
@@ -84,4 +98,8 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

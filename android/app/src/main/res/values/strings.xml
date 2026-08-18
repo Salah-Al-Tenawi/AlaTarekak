@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- معرّف قناة إشعارات FCM الافتراضية.
-         يشير إليه AndroidManifest عبر
+    <!-- قناة إشعارات FCM الافتراضية.
+         المعرّف يشير إليه AndroidManifest عبر
          com.google.firebase.messaging.default_notification_channel_id،
-         وينشئ أندرويد القناة عند أول إشعار. -->
+         والقناة تُنشأ في MainActivity — الإشارة وحدها لا تُنشئها. -->
     <string name="default_notification_channel_id">atariqak_default</string>
+
+    <!-- الاسم والوصف يظهران للمستخدم في إعدادات إشعارات التطبيق -->
+    <string name="default_notification_channel_name">إشعارات الرحلات والحجوزات</string>
+    <string name="default_notification_channel_description">تنبيهات إنشاء الرحلات وقبول الحجوزات والرسائل</string>
 </resources>

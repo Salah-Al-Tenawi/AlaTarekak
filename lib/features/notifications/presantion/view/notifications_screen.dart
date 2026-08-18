@@ -193,13 +193,13 @@ class _NotificationCard extends StatelessWidget {
   /// مغلق فيُفتح من مسار آخر، والوجهة يجب أن تكون واحدة في المسارين.
   Future<void> _onTap() => NotificationRouter.open(
         type: notification.type,
-        category: notification.category,
+        category: notification.displayCategory,
         title: notification.title,
         data: notification.data,
       );
 
   IconData get _icon {
-    switch (notification.category) {
+    switch (notification.displayCategory) {
       case 'ride':
         return Icons.directions_car_rounded;
       case 'chat':
@@ -214,7 +214,7 @@ class _NotificationCard extends StatelessWidget {
   }
 
   Color get _color {
-    switch (notification.category) {
+    switch (notification.displayCategory) {
       case 'ride':
         return MyColors.primary;
       case 'chat':

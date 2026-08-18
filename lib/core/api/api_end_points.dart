@@ -72,9 +72,17 @@ class ApiEndPoint {
   static const notificationsBulkAction = "$notifications/bulk-action";
   static const notificationsCategories = "$notifications/categories";
 
-  // FCM push tokens
-  static const pushRegister = "$baserUrl/push/register";
-  static const pushRemove = "$baserUrl/push/remove";
+  // FCM push tokens — مورد واحد يتبدّل فعله بالطريقة (2026-08-18).
+  //
+  // كنا نستدعي `/push/register` و`/push/remove` وهما **لا وجود لهما**
+  // (404 من الإنتاج). سجّلهما الباك إند تحت `push-tokens` بطريقتين على
+  // المسار نفسه:
+  //   POST   /push-tokens        تسجيل التوكن
+  //   DELETE /push-tokens        إزالته
+  //   GET    /push-tokens        قائمة توكنات المستخدم (للتشخيص)
+  //   POST   /push-tokens/test   إشعار تجريبي (للتشخيص)
+  static const pushTokens = "$baserUrl/push-tokens";
+  static const pushTokensTest = "$pushTokens/test";
 
   // score (§5)
   static const score = "$baserUrl/score";
