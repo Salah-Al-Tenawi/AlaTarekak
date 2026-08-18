@@ -7,6 +7,17 @@ class ServerExpcptions implements Exception {
   final Filuar error;
 
   ServerExpcptions({required this.error});
+
+  /// بلا هذا يطبع كل `debugPrint('...: $e')` في التطبيق
+  /// `Instance of 'ServerExpcptions'` — سطر لا يقول شيئاً عن سبب الفشل،
+  /// فيصير تشخيص أي عطل تخميناً. الرسالة والكود هنا يكفيان لمعرفته.
+  @override
+  String toString() {
+    final code = error.code;
+    return code == null || code.isEmpty
+        ? 'ServerExpcptions: ${error.message}'
+        : 'ServerExpcptions[$code]: ${error.message}';
+  }
 }
 
 

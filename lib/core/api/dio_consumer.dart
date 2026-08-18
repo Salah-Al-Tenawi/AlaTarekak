@@ -37,11 +37,34 @@ class DioConSumer extends ApiConSumer {
     }
   }
 
+  /// أقصى ما يُطبع من السطر الواحد. `null` = بلا حدّ.
+  ///
+  /// كل سطر يُطبع يمرّ إلى سجلّ النظام عبر قناة المنصّة، وهي بطيئة على
+  /// الأجهزة المتوسطة. ورد `GET /rides` بثماني رحلات يقارب 15 ك.ب — نحو
+  /// **19 سطراً** مقابل سطر واحد لبقية النداءات — فتتجمّد شاشة «رحلاتي»
+  /// في وضع التطوير وحدها بينما تعمل في `--profile` بلا تقطّع.
+  ///
+  /// الحدّ يُبقي ما وُضع التقسيم لأجله: أول 3000 محرف تكفي لرؤية شكل
+  /// الرد وأول صفوفه، ويُذكر الطول الكامل بعدها. واجعله `null` حين
+  /// تحتاج الجسم كاملاً لتشخيص صفّ بعينه.
+  static int? logBodyLimit = 3000;
+
   /// سجلّ أندرويد يقصّ السطر الواحد عند نحو ألف محرف، فتصل أجسام الردود
   /// الطويلة مبتورة في منتصف حقل — وهو ما يجعل تشخيص اختلاف شكل الرد
   /// عن النموذج تخميناً. التقسيم هنا يضمن وصول الجسم كاملاً.
+  @visibleForTesting
+  static void logForTesting(Object? line) => _logInChunks(line);
+
   static void _logInChunks(Object? line) {
-    final text = line?.toString() ?? '';
+    var text = line?.toString() ?? '';
+
+    final cap = logBodyLimit;
+    if (cap != null && text.length > cap) {
+      text = '${text.substring(0, cap)}'
+          '… [قُطع — الطول الكامل ${text.length} محرف. '
+          'DioConSumer.logBodyLimit = null لطباعته كاملاً]';
+    }
+
     const limit = 800;
     if (text.length <= limit) {
       debugPrint(text);

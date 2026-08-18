@@ -16,6 +16,15 @@ class AppAnim {
   /// أقصى عدد عناصر تتدرج في القائمة — ما بعده يظهر فوراً حتى لا
   /// ينتظر مستخدم القوائم الطويلة.
   static const int maxStaggered = 8;
+
+  /// مفتاح إيقاف حركات الدخول في التطبيق كله.
+  ///
+  /// **لتشخيص التقطّع:** اجعله `false` وأعد التشغيل — إن اختفى التجمّد
+  /// فالعلّة في الحركات لا في البيانات ولا في التخطيط.
+  ///
+  /// ويُحترم إعداد النظام «تقليل الحركة» تلقائياً بلا لمس هذا المفتاح —
+  /// انظر [FadeSlideIn].
+  static bool entranceEnabled = true;
 }
 
 /// دخول عنصر واحد: ظهور تدريجي مع انزلاق خفيف للأعلى.
@@ -35,6 +44,12 @@ class FadeSlideIn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // «تقليل الحركة» في إعدادات النظام — يفعّله من يتأذّى بالحركة، ومن
+    // يشغّل موفّر البطارية على بعض الأجهزة. تجاهله يعني حركة لا يريدها
+    // المستخدم، وثمنها إطارات إضافية على الأجهزة الضعيفة.
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    if (!AppAnim.entranceEnabled || reduceMotion) return child;
+
     return child
         .animate(delay: delay)
         .fadeIn(duration: AppAnim.entrance, curve: AppAnim.curve)

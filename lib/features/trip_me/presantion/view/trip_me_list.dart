@@ -14,8 +14,34 @@ import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_me/presantion/manger/cubit/trip_me_cubit.dart';
 import 'package:alatarekak/features/trip_me/presantion/view/widget/trip_item.dart';
 
-class TripMeList extends StatelessWidget {
+class TripMeList extends StatefulWidget {
   const TripMeList({super.key});
+
+  @override
+  State<TripMeList> createState() => _TripMeListState();
+}
+
+class _TripMeListState extends State<TripMeList> {
+  @override
+  void initState() {
+    super.initState();
+    // الجلب من `initState` لا من داخل `builder`.
+    //
+    // كان الفرع الأخير في البناء يجدول `getMeTrips()` ويعيد `SizedBox`،
+    // وهو فرع يلتقط **كل** حالة لا فرع لها — `TripMeCancel` و
+    // `TripMeOneLoaded` و`TripMeFinishTrip` — فأي حالة جديدة تُضاف
+    // للكيوبت تُطلق طلب شبكة صامتاً لا يقصده أحد. والطلب من داخل البناء
+    // يخلط الرسم بالأثر الجانبي، وهو ما لا يصحّ أياً كان.
+    final cubit = context.read<TripMeCubit>();
+
+    // الكيوبت يعيش **فوق** الـ PageView في الرئيسية فينجو من تبديل
+    // التبويبات، بينما الشاشة نفسها تُبنى من جديد في كل عودة إليها
+    // (PageView يتخلّص من الصفحات غير المعروضة). فلو جلبنا بلا شرط
+    // لوقع طلب شبكة عند كل ضغطة على «رحلاتي» — وثمانُ رحلات في كل مرة.
+    //
+    // القائمة المحمّلة تُعرض فوراً، ومن أراد أحدث منها يسحب للتحديث.
+    if (cubit.state is! TripMeListLoaded) cubit.getMeTrips();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -222,12 +248,12 @@ class TripMeList extends StatelessWidget {
                 ),
               ),
             );
-          } else {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.read<TripMeCubit>().getMeTrips();
-            });
-            return const SizedBox.shrink();
           }
+
+          // `TripMeCancel` و`TripMeOneLoaded` و`TripMeFinishTrip` تمرّ
+          // هنا: الكيوبت نفسه يُعيد تحميل القائمة بعد الإلغاء، فلا نطلب
+          // شيئاً — نُبقي مؤشّراً حتى تصل القائمة الجديدة.
+          return const Center(child: LoadingWidgetSize150());
         },
       ),
     );
