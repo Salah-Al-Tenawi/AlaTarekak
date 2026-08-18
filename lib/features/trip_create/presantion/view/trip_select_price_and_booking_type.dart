@@ -6,6 +6,9 @@ import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_from.dart';
+import 'package:flutter/services.dart';
+import 'package:alatarekak/features/trip_create/domin/ride_price_rules.dart';
+import 'package:alatarekak/features/trip_create/presantion/view/widget/price_ranking_hint.dart';
 
 class TripSelectPriceAndBookingType extends StatefulWidget {
   const TripSelectPriceAndBookingType({
@@ -28,6 +31,12 @@ class _TripSelectPriceAndBookingTypeState
     extends State<TripSelectPriceAndBookingType> {
   late TripFrom _tripFrom;
   late int _price;
+
+  /// مسافة الرحلة بالكيلومترات — عليها يُبنى التسعير كلّه.
+  late double _km;
+
+  /// سبب رفض السعر المكتوب يدوياً، يُعرض تحت الحقل.
+  String? _priceError;
   String _cashType = 'cash';
   String _bookingType = 'Direct';
   final _notesController = TextEditingController();
@@ -42,7 +51,8 @@ class _TripSelectPriceAndBookingTypeState
     }
     // السعر المقترح يُحسب مرة واحدة فقط. كان يُحسب في كل بناء ويكتب فوق
     // ما اختاره السائق، فيفقد سعره كلما رجع خطوة وعاد.
-    final suggested = _calcSuggestedPrice(_tripFrom.distance);
+    _km = (_tripFrom.distance as num?)?.toDouble() ?? 0;
+    final suggested = RidePriceRules.suggestedFor(_km);
     _tripFrom.recomandedPrice = suggested.toDouble();
     _price = _tripFrom.price > 0 ? _tripFrom.price : suggested;
     _tripFrom.price = _price;
@@ -63,36 +73,47 @@ class _TripSelectPriceAndBookingTypeState
     super.dispose();
   }
 
-  int _calcSuggestedPrice(dynamic distanceKm) {
-    final km = (distanceKm as num?)?.toDouble() ?? 0;
-    final raw = km <= 65 ? km * 500 : km * 700;
-    return (raw ~/ 1000) * 1000;
-  }
+  int get _suggested => RidePriceRules.suggestedFor(_km);
 
-  void _adjustPrice(bool increase) {
+  void _setPrice(int value, {String? error}) {
     setState(() {
-      if (increase) {
-        if (_price < 20000) {
-          _price += 2000;
-        } else if (_price < 40000) {
-          _price += 5000;
-        } else {
-          _price += 5000;
-        }
-      } else {
-        if (_price > 40000) {
-          _price -= 10000;
-        } else if (_price > 20000) {
-          _price -= 5000;
-        } else if (_price > 2000) {
-          _price -= 2000;
-        }
-      }
+      _price = value;
+      _priceError = error;
       _tripFrom.price = _price;
     });
   }
 
+  void _adjustPrice(bool increase) => _setPrice(
+        RidePriceRules.nextPrice(_km, _price, increase: increase),
+      );
+
+  void _resetToSuggested() => _setPrice(_suggested);
+
+  /// السعر المكتوب باليد: يُقبل ما دام دون سقف الكيلومتر.
+  ///
+  /// **نقترح ولا نُجبر** — فالخطأ يُعرض ولا يُعاد الرقم قسراً إلى المدى،
+  /// كي يرى السائق ما كتبه ويصحّحه بنفسه.
+  void _onManualPrice(String raw) {
+    final parsed = int.tryParse(raw.trim());
+    final error = RidePriceRules.validate(_km, parsed);
+
+    setState(() {
+      _priceError = error;
+      if (parsed != null && parsed > 0) {
+        _price = parsed;
+        _tripFrom.price = parsed;
+      }
+    });
+  }
+
   void _onNext() {
+    // سعر خارج الحدّين يرفضه الخادم — نمنعه هنا فلا يُهدر باقي المعالج
+    final error = RidePriceRules.validate(_km, _price);
+    if (error != null) {
+      setState(() => _priceError = error);
+      return;
+    }
+
     _tripFrom
       ..price = _price
       ..cashType = _cashType
@@ -145,9 +166,18 @@ class _TripSelectPriceAndBookingTypeState
                 SizedBox(height: 14.h),
                 _PriceSelector(
                   price: _price,
+                  km: _km,
+                  suggested: _suggested,
+                  error: _priceError,
                   onIncrease: () => _adjustPrice(true),
                   onDecrease: () => _adjustPrice(false),
+                  onManual: _onManualPrice,
+                  onResetSuggested: _resetToSuggested,
                 ),
+                SizedBox(height: 12.h),
+                // السعر يؤثّر في ترتيب ظهور الرحلة — يستحقّ السائق أن
+                // يعرف ذلك قبل أن ينتظر حجوزات لا تأتي
+                PriceRankingHint(price: _price, suggested: _suggested),
                 SizedBox(height: 24.h),
                 _SectionHeader(
                   icon: Icons.payment_outlined,
@@ -272,54 +302,205 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-class _PriceSelector extends StatelessWidget {
+/// اختيار السعر: مقترح يقبله السائق أو يناغشه أو يكتب غيره.
+///
+/// كان عدّاداً وحده بلا سقف ولا سبيل لكتابة رقم — فمن أراد سعراً بعيداً
+/// عن المقترح ضغط عشرين ضغطة، ومن أراد رقماً غير مضاعفات الخطوة لم يجد
+/// إليه سبيلاً.
+class _PriceSelector extends StatefulWidget {
   final int price;
+  final double km;
+  final int suggested;
+  final String? error;
   final VoidCallback onIncrease;
   final VoidCallback onDecrease;
-  _PriceSelector(
-      {required this.price,
-      required this.onIncrease,
-      required this.onDecrease});
+  final ValueChanged<String> onManual;
+  final VoidCallback onResetSuggested;
+
+  const _PriceSelector({
+    required this.price,
+    required this.km,
+    required this.suggested,
+    required this.error,
+    required this.onIncrease,
+    required this.onDecrease,
+    required this.onManual,
+    required this.onResetSuggested,
+  });
+
+  @override
+  State<_PriceSelector> createState() => _PriceSelectorState();
+}
+
+class _PriceSelectorState extends State<_PriceSelector> {
+  late final TextEditingController _controller =
+      TextEditingController(text: '${widget.price}');
+  final _focus = FocusNode();
+
+  @override
+  void didUpdateWidget(covariant _PriceSelector old) {
+    super.didUpdateWidget(old);
+    // العدّاد يغيّر الرقم من خارج الحقل — نزامنه ما لم يكن السائق يكتب
+    if (widget.price != old.price && !_focus.hasFocus) {
+      _controller.text = '${widget.price}';
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-      decoration: BoxDecoration(
-        color: MyColors.surface,
-        borderRadius: BorderRadius.circular(16.r),
-        boxShadow: [
-          BoxShadow(color: MyColors.shadowLight, blurRadius: 8, offset: Offset(0, 2))
+    final rate = RidePriceRules.ratePerKm(widget.km, widget.price);
+    final isSuggested = widget.price == widget.suggested;
+    final hasError = widget.error != null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+          decoration: BoxDecoration(
+            color: MyColors.surface,
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(
+                color: hasError ? MyColors.error : MyColors.border),
+            boxShadow: [
+              BoxShadow(
+                  color: MyColors.shadowLight,
+                  blurRadius: 8,
+                  offset: const Offset(0, 2))
+            ],
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  _CounterBtn(
+                      icon: Icons.remove_rounded, onTap: widget.onDecrease),
+                  // الرقم حقل كتابة لا نصّاً: يُلمس فيُكتب مباشرةً
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      focusNode: _focus,
+                      onChanged: widget.onManual,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.displayLarge.copyWith(
+                          color: hasError ? MyColors.error : MyColors.primary,
+                          fontSize: 32.sp),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ),
+                  _CounterBtn(icon: Icons.add_rounded, onTap: widget.onIncrease),
+                ],
+              ),
+              SizedBox(height: 4.h),
+              Text(
+                widget.km > 0
+                    ? 'ليرة سورية · ${rate.round()} ل.س للكيلومتر'
+                    : 'ليرة سورية',
+                style: AppTextStyles.labelSmall
+                    .copyWith(color: MyColors.textSecondary),
+              ),
+            ],
+          ),
+        ),
+        if (hasError) ...[
+          SizedBox(height: 8.h),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.error_outline_rounded,
+                  size: 15.sp, color: MyColors.error),
+              SizedBox(width: 6.w),
+              Expanded(
+                child: Text(
+                  widget.error!,
+                  style: AppTextStyles.labelSmall
+                      .copyWith(color: MyColors.error, height: 1.5),
+                ),
+              ),
+            ],
+          ),
         ],
+        SizedBox(height: 10.h),
+        // الاقتراح ظاهر دائماً وسبيل العودة إليه بضغطة — نقترح ولا نُجبر
+        _SuggestionHint(
+          suggested: widget.suggested,
+          isApplied: isSuggested,
+          onApply: widget.onResetSuggested,
+        ),
+      ],
+    );
+  }
+}
+
+class _SuggestionHint extends StatelessWidget {
+  final int suggested;
+  final bool isApplied;
+  final VoidCallback onApply;
+
+  const _SuggestionHint({
+    required this.suggested,
+    required this.isApplied,
+    required this.onApply,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (suggested <= 0) return const SizedBox.shrink();
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      decoration: BoxDecoration(
+        color: MyColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: MyColors.border),
       ),
       child: Row(
         children: [
-          _CounterBtn(icon: Icons.remove_rounded, onTap: onDecrease),
+          Icon(
+            isApplied ? Icons.check_circle_rounded : Icons.lightbulb_outline,
+            size: 16.sp,
+            color: isApplied ? MyColors.success : MyColors.accent,
+          ),
+          SizedBox(width: 8.w),
           Expanded(
-            child: Column(
-              children: [
-                Text(
-                  _formatPrice(price),
-                  style: AppTextStyles.displayLarge
-                      .copyWith(color: MyColors.primary, fontSize: 36.sp),
-                ),
-                Text("ليرة سورية",
-                    style: AppTextStyles.labelSmall
-                        .copyWith(color: MyColors.textSecondary)),
-              ],
+            child: Text(
+              isApplied
+                  ? 'هذا هو السعر المقترح لرحلتك'
+                  : 'السعر المقترح $suggested ل.س',
+              style: AppTextStyles.labelSmall
+                  .copyWith(color: MyColors.textSecondary, height: 1.4),
             ),
           ),
-          _CounterBtn(icon: Icons.add_rounded, onTap: onIncrease),
+          if (!isApplied)
+            TextButton(
+              onPressed: onApply,
+              style: TextButton.styleFrom(
+                minimumSize: Size(0, 32.h),
+                padding: EdgeInsets.symmetric(horizontal: 10.w),
+                visualDensity: VisualDensity.compact,
+              ),
+              child: Text('استعمله',
+                  style: AppTextStyles.labelSmall
+                      .copyWith(color: MyColors.primary)),
+            ),
         ],
       ),
     );
-  }
-
-  String _formatPrice(int p) {
-    if (p >= 1000) {
-      return '${(p / 1000).toStringAsFixed(p % 1000 == 0 ? 0 : 1)}k';
-    }
-    return '$p';
   }
 }
 
