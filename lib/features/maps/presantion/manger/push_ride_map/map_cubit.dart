@@ -1,5 +1,6 @@
 import 'package:latlong2/latlong.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
+import 'package:alatarekak/core/utils/class/syria_geo.dart';
 import 'package:alatarekak/features/maps/data/model/place_suggestion.dart';
 import 'package:alatarekak/features/maps/data/repo/map_repo.dart';
 import 'map_state.dart';
@@ -33,8 +34,12 @@ class MapCubit extends SafeCubit<MapState> {
     );
   }
 
-  void selectFromSearch(PlaceSuggestion place) {
+  bool selectFromSearch(PlaceSuggestion place) {
     final point = LatLng(place.lat, place.lng);
+    // البحث مقيَّد بسوريا في Nominatim، والحارس هنا لأن مدخل النقطة
+    // يجب أن يكون واحداً مهما تعدّدت طرق الوصول إليه
+    if (!SyriaGeo.contains(point)) return false;
+
     pendingPoint = null;
 
     if (_searchingForStart) {
@@ -48,7 +53,7 @@ class MapCubit extends SafeCubit<MapState> {
       } else {
         _emitCurrent();
       }
-      return;
+      return true;
     }
 
     endLocation = point;
@@ -59,9 +64,10 @@ class MapCubit extends SafeCubit<MapState> {
     // تحديد نقطة الانطلاق.
     if (startLocation == null) {
       _emitCurrent();
-      return;
+      return true;
     }
     _fetchRoutes();
+    return true;
   }
 
   /// نقطة بانتظار التأكيد — تُحرَّك بأي نقرة جديدة بلا رسم مسار.
@@ -73,9 +79,16 @@ class MapCubit extends SafeCubit<MapState> {
   /// الانطلاق كان عليه إكمال اختيار الوجهة وانتظار رسم المسار ثم النقر
   /// من جديد ليعيد الكرّة. الآن تتحرّك النقطة المقترحة بكل نقرة، ولا
   /// يقع أي طلب شبكة حتى يضغط «تأكيد».
-  void tapOnMap(LatLng point) {
+  ///
+  /// ويُرفض ما وقع خارج سوريا: التطبيق يخدم داخل البلد، والخادم يرفض
+  /// الرحلة على أي حال — فرفضها هنا يوفّر على السائق إكمال المعالج كلّه.
+  /// يعيد `false` حين يُرفض، فتُعلم الواجهة المستخدم بالسبب.
+  bool tapOnMap(LatLng point) {
+    if (!SyriaGeo.contains(point)) return false;
+
     pendingPoint = point;
     _emitCurrent();
+    return true;
   }
 
   /// تثبيت النقطة المقترحة في خانتها، ورسم المسار متى اكتملت النقطتان.
@@ -132,6 +145,9 @@ class MapCubit extends SafeCubit<MapState> {
 
   /// الخانة التي تنتظر التحديد الآن.
   bool get _isChoosingStart => startLocation == null;
+
+  /// أيّ نقطة تُحدَّد الآن — تحتاجه الواجهة لتسمّي زرّ «موقعي».
+  bool get isChoosingStart => _isChoosingStart;
 
   void _emitCurrent() {
     emit(MapLoaded(

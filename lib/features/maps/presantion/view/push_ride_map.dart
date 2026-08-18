@@ -13,6 +13,9 @@ import 'package:alatarekak/features/maps/data/model/place_suggestion.dart';
 import 'package:alatarekak/features/maps/presantion/manger/push_ride_map/map_cubit.dart';
 import 'package:alatarekak/features/maps/presantion/manger/push_ride_map/map_state.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_from.dart';
+import 'package:alatarekak/core/utils/class/syria_geo.dart';
+import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
+import 'package:alatarekak/core/utils/widgets/my_location_button.dart';
 
 class PushRideMap extends StatefulWidget {
   const PushRideMap({super.key});
@@ -98,7 +101,10 @@ class _PushRideMapState extends State<PushRideMap> {
   void _selectSuggestion(PlaceSuggestion place, bool isStart) {
     final cubit = context.read<MapCubit>();
     cubit.setSearchMode(isStart);
-    cubit.selectFromSearch(place);
+    if (!cubit.selectFromSearch(place)) {
+      showMySnackBar(context, SyriaGeo.outsideMessage);
+      return;
+    }
 
     final shortName = place.displayName.split(',').first;
     if (isStart) {
@@ -199,6 +205,18 @@ class _PushRideMapState extends State<PushRideMap> {
               ),
               if (state is MapLoading) _buildLoadingOverlay(),
               if (hint != null) _buildHintBadge(hint),
+              // «موقعي» فوق لوحة الأسفل مباشرةً — في متناول الإبهام
+              Positioned(
+                bottom: 120.h,
+                right: 16.w,
+                child: MyLocationButton(
+                  label: cubit.isChoosingStart ? 'انطلق من موقعي' : 'وجهتي هنا',
+                  onLocated: (point) {
+                    _mapController.move(point, 15);
+                    cubit.tapOnMap(point);
+                  },
+                ),
+              ),
               // شريط تأكيد النقطة المقترحة — له الأولوية على لوحة المسار
               if (state is MapLoaded && state.pending != null)
                 Positioned(
@@ -270,12 +288,19 @@ class _PushRideMapState extends State<PushRideMap> {
       options: MapOptions(
         initialCenter: center,
         initialZoom: _initialZoom,
-        interactionOptions: const InteractionOptions(
-          flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+        interactionOptions: kMapInteraction,
+        // الكاميرا محبوسة داخل سوريا: لا يصل المستخدم إلى بيروت أو عمّان
+        // ليضع نقطته هناك أصلاً
+        cameraConstraint: CameraConstraint.containCenter(
+          bounds: SyriaGeo.bounds,
         ),
         onTap: (_, point) {
           _dismissSearch();
-          cubit.tapOnMap(point);
+          // نقطة خارج سوريا: تُرفض مع سبب، فلا يظنّ المستخدم أن اللمسة
+          // لم تصل
+          if (!cubit.tapOnMap(point)) {
+            showMySnackBar(context, SyriaGeo.outsideMessage);
+          }
         },
       ),
       children: [

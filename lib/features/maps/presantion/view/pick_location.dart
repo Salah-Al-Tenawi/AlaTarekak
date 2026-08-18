@@ -10,6 +10,8 @@ import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/features/maps/data/model/place_suggestion.dart';
 import 'package:alatarekak/features/maps/presantion/manger/pick_location/cubit/pick_location_cubit.dart';
+import 'package:alatarekak/core/utils/class/syria_geo.dart';
+import 'package:alatarekak/core/utils/widgets/my_location_button.dart';
 
 class PickLocation extends StatefulWidget {
   const PickLocation({super.key});
@@ -23,9 +25,15 @@ class _PickLocationState extends State<PickLocation> {
   final MapController _mapController = MapController();
   Timer? _debounce;
 
+  /// أي نقطة تُحدَّد الآن — الشاشة تُفتح مرّة للانطلاق ومرّة للوجهة،
+  /// فلا يقع اختيار الموقع على الاثنتين معاً.
+  bool _isSource = true;
+
   @override
   void initState() {
     super.initState();
+    final args = Get.arguments;
+    if (args is Map) _isSource = args['type'] != 'destination';
     _searchController.addListener(() => setState(() {}));
   }
 
@@ -76,6 +84,10 @@ class _PickLocationState extends State<PickLocation> {
                 options: MapOptions(
                   initialCenter: const LatLng(33.5138, 36.2765),
                   initialZoom: 9.2,
+                  interactionOptions: kMapInteraction,
+                  cameraConstraint: CameraConstraint.containCenter(
+                    bounds: SyriaGeo.bounds,
+                  ),
                   onTap: (tapPosition, point) {
                     _searchController.clear();
                     context.read<PickLocationCubit>().selectPoint(point);
@@ -231,6 +243,22 @@ class _PickLocationState extends State<PickLocation> {
                         ),
                       ),
                   ],
+                ),
+              ),
+
+              // ━━ «موقعي» ━━
+              //
+              // يرتفع فوق لوحة التفاصيل حين تظهر، فلا يختفي تحتها.
+              Positioned(
+                bottom: selectedPoint != null ? 190.h : 28.h,
+                right: 16.w,
+                child: MyLocationButton(
+                  label: _isSource ? 'انطلق من موقعي' : 'وجهتي هنا',
+                  onLocated: (point) {
+                    _searchController.clear();
+                    _mapController.move(point, 15);
+                    context.read<PickLocationCubit>().selectPoint(point);
+                  },
                 ),
               ),
 

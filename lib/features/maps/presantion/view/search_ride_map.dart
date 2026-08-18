@@ -12,6 +12,8 @@ import 'package:alatarekak/core/utils/widgets/my_button.dart';
 import 'package:alatarekak/features/maps/presantion/manger/push_ride_map/map_cubit.dart';
 import 'package:alatarekak/features/maps/presantion/manger/push_ride_map/map_state.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_from.dart';
+import 'package:alatarekak/core/utils/class/syria_geo.dart';
+import 'package:alatarekak/core/utils/widgets/my_location_button.dart';
 
 class SearchRideMap extends StatefulWidget {
   const SearchRideMap({super.key});
@@ -56,6 +58,19 @@ class _SearchRideMapState extends State<SearchRideMap> {
                 if (state is MapLoaded && state.routes.length > 1)
                   _buildSwitchRouteButton(context, cubit),
                 if (state is MapLoading) _buildLoadingIndicator(),
+                Positioned(
+                  bottom: 24.h,
+                  right: 16.w,
+                  child: MyLocationButton(
+                    label: cubit.isChoosingStart
+                        ? 'انطلق من موقعي'
+                        : 'وجهتي هنا',
+                    onLocated: (point) {
+                      _mapController.move(point, 15);
+                      cubit.tapOnMap(point);
+                    },
+                  ),
+                ),
               ],
             );
           },
@@ -91,8 +106,9 @@ class _SearchRideMapState extends State<SearchRideMap> {
       options: MapOptions(
         initialCenter: center,
         initialZoom: _initialZoom,
-        interactionOptions: const InteractionOptions(
-          flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+        interactionOptions: kMapInteraction,
+        cameraConstraint: CameraConstraint.containCenter(
+          bounds: SyriaGeo.bounds,
         ),
         onTap: (_, point) => cubit.tapOnMap(point),
       ),

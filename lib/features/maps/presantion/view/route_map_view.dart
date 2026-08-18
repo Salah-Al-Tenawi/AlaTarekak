@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:alatarekak/features/maps/presantion/manger/cubit/trip_details_map_cubit.dart';
 import 'package:get/get.dart';
+import 'package:alatarekak/core/utils/class/syria_geo.dart';
 
 class RouteMapView extends StatefulWidget {
   const RouteMapView({super.key});
@@ -63,6 +64,7 @@ class _RouteMapViewState extends State<RouteMapView> {
                 options: MapOptions(
                   initialCenter: LatLng(startLat, startLng),
                   initialZoom: 13,
+                  interactionOptions: kMapInteraction,
                 ),
                 children: [
                   TileLayer(

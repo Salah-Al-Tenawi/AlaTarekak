@@ -2,6 +2,12 @@
     <!-- أندرويد 13 فأحدث لا يُظهر أي إشعار قبل موافقة صريحة.
          بلا هذا الإذن يعود requestPermission() برفض دائم بلا حوار. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <!-- زرّ «موقعي» في اختيار نقطة الانطلاق والوجهة. يُطلب الإذن عند
+         الضغط عليه لا عند الإقلاع: السؤال بلا سبب ظاهر يُرفض غالباً،
+         والرفض الدائم لا يُسأل بعده. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <application
         android:label="عطريقك"
         android:name="${applicationName}"
