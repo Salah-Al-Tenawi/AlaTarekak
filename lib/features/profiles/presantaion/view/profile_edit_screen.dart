@@ -9,7 +9,9 @@ import 'package:alatarekak/core/constant/imagesUrl.dart';
 import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
+import 'package:alatarekak/core/utils/functions/input_valid.dart';
 import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
+import 'package:alatarekak/core/utils/widgets/province_picker.dart';
 import 'package:alatarekak/features/profiles/data/model/enum/image_mode.dart';
 import 'package:alatarekak/features/profiles/data/model/enum/profile_mode.dart';
 import 'package:alatarekak/features/profiles/domain/entity/profile_entity.dart';
@@ -26,8 +28,11 @@ class ProfileEditScreen extends StatefulWidget {
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
   late final TextEditingController _descCtrl;
 
-  // Gender: API يقبل 'M' أو 'F' فقط
-  String _gender = 'M';
+  /// الاسم الكامل — يُعرض القديم في الحقل ليُعدَّل لا ليُكتب من جديد.
+  late final TextEditingController _nameCtrl;
+
+  /// خطأ الاسم يُعرض تحت حقله لا في شريط منبثق يختفي.
+  String? _nameError;
 
   // Address: اختيار من قائمة المحافظات
   String? _selectedAddress;
@@ -38,10 +43,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   void initState() {
     super.initState();
     _descCtrl = TextEditingController(text: widget.profile.description);
-
-    // نعيد إلى uppercase لضمان التوافق مع الـ API
-    final g = widget.profile.gender.toUpperCase();
-    _gender = (g == 'M' || g == 'F') ? g : 'M';
+    _nameCtrl = TextEditingController(text: widget.profile.fullname);
 
     // نحدد المحافظة المحفوظة إذا كانت ضمن القائمة
     final saved = widget.profile.address;
@@ -52,6 +54,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   @override
   void dispose() {
     _descCtrl.dispose();
+    _nameCtrl.dispose();
     super.dispose();
   }
 
@@ -61,19 +64,21 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     if (picked != null) setState(() => _userPhoto = picked);
   }
 
-  void _openAddressPicker() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => _AddressSheet(
-        selected: _selectedAddress,
-        onSelect: (v) => setState(() => _selectedAddress = v),
-      ),
-    );
+  Future<void> _openAddressPicker() async {
+    final picked =
+        await showProvincePicker(context, selected: _selectedAddress);
+    if (picked != null) setState(() => _selectedAddress = picked);
   }
 
   void _save() {
+    final name = _nameCtrl.text.trim();
+    final error = validateFullName(name);
+    if (error != null) {
+      setState(() => _nameError = error);
+      return;
+    }
+    setState(() => _nameError = null);
+
     final cubit = context.read<ProfileCubit>();
     if (_userPhoto != null) {
       cubit.pickImage(_userPhoto!, ProfileImagePicMode.user);
@@ -81,7 +86,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     cubit.applyEdit(
       description: _descCtrl.text.trim(),
       address: _selectedAddress ?? widget.profile.address,
-      gender: _gender, // 'M' أو 'F'
+      // الجنس لم يعد يُعدَّل — يُمرَّر كما هو فلا يُمحى من الملف
+      gender: widget.profile.gender,
+      fullName: name,
     );
     cubit.saveMyProfile();
   }
@@ -141,6 +148,42 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
                     // ━━ المعلومات ━━
                     _SectionCard(children: [
+                      // الاسم
+                      _FieldLabel(
+                          label: 'الاسم',
+                          icon: Icons.badge_outlined),
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(14.w, 0, 14.w, 14.h),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            TextField(
+                              controller: _nameCtrl,
+                              textDirection: TextDirection.rtl,
+                              textInputAction: TextInputAction.next,
+                              style: AppTextStyles.bodyMedium,
+                              decoration: _inputDec('الاسم الأول واسم العائلة'),
+                              onChanged: (_) {
+                                if (_nameError != null) {
+                                  setState(() => _nameError = null);
+                                }
+                              },
+                            ),
+                            if (_nameError != null)
+                              Padding(
+                                padding: EdgeInsets.only(top: 6.h, right: 4.w),
+                                child: Text(
+                                  _nameError!,
+                                  style: AppTextStyles.labelSmall
+                                      .copyWith(color: MyColors.error),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+
+                      _divider(),
+
                       // نبذة عني
                       _FieldLabel(
                           label: 'نبذة عني',
@@ -206,14 +249,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         ),
                       ),
 
-                      _divider(),
-
-                      // الجنس
-                      _GenderPicker(
-                        selected: _gender,
-                        onChanged: (v) =>
-                            setState(() => _gender = v),
-                      ),
                     ]),
 
                     SizedBox(height: 24.h),
@@ -257,89 +292,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 // Address Bottom Sheet
-// ━━━━━━━━━━━━━━━━━━━━━━━━
-class _AddressSheet extends StatelessWidget {
-  final String? selected;
-  final ValueChanged<String> onSelect;
-  const _AddressSheet({required this.selected, required this.onSelect});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: MyColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-      ),
-      padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 24.h),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle
-          Container(
-            width: 40.w,
-            height: 4.h,
-            decoration: BoxDecoration(
-                color: MyColors.border,
-                borderRadius: BorderRadius.circular(2)),
-          ),
-          SizedBox(height: 16.h),
-          Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: MyColors.primary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.location_on_outlined,
-                    color: MyColors.primary, size: 17),
-              ),
-              SizedBox(width: 10.w),
-              Text('اختر المحافظة',
-                  style: AppTextStyles.titleMedium),
-            ],
-          ),
-          SizedBox(height: 16.h),
-          const Divider(height: 0, thickness: 0.5),
-          ConstrainedBox(
-            constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.5),
-            child: ListView.separated(
-              shrinkWrap: true,
-              itemCount: syrianProvinces.length,
-              separatorBuilder: (_, _) => const Divider(
-                  height: 0, thickness: 0.5, indent: 16, endIndent: 16),
-              itemBuilder: (ctx, i) {
-                final province = syrianProvinces[i];
-                final isSelected = province == selected;
-                return ListTile(
-                  title: Text(province,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: isSelected
-                            ? MyColors.primary
-                            : MyColors.textPrimary,
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.normal,
-                      )),
-                  trailing: isSelected
-                      ? Icon(Icons.check_circle_rounded,
-                          color: MyColors.primary, size: 20)
-                      : null,
-                  onTap: () {
-                    onSelect(province);
-                    Navigator.pop(ctx);
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 // Photo Picker
@@ -454,109 +406,6 @@ class _FieldLabel extends StatelessWidget {
   }
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━
-// Gender Picker
-// ━━━━━━━━━━━━━━━━━━━━━━━━
-class _GenderPicker extends StatelessWidget {
-  final String selected; // 'M' أو 'F'
-  final ValueChanged<String> onChanged;
-  const _GenderPicker(
-      {required this.selected, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.wc_rounded,
-                  size: 14, color: MyColors.textSecondary),
-              SizedBox(width: 5.w),
-              Text('الجنس',
-                  style: AppTextStyles.labelSmall
-                      .copyWith(color: MyColors.textSecondary)),
-            ],
-          ),
-          SizedBox(height: 10.h),
-          Row(
-            children: [
-              _GenderChip(
-                label: 'ذكر',
-                icon: Icons.male_rounded,
-                isSelected: selected == 'M',
-                onTap: () => onChanged('M'),
-              ),
-              SizedBox(width: 10.w),
-              _GenderChip(
-                label: 'أنثى',
-                icon: Icons.female_rounded,
-                isSelected: selected == 'F',
-                onTap: () => onChanged('F'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _GenderChip extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool isSelected;
-  final VoidCallback onTap;
-  const _GenderChip(
-      {required this.label,
-      required this.icon,
-      required this.isSelected,
-      required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding:
-            EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? MyColors.primary.withValues(alpha: 0.1)
-              : MyColors.background,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? MyColors.primary : MyColors.border,
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon,
-                size: 17,
-                color: isSelected
-                    ? MyColors.primary
-                    : MyColors.textSecondary),
-            SizedBox(width: 6.w),
-            Text(label,
-                style: AppTextStyles.labelMedium.copyWith(
-                  color: isSelected
-                      ? MyColors.primary
-                      : MyColors.textSecondary,
-                  fontWeight: isSelected
-                      ? FontWeight.w600
-                      : FontWeight.normal,
-                )),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 // Save Button

@@ -30,7 +30,9 @@ abstract class ProfileRepo {
       XFile? mechanieCardPic,
       String? typeOfCar,
       String? gender,
-      String? address);
+      String? address,
+      {String? firstName,
+      String? lastName});
 
   Future<Either<Filuar, CommentEntity>> addcommit(String commit, int userid);
   Future<Either<Filuar, RatingModle>> rateUser(double rating, int userId);

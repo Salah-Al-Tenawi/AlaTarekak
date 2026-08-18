@@ -27,7 +27,9 @@ abstract class ProfileRemoteDateSource {
       XFile? mechanieCardPic,
       String? typeOfCar,
       String? gender,
-      String? address);
+      String? address,
+      {String? firstName,
+      String? lastName});
 
   Future<CommentModel> addcommit(String commit, int userid);
   Future<RatingModle> rateUser(double rating, int userId);
@@ -68,7 +70,9 @@ class ProfileRemoteDateSourceIm extends ProfileRemoteDateSource {
       XFile? mechanieCardPic,
       String? typeOfCar,
       String? gender,
-      String? address) async {
+      String? address,
+      {String? firstName,
+      String? lastName}) async {
     final Map<String, dynamic> data = {
       ApiKey.profilePhoto: await uploadFiletoApi(profilePhoto),
       ApiKey.description: description,
@@ -84,6 +88,9 @@ class ProfileRemoteDateSourceIm extends ProfileRemoteDateSource {
       ApiKey.typeOfCar: typeOfCar,
       ApiKey.gender: gender,
       ApiKey.address: address,
+      // الخادم يحفظ الاسم حقلين ويعيدهما مجموعين في full_name
+      ApiKey.firstName: firstName,
+      ApiKey.lastName: lastName,
     }..removeWhere((_, v) => v == null);
 
     final response = await api.post(ApiEndPoint.profile,

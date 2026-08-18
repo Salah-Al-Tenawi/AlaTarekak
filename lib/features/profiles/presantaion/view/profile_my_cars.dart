@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:alatarekak/core/utils/widgets/seats_stepper.dart';
 import 'package:alatarekak/core/constant/imagesUrl.dart';
 import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
@@ -398,7 +399,9 @@ class _CarFormSheet extends StatefulWidget {
 class _CarFormSheetState extends State<_CarFormSheet> {
   late final TextEditingController _typeCtrl;
   late final TextEditingController _colorCtrl;
-  late final TextEditingController _seatsCtrl;
+
+  /// عدد المقاعد — عدّاد لا حقل نصّ: المدى ضيّق وله حدّ أعلى.
+  late int _seats;
 
   bool _hasRadio = false;
   bool _allowsSmoking = false;
@@ -411,8 +414,7 @@ class _CarFormSheetState extends State<_CarFormSheet> {
     final car = widget.currentCar;
     _typeCtrl = TextEditingController(text: car?.type ?? '');
     _colorCtrl = TextEditingController(text: car?.color ?? '');
-    _seatsCtrl =
-        TextEditingController(text: car?.seats?.toString() ?? '');
+    _seats = (car?.seats ?? 4).clamp(kMinCarSeats, kMaxCarSeats);
     _hasRadio = car?.hasRadio ?? false;
     _allowsSmoking = car?.allowsSmoking ?? false;
   }
@@ -421,7 +423,6 @@ class _CarFormSheetState extends State<_CarFormSheet> {
   void dispose() {
     _typeCtrl.dispose();
     _colorCtrl.dispose();
-    _seatsCtrl.dispose();
     super.dispose();
   }
 
@@ -434,7 +435,7 @@ class _CarFormSheetState extends State<_CarFormSheet> {
   void _save() {
     final type = _typeCtrl.text.trim();
     final color = _colorCtrl.text.trim();
-    final seats = int.tryParse(_seatsCtrl.text.trim());
+    final seats = _seats;
 
     setState(() => _isSaving = true);
 
@@ -543,15 +544,9 @@ class _CarFormSheetState extends State<_CarFormSheet> {
                 controller: _colorCtrl,
               ),
               SizedBox(height: 12.h),
-              _FormField(
-                label: 'عدد المقاعد',
-                hint: '4',
-                icon: Icons.event_seat_rounded,
-                controller: _seatsCtrl,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly
-                ],
+              SeatsStepper(
+                value: _seats,
+                onChanged: (v) => setState(() => _seats = v),
               ),
 
               SizedBox(height: 8.h),
@@ -676,16 +671,12 @@ class _FormField extends StatelessWidget {
   final String hint;
   final IconData icon;
   final TextEditingController controller;
-  final TextInputType keyboardType;
-  final List<TextInputFormatter> inputFormatters;
 
   const _FormField({
     required this.label,
     required this.hint,
     required this.icon,
     required this.controller,
-    this.keyboardType = TextInputType.text,
-    this.inputFormatters = const [],
   });
 
   @override
@@ -705,8 +696,6 @@ class _FormField extends StatelessWidget {
         SizedBox(height: 6.h),
         TextField(
           controller: controller,
-          keyboardType: keyboardType,
-          inputFormatters: inputFormatters,
           textDirection: TextDirection.rtl,
           style: AppTextStyles.bodyMedium,
           decoration: InputDecoration(

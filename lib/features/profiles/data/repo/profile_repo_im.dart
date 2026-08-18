@@ -89,7 +89,9 @@ class ProfileRepoIm extends ProfileRepo {
       XFile? mechanieCardPic,
       String? typeOfCar,
       String? gender,
-      String? address) async {
+      String? address,
+      {String? firstName,
+      String? lastName}) async {
     try {
       final profile = await profileRemoteDateSourceIm.updateProfile(
           profilePhoto,
@@ -105,7 +107,9 @@ class ProfileRepoIm extends ProfileRepo {
           mechanieCardPic,
           typeOfCar,
           gender,
-          address);
+          address,
+          firstName: firstName,
+          lastName: lastName);
       await profileLocalDataSourceIm.saveProfile(profile.data.userId, profile);
       return right(profile);
     } on ServerExpcptions catch (e) {

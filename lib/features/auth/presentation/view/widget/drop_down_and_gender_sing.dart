@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:alatarekak/core/constant/address.dart';
+import 'package:alatarekak/core/utils/widgets/province_picker.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/features/auth/presentation/manger/singin_cubit/singin_cubit.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -15,31 +15,12 @@ class DropDownAndGenderSing extends StatelessWidget {
 
         return Column(
           children: [
-            /// المحافظة
-            DropdownButtonFormField<String>(
-              initialValue: (cubit.address == null || cubit.address!.isEmpty)
-    ? null
-    : cubit.address,
-              decoration: InputDecoration(
-                hintText: "المحافظة",
-                suffixIcon: Icon(
-                  Icons.keyboard_arrow_down,
-                  color: MyColors.textHint,
-                ),
-              ),
-              items: syrianProvinces.map((province) {
-                return DropdownMenuItem(
-                  value: province,
-                  child: Text(province),
-                );
-              }).toList(),
-              validator: (val) =>
-                  val == null || val.isEmpty
-                      ? "الرجاء اختيار المحافظة"
-                      : null,
-              onChanged: (val) {
-                cubit.changAddress(val!);
-              },
+            /// المحافظة — الورقة السفلية نفسها المستعملة في تعديل الملف.
+            /// كانت `DropdownButtonFormField`: قائمة النظام الرمادية تفتح
+            /// فوق الحقل وتقصّ أسماء المحافظات الطويلة.
+            ProvinceField(
+              value: cubit.address,
+              onChanged: cubit.changAddress,
             ),
 
             SizedBox(height: 14.h),

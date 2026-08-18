@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/utils/functions/boot_to_int.dart';
+import 'package:alatarekak/core/utils/functions/input_valid.dart';
 import 'package:alatarekak/core/utils/functions/get_userid.dart';
 import 'package:alatarekak/features/profiles/data/model/enum/image_mode.dart';
 import 'package:alatarekak/features/profiles/data/model/enum/profile_mode.dart';
@@ -182,6 +183,7 @@ class ProfileCubit extends SafeCubit<ProfileState> {
     String? description,
     String? address,
     String? gender,
+    String? fullName,
     CarEntity? car,
   }) {
     final current = state;
@@ -192,6 +194,7 @@ class ProfileCubit extends SafeCubit<ProfileState> {
         description: description,
         address: address,
         gender: gender,
+        fullname: fullName,
         car: car ?? current.editProfile?.car,
       ),
     ));
@@ -210,6 +213,11 @@ class ProfileCubit extends SafeCubit<ProfileState> {
 
     emit(ProfileLoadingState(profileEntity: current.profileEntity));
 
+    // الاسم يُرسل حقلين كما يخزّنه الخادم، ولا يُرسل إن لم يتغيّر
+    final name = profile?.fullname.trim() ?? '';
+    final changed = name.isNotEmpty && name != current.profileEntity?.fullname;
+    final parts = changed ? splitFullName(name) : null;
+
     final response = await profileRepoIm.updateProfile(
       userPhoto,
       profile?.description,
@@ -222,6 +230,8 @@ class ProfileCubit extends SafeCubit<ProfileState> {
       car?.type,
       profile?.gender,
       profile?.address,
+      firstName: parts?.first,
+      lastName: parts?.last,
     );
 
     response.fold(

@@ -74,3 +74,36 @@ bool isValidUsername(String username) {
   const usernamePattern = r'^[a-zA-Z\u0600-\u06FF\s]+$';
   return RegExp(usernamePattern).hasMatch(username);
 }
+
+/// تقسيم الاسم الكامل إلى اسم أول واسم أخير.
+///
+/// الخادم يخزّنهما حقلين ويعيدهما مجموعين في `full_name`. وشاشة التعديل
+/// تعرض حقلاً واحداً كما هو معروض في الملف، فالفصل يقع هنا: أول كلمة
+/// اسم أول، وما بعدها اسم العائلة كاملاً — فـ«محمد علي الحسن» تصير
+/// «محمد» و«علي الحسن» لا «محمد علي» و«الحسن».
+({String first, String last}) splitFullName(String fullName) {
+  final parts =
+      fullName.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+  if (parts.isEmpty) return (first: '', last: '');
+  if (parts.length == 1) return (first: parts.first, last: '');
+  return (first: parts.first, last: parts.sublist(1).join(' '));
+}
+
+/// تحقّق الاسم الكامل في شاشة تعديل المعلومات.
+///
+/// يشترط كلمتين: الخادم يحفظ `first_name` و`last_name` كلاً على حدة،
+/// واسم من كلمة واحدة يترك حقل العائلة فارغاً فيرفضه.
+String? validateFullName(String value) {
+  final name = value.trim();
+  if (name.isEmpty) return 'الاسم مطلوب';
+
+  final parts = splitFullName(name);
+  if (parts.last.isEmpty) return 'أدخل الاسم الأول واسم العائلة';
+  if (parts.first.length < 2 || parts.last.length < 2) {
+    return 'كل جزء من الاسم حرفان على الأقل';
+  }
+  if (name.length > 40) return 'الاسم طويل جداً';
+  if (RegExp(r'[0-9]').hasMatch(name)) return 'الاسم لا يحتوي أرقاماً';
+
+  return null;
+}

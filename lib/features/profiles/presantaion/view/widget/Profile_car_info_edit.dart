@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:alatarekak/core/utils/widgets/seats_stepper.dart';
 import 'package:alatarekak/features/profiles/data/model/enum/image_mode.dart';
 import 'package:alatarekak/features/profiles/domain/entity/car_entity.dart';
 import 'package:alatarekak/features/profiles/presantaion/manger/profile_cubit.dart';
@@ -9,7 +10,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 // استورد الويدجتات الفرعية الخاصة بك (CarNameInputTile, CarColorInputTile, ...)
 import 'package:alatarekak/features/profiles/presantaion/view/widget/car_color_input_tile.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/widget/car_name_input_tile.dart';
-import 'package:alatarekak/features/profiles/presantaion/view/widget/car_seats_input_tile.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/widget/car_switch_smoking.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/widget/profile_car_image_picker.dart';
 import 'package:alatarekak/features/profiles/presantaion/view/widget/radio_switch_tile.dart';
@@ -31,7 +31,9 @@ class ProfileCarInfoEdit extends StatefulWidget {
 class _ProfileCarInfoEditState extends State<ProfileCarInfoEdit> {
   late TextEditingController carName;
   late TextEditingController colorCar;
-  late TextEditingController seatsCar;
+
+  /// عدّاد لا حقل نصّ — انظر [SeatsStepper]
+  late int seats;
   late bool hasRadio;
   late bool allowsSmoking;
   String? carImage;
@@ -44,7 +46,8 @@ class _ProfileCarInfoEditState extends State<ProfileCarInfoEdit> {
     currentCar = widget.carWithEdit ?? const CarEntity();
     carName = TextEditingController(text: currentCar.type ?? "");
     colorCar = TextEditingController(text: currentCar.color ?? "");
-    seatsCar = TextEditingController(text: currentCar.seats?.toString() ?? "");
+    seats = (currentCar.seats ?? kMinCarSeats)
+        .clamp(kMinCarSeats, kMaxCarSeats);
     hasRadio = currentCar.hasRadio;
     allowsSmoking = currentCar.allowsSmoking;
     carImage = currentCar.image;
@@ -57,8 +60,9 @@ class _ProfileCarInfoEditState extends State<ProfileCarInfoEdit> {
       currentCar = widget.carWithEdit ?? const CarEntity();
       carName.text = currentCar.type ?? "";
       colorCar.text = currentCar.color ?? "";
-      seatsCar.text = currentCar.seats?.toString() ?? "";
       setState(() {
+        seats = (currentCar.seats ?? kMinCarSeats)
+            .clamp(kMinCarSeats, kMaxCarSeats);
         hasRadio = currentCar.hasRadio;
         allowsSmoking = currentCar.allowsSmoking;
         carImage = currentCar.image;
@@ -70,7 +74,6 @@ class _ProfileCarInfoEditState extends State<ProfileCarInfoEdit> {
   void dispose() {
     carName.dispose();
     colorCar.dispose();
-    seatsCar.dispose();
     super.dispose();
   }
 
@@ -107,15 +110,15 @@ class _ProfileCarInfoEditState extends State<ProfileCarInfoEdit> {
               ),
             ),
             Expanded(
-              child: CarSeatsInputTile(
-                controller: seatsCar,
-                onChanged: (val) {
-                  final parsed = int.tryParse(val);
-                  if (parsed != null) {
-                    final updated = currentCar.copyWith(seats: parsed);
-                    _emitChanged(updated);
-                  }
-                },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: SeatsStepper(
+                  value: seats,
+                  onChanged: (v) {
+                    setState(() => seats = v);
+                    _emitChanged(currentCar.copyWith(seats: v));
+                  },
+                ),
               ),
             ),
           ],
