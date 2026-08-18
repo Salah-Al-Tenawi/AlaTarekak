@@ -1,12 +1,12 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/support/domain/entity/support_conversation.dart';
 import 'package:alatarekak/features/support/domain/repo/support_repo.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'contact_support_state.dart';
 
-class ContactSupportCubit extends Cubit<ContactSupportState> {
+class ContactSupportCubit extends SafeCubit<ContactSupportState> {
   final SupportRepo _repo;
 
   ContactSupportCubit(this._repo) : super(const ContactSupportInitial());

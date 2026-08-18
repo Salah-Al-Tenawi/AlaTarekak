@@ -1,12 +1,12 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_me/data/repo/trip_me_repo_im.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'trip_me_state.dart';
 
-class TripMeCubit extends Cubit<TripMeState> {
+class TripMeCubit extends SafeCubit<TripMeState> {
   final TripMeRepoIm _tripMeRepoIm;
   TripMeCubit(this._tripMeRepoIm) : super(TripMeInitial());
 

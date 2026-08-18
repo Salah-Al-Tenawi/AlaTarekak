@@ -1,10 +1,10 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/service/hive_services.dart';
 import 'package:alatarekak/features/auth/data/repo/auth_repo_im.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
-class SplashCubit extends Cubit<void> {
+class SplashCubit extends SafeCubit<void> {
   final AuthRepoIm authRepoIm;
 
   SplashCubit(this.authRepoIm) : super(null);

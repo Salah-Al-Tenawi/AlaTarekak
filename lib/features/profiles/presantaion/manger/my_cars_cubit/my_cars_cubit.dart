@@ -1,10 +1,10 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:alatarekak/features/profiles/domain/entity/user_car_entity.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'my_cars_state.dart';
 
-class MyCarsScreenCubit extends Cubit<MyCarsState> {
+class MyCarsScreenCubit extends SafeCubit<MyCarsState> {
   MyCarsScreenCubit() : super(const MyCarsInitial());
 
   Future<void> getMyCars() async {

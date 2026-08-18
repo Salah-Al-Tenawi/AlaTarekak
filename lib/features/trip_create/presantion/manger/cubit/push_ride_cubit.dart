@@ -1,13 +1,13 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:alatarekak/core/utils/functions/input_valid.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_from.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_create/data/repo/trip_create_repo_im.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'push_ride_state.dart';
 
-class PushRideCubit extends Cubit<PushRideState> {
+class PushRideCubit extends SafeCubit<PushRideState> {
   PushRideCubit(this.tripCreateRepoIm) : super(PushRideInitial());
   final TripCreateRepoIm tripCreateRepoIm;
 

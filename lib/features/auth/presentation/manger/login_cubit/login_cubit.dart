@@ -1,12 +1,12 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/service/push_token_service.dart';
 import 'package:alatarekak/features/auth/data/repo/auth_repo_im.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'login_state.dart';
 
-class LoginCubit extends Cubit<LoginState> {
+class LoginCubit extends SafeCubit<LoginState> {
   final AuthRepoIm authRepoIm;
   LoginCubit(this.authRepoIm) : super(LoginInitial());
 

@@ -1,13 +1,13 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/auth/data/repo/auth_repo_im.dart';
 import 'package:alatarekak/features/auth/domain/usecase/params/reset_password_params.dart';
 import 'dart:async';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'forget_password_state.dart';
 
-class ForgetPasswordCubit extends Cubit<ForgetPasswordState> {
+class ForgetPasswordCubit extends SafeCubit<ForgetPasswordState> {
   final AuthRepoIm authRepoIm;
   ForgetPasswordCubit(this.authRepoIm) : super(ForgetPasswordInitial());
 

@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/service/chat_socket_service.dart';
 import 'package:alatarekak/features/chat/data/model/message_model.dart';
 import 'package:alatarekak/features/chat/domain/entity/message_entity.dart';
 import 'package:alatarekak/features/chat/domain/repo/chat_repo.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'message_state.dart';
 
-class MessageCubit extends Cubit<MessageState> {
+class MessageCubit extends SafeCubit<MessageState> {
   final ChatRepo chatRepo;
   final int conversationId;
 

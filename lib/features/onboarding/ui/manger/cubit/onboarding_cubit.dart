@@ -1,10 +1,10 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 // onboarding_cubit.dart — لا تغيير كبير
 // ━━━━━━━━━━━━━━━━━━━━━━━━
-import 'package:bloc/bloc.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 part 'onboarding_state.dart';
 
-class OnboardingCubit extends Cubit<OnboardingState> {
+class OnboardingCubit extends SafeCubit<OnboardingState> {
   OnboardingCubit() : super(OnboardingInitial());
 
   int currentPage = 0;

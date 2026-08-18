@@ -1,14 +1,14 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/service/wallet_provision_service.dart';
 import 'package:alatarekak/features/e_pay/data/model/balance_model.dart';
 import 'package:alatarekak/features/e_pay/data/repo/e_pay_repo_im.dart';
 import 'package:alatarekak/features/e_pay/domain/entity/wallet_transaction.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'wallet_state.dart';
 
-class WalletCubit extends Cubit<WalletState> {
+class WalletCubit extends SafeCubit<WalletState> {
   final EPayRepoIm _repo;
   WalletCubit(this._repo) : super(WalletInitial());
 

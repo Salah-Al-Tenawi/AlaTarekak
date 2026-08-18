@@ -1,11 +1,11 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_search/data/repo/search_repo_im.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'tripsearch_list_state.dart';
 
-class TripsearchListCubit extends Cubit<TripsearchListState> {
+class TripsearchListCubit extends SafeCubit<TripsearchListState> {
   TripsearchListCubit(this.repoIm) : super(TripsearchListInitial());
   final SearchRepoIm repoIm;
 

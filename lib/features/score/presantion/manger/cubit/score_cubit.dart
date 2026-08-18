@@ -1,11 +1,11 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/score/domain/entity/score_entity.dart';
 import 'package:alatarekak/features/score/domain/repo/score_repo.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'score_state.dart';
 
-class ScoreCubit extends Cubit<ScoreState> {
+class ScoreCubit extends SafeCubit<ScoreState> {
   final ScoreRepo _repo;
 
   ScoreCubit(this._repo) : super(ScoreInitial());

@@ -1,11 +1,11 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:alatarekak/features/support/domain/entity/complaint_entity.dart';
 import 'package:alatarekak/features/support/domain/repo/support_repo.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'complaint_list_state.dart';
 
-class ComplaintListCubit extends Cubit<ComplaintListState> {
+class ComplaintListCubit extends SafeCubit<ComplaintListState> {
   final SupportRepo _repo;
 
   ComplaintListCubit(this._repo) : super(const ComplaintListInitial());

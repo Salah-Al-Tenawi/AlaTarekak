@@ -1,12 +1,12 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/booking_user_in_trip/data/repo/booking_users_in_trip_repo_imp.dart';
 import 'package:alatarekak/features/chat/domain/repo/chat_repo.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'booking_user_in_trip_state.dart';
 
-class BookingUserInTripCubit extends Cubit<BookingUserInTripState> {
+class BookingUserInTripCubit extends SafeCubit<BookingUserInTripState> {
   final BookingUsersInTripRepoImp repo;
 
   /// اختياري: بدونه يختفي زر مراسلة الراكب ويبقى الباقي يعمل.

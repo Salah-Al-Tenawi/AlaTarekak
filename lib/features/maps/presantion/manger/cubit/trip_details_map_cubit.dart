@@ -1,12 +1,12 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/maps/data/repo/map_repo.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 // فيه RouteModel
 
 part 'trip_details_map_state.dart';
-class TripDetailsMapCubit extends Cubit<TripDetailsMapState> {
+class TripDetailsMapCubit extends SafeCubit<TripDetailsMapState> {
   final MapRepoIm mapRepo;
 
   TripDetailsMapCubit(this.mapRepo) : super(TripDetailsMapInitial());

@@ -1,15 +1,16 @@
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
+import 'package:alatarekak/core/service/push_token_service.dart';
 import 'package:alatarekak/features/auth/domain/usecase/params/sing_up_params.dart';
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:alatarekak/features/auth/data/model/user_model.dart';
 import 'package:alatarekak/features/auth/data/repo/auth_repo_im.dart';
 import 'dart:async';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'singin_state.dart';
 
 
-class SinginCubit extends Cubit<SinginState> {
+class SinginCubit extends SafeCubit<SinginState> {
   String gender = "M";
   String? address;
   final AuthRepoIm authRepoIm;
@@ -71,6 +72,12 @@ class SinginCubit extends Cubit<SinginState> {
       emit(SinginErorre(HandelErorrMessage.emailVerification(e.message)));
     },
     (auth) {
+      // تسجيل توكن FCM بعد تأكيد البريد كما يفعل الدخول تماماً.
+      //
+      // كان يُستدعى من LoginCubit وحده، فمن أنشأ حسابه للتوّ يبقى بلا
+      // توكن مسجَّل حتى يُغلق التطبيق ويفتحه — وأول إشعاراته (إنشاء رحلة،
+      // قبول حجز) لا يصله دفعاً.
+      PushTokenService.instance.registerToken();
       emit(SinginSuccess(authModel: auth));
     },
   );

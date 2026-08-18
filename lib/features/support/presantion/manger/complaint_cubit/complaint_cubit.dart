@@ -1,17 +1,17 @@
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:alatarekak/core/errors/filuar.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/support/domain/entity/complaint_entity.dart';
 import 'package:alatarekak/features/support/domain/entity/complaint_type.dart';
 import 'package:alatarekak/features/support/domain/repo/support_repo.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'complaint_state.dart';
 
-class ComplaintCubit extends Cubit<ComplaintState> {
+class ComplaintCubit extends SafeCubit<ComplaintState> {
   final SupportRepo _repo;
 
   ComplaintCubit(this._repo) : super(const ComplaintInitial());

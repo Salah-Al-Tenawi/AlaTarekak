@@ -1,12 +1,12 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:alatarekak/features/maps/data/model/place_suggestion.dart';
 import 'package:alatarekak/features/maps/data/repo/map_repo.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'pick_location_state.dart';
 
-class PickLocationCubit extends Cubit<PickLocationState> {
+class PickLocationCubit extends SafeCubit<PickLocationState> {
   final MapRepoIm mapsRepo;
 
   PickLocationCubit(this.mapsRepo) : super(PickLocationInitial());

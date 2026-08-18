@@ -1,12 +1,12 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_search/data/repo/search_repo_im.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'search_state.dart';
 
-class SearchCubit extends Cubit<SearchState> {
+class SearchCubit extends SafeCubit<SearchState> {
   final SearchRepoIm repoIm;
   SearchCubit(this.repoIm) : super(SearchInitial());
 

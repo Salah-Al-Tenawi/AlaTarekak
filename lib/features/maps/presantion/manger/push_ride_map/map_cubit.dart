@@ -1,11 +1,11 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/maps/data/model/place_suggestion.dart';
 import 'package:alatarekak/features/maps/data/repo/map_repo.dart';
 import 'map_state.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
-class MapCubit extends Cubit<MapState> {
+class MapCubit extends SafeCubit<MapState> {
   MapCubit(this.mapsRepo) : super(MapInitial());
 
   final MapRepoIm mapsRepo;

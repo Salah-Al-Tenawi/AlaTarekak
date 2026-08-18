@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
@@ -10,10 +9,11 @@ import 'package:alatarekak/features/profiles/data/model/enum/profile_mode.dart';
 import 'package:alatarekak/features/profiles/data/repo/profile_repo_im.dart';
 import 'package:alatarekak/features/profiles/domain/entity/car_entity.dart';
 import 'package:alatarekak/features/profiles/domain/entity/profile_entity.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'profile_state.dart';
 
-class ProfileCubit extends Cubit<ProfileState> {
+class ProfileCubit extends SafeCubit<ProfileState> {
   final ProfileRepoIm profileRepoIm;
   XFile? userPhoto;
   XFile? carPhoto;
