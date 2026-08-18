@@ -360,4 +360,82 @@ void main() {
       verify: (_) => verifyNever(() => repo.featchTrip(any())),
     );
   });
+
+  // ---------------------------------------------------------------
+  // إغلاق الشاشة والطلب في الطريق.
+  //
+  // المستخدم يفتح تفاصيل رحلة من نتائج البحث ثم يخرج بسرعة إلى تبويب
+  // آخر. الشاشة تُغلَق ومعها الكيوبت، ثم يعود ردّ الخادم فيُستدعى
+  // `emit` على كيوبت مُغلَق: StateError من مسار غير متزامن لا يلتقطه
+  // أحد — «Cannot emit new states after calling close».
+  //
+  // لا يقع في كل مرة: يحتاج أن يسبق الإغلاقُ وصولَ الردّ، فيظهر
+  // متقطّعاً ويصعب تكراره.
+  // ---------------------------------------------------------------
+
+  group('TripDetailsCubit — الخروج قبل وصول الرد', () {
+    test('جلب الرحلة: الخروج أثناء الطلب لا يرمي', () async {
+      when(() => repo.featchTrip(any())).thenAnswer((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 40));
+        return right(fakeTrip());
+      });
+
+      final cubit = TripDetailsCubit(tripDetailsRepoIM: repo);
+      final pending = cubit.fetchTrip(7);
+
+      await cubit.close(); // خرج المستخدم قبل وصول الرد
+      await expectLater(pending, completes);
+    });
+
+    test('فشل الجلب بعد الخروج لا يرمي كذلك', () async {
+      when(() => repo.featchTrip(any())).thenAnswer((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 40));
+        return left(const Filuar(message: 'Ride not found'));
+      });
+
+      final cubit = TripDetailsCubit(tripDetailsRepoIM: repo);
+      final pending = cubit.fetchTrip(7);
+
+      await cubit.close();
+      await expectLater(pending, completes);
+    });
+
+    test('إنهاء الرحلة: الخروج أثناء الطلب لا يرمي', () async {
+      when(() => repo.finishTrip(any())).thenAnswer((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 40));
+        return right(unit);
+      });
+
+      final cubit = TripDetailsCubit(tripDetailsRepoIM: repo);
+      final pending = cubit.finishRide(7);
+
+      await cubit.close();
+      await expectLater(pending, completes);
+    });
+
+    test('الحجز: الخروج أثناء الطلب لا يرمي', () async {
+      when(() => repo.booking(any(), any(), any(), any()))
+          .thenAnswer((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 40));
+        return left(const Filuar(message: 'Not enough seats'));
+      });
+
+      final cubit = TripDetailsCubit(tripDetailsRepoIM: repo);
+      final pending = cubit.booking(2, 7, '0988626577');
+
+      await cubit.close();
+      await expectLater(pending, completes);
+    });
+
+    test('البقاء في الشاشة يُصدر الحالة كالمعتاد', () async {
+      when(() => repo.featchTrip(any()))
+          .thenAnswer((_) async => right(fakeTrip()));
+
+      final cubit = TripDetailsCubit(tripDetailsRepoIM: repo);
+      await cubit.fetchTrip(7);
+
+      expect(cubit.state, isA<TripDetailsLoaded>());
+      await cubit.close();
+    });
+  });
 }

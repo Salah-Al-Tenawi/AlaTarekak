@@ -8,6 +8,7 @@ import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
 import 'package:alatarekak/features/chat/domain/entity/quick_messages.dart';
 import 'package:alatarekak/features/trip_details/presantaion/manger/cubit/tripdetails_cubit.dart';
 import 'package:alatarekak/features/trip_details/presantaion/view/widget/body_trip_details.dart';
+import 'package:alatarekak/features/trip_details/presantaion/view/widget/trip_details_error_view.dart';
 
 class TripDetails extends StatefulWidget {
   const TripDetails({super.key});
@@ -53,6 +54,20 @@ class _TripDetailsState extends State<TripDetails> {
           await context.read<TripDetailsCubit>().fetchTrip(tripId);
         },
         child: BlocConsumer<TripDetailsCubit, TripDetailsState>(
+          // **لا يُبنى إلا لحالات العرض الثلاث.**
+          //
+          // الكيوبت يُصدر حالات ليست شاشات: `GoToProfile` و`GoToChat`
+          // و`OpenConversation` و`FinishTrip` و`RequestBooking` — إشارات
+          // للمستمع لا محتوى. وكان البنّاء يُستدعى لها فتسقط في الفرع
+          // الأخير، فتُمحى الرحلة من الشاشة ويبقى زرّ «أعد المحاولة»
+          // وحده بلا خطأ ولا سبب: يكفي أن يفتح المستخدم ملف السائق ثم
+          // يعود، أو أن ينهي السائق رحلته.
+          //
+          // بهذا الحارس تبقى آخر رحلة معروضة كما هي حتى يصل جديد.
+          buildWhen: (previous, current) =>
+              current is TripDetailsLoading ||
+              current is TripDetailsError ||
+              current is TripDetailsLoaded,
           listener: (context, state) {
             if (state is TripDetailsGoToProfile) {
               Get.toNamed(RouteName.profile, arguments: state.userId);
@@ -70,6 +85,12 @@ class _TripDetailsState extends State<TripDetails> {
                 'title': state.title ?? 'السائق',
                 'avatar': state.avatar,
               });
+            } else if (state is TripDetailsFinishTrip) {
+              // بلا إعادة جلب تبقى الشاشة تعرض الرحلة «نشطة» بعد إنهائها
+              context.read<TripDetailsCubit>().fetchTrip(tripId);
+              Get.snackbar('تم إنهاء الرحلة',
+                  'شكراً لك، يمكنك متابعة تقييم الركّاب من صفحة الرحلة',
+                  snackPosition: SnackPosition.BOTTOM);
             } else if (state is TripDetailsCancel) {
               Get.snackbar('تم إلغاء الرحلة', state.message,
                   snackPosition: SnackPosition.BOTTOM);
@@ -119,21 +140,10 @@ class _TripDetailsState extends State<TripDetails> {
                   showMySnackBar(context, "يجب عليك توثيق حسابك");
                 });
               } else {
-                return ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  children: [
-                    const SizedBox(height: 200),
-                    Center(child: Text("خطأ: ${state.message}")),
-                    const SizedBox(height: 20),
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          context.read<TripDetailsCubit>().fetchTrip(tripId);
-                        },
-                        child: const Text("🔄 أعد المحاولة"),
-                      ),
-                    ),
-                  ],
+                return TripDetailsErrorView(
+                  message: state.message,
+                  onRetry: () =>
+                      context.read<TripDetailsCubit>().fetchTrip(tripId),
                 );
               }
             } else if (state is TripDetailsLoaded) {
@@ -148,14 +158,9 @@ class _TripDetailsState extends State<TripDetails> {
               );
             }
 
-            return Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  context.read<TripDetailsCubit>().fetchTrip(tripId);
-                },
-                child: const Text("🔄 أعد المحاولة"),
-              ),
-            );
+            // حالة بلا فرع خاص (طلب حجز قيد الإرسال مثلاً) — مؤشّر
+            // انتظار أصدق من زرّ إعادة محاولة لشيء لم يفشل.
+            return const Center(child: LoadingWidgetSize150());
           },
         ),
       ),

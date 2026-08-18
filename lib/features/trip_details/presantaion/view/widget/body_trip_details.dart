@@ -136,13 +136,18 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
                 ),
               ),
               SizedBox(width: 10.w),
-              Padding(
-                padding: EdgeInsets.only(bottom: 3.h),
-                child: Text(
-                  date,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    fontSize: 13.sp,
+              // Flexible: الساعة بحجم 26 والتاريخ بجانبها في صفّ ثابت —
+              // يكفي تاريخ أطول أو خطّ أعرض قليلاً ليفيض على شاشة ضيّقة.
+              Flexible(
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: 3.h),
+                  child: Text(
+                    date,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontSize: 13.sp,
+                    ),
                   ),
                 ),
               ),

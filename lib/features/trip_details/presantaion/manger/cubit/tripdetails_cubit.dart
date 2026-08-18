@@ -1,4 +1,3 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/utils/functions/get_userid.dart';
@@ -8,10 +7,11 @@ import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_details/data/model/booking_model.dart';
 import 'package:alatarekak/features/trip_details/data/model/trip_details_mode.dart';
 import 'package:alatarekak/features/trip_details/data/repo/trip_details_repo.dart';
+import 'package:alatarekak/core/service/safe_cubit.dart';
 
 part 'tripdetails_state.dart';
 
-class TripDetailsCubit extends Cubit<TripDetailsState> {
+class TripDetailsCubit extends SafeCubit<TripDetailsState> {
   final TripDetailsRepoIM tripDetailsRepoIM;
 
   /// اختياري: بدونه يبقى الحجز يعمل بلا فتح محادثة تلقائية.
@@ -36,6 +36,8 @@ class TripDetailsCubit extends Cubit<TripDetailsState> {
         seats, tripId, communicationNumber, idempotencyKey);
     // fold مُنتظَر: فرع النجاح غير متزامن (يفتح المحادثة) وبدون await
     // تعود الدالة قبل إصدار الحالة النهائية
+    if (isClosed) return;
+
     await response.fold((error) async {
       // الرسالة الخام تُترجم هنا — الواجهة تعرضها كما هي
       emit(TripDetailsError(
@@ -81,6 +83,13 @@ class TripDetailsCubit extends Cubit<TripDetailsState> {
   Future<void> fetchTrip(int tripId) async {
     emit(TripDetailsLoading());
     final response = await tripDetailsRepoIM.featchTrip(tripId);
+
+    // شاشة التفاصيل تُغلَق بمغادرتها — والخروج السريع من نتائج البحث
+    // شائع — بينما الطلب ما زال في الطريق، فيعود الردّ إلى كيوبت
+    // مُغلَق. بلا هذا الفحص يُرفع StateError من مسار غير متزامن لا
+    // يلتقطه أحد: «Cannot emit new states after calling close».
+    if (isClosed) return;
+
     response.fold((error) {
       emit(TripDetailsError(
           message: HandelErorrMessage.showOneRide(error.message)));
@@ -136,14 +145,18 @@ class TripDetailsCubit extends Cubit<TripDetailsState> {
   Future<void> finishRide(int tripId) async {
     emit(TripDetailsLoading());
     final response = await tripDetailsRepoIM.finishTrip(tripId);
+    if (isClosed) return;
+
     await response.fold((erorr) async {
       // رحلة بلا ركّاب: الخادم أنهاها فعلاً ثم رمى 400 كاذباً — نتحقق
       // من الحالة الحقيقية قبل إزعاج السائق برسالة خطأ.
       if (HandelErorrMessage.isRideNotAwaitingConfirmation(erorr.message) &&
           await _isRideFinished(tripId)) {
+        if (isClosed) return; // طلب ثانٍ انتظرناه — قد تُغلق الشاشة خلاله
         emit(TripDetailsFinishTrip());
         return;
       }
+      if (isClosed) return;
       emit(TripDetailsError(
           message: HandelErorrMessage.finishRide(erorr.message)));
     }, (response) async {
