@@ -20,10 +20,22 @@ class TripDetails extends StatefulWidget {
 class _TripDetailsState extends State<TripDetails> {
   late final int tripId;
 
+  /// فُتحت من «رحلاتي» — فتُجلب الرحلة بحجوزاتها.
+  late final bool asDriver;
+
   @override
   void initState() {
-    tripId = Get.arguments as int;
-    context.read<TripDetailsCubit>().fetchTrip(tripId);
+    // المعرّف وحده هو الشكل الشائع؛ والخريطة تحمل معه صفة المستدعي.
+    final args = Get.arguments;
+    if (args is Map) {
+      tripId = args['tripId'] as int;
+      asDriver = args['asDriver'] == true;
+    } else {
+      tripId = args as int;
+      asDriver = false;
+    }
+
+    context.read<TripDetailsCubit>().fetchTrip(tripId, asDriver: asDriver);
     super.initState();
   }
 
@@ -43,7 +55,7 @@ class _TripDetailsState extends State<TripDetails> {
         actions: [
           IconButton(
             onPressed: () =>
-                context.read<TripDetailsCubit>().fetchTrip(tripId),
+                context.read<TripDetailsCubit>().fetchTrip(tripId, asDriver: asDriver),
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'تحديث',
           ),
@@ -51,7 +63,7 @@ class _TripDetailsState extends State<TripDetails> {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          await context.read<TripDetailsCubit>().fetchTrip(tripId);
+          await context.read<TripDetailsCubit>().fetchTrip(tripId, asDriver: asDriver);
         },
         child: BlocConsumer<TripDetailsCubit, TripDetailsState>(
           // **لا يُبنى إلا لحالات العرض الثلاث.**
@@ -79,7 +91,7 @@ class _TripDetailsState extends State<TripDetails> {
                   );
             } else if (state is TripDetailsOpenConversation) {
               // نعيد جلب الرحلة أولاً حتى لا تعود الشاشة فارغة بعد الرجوع
-              context.read<TripDetailsCubit>().fetchTrip(tripId);
+              context.read<TripDetailsCubit>().fetchTrip(tripId, asDriver: asDriver);
               Get.toNamed(RouteName.chatScreen, arguments: {
                 'conversationId': state.conversationId,
                 'title': state.title ?? 'السائق',
@@ -87,7 +99,7 @@ class _TripDetailsState extends State<TripDetails> {
               });
             } else if (state is TripDetailsFinishTrip) {
               // بلا إعادة جلب تبقى الشاشة تعرض الرحلة «نشطة» بعد إنهائها
-              context.read<TripDetailsCubit>().fetchTrip(tripId);
+              context.read<TripDetailsCubit>().fetchTrip(tripId, asDriver: asDriver);
               Get.snackbar('تم إنهاء الرحلة',
                   'شكراً لك، يمكنك متابعة تقييم الركّاب من صفحة الرحلة',
                   snackPosition: SnackPosition.BOTTOM);
@@ -95,7 +107,7 @@ class _TripDetailsState extends State<TripDetails> {
               Get.snackbar('تم إلغاء الرحلة', state.message,
                   snackPosition: SnackPosition.BOTTOM);
             } else if (state is TripDetailsRequestBooking) {
-              context.read<TripDetailsCubit>().fetchTrip(tripId);
+              context.read<TripDetailsCubit>().fetchTrip(tripId, asDriver: asDriver);
               // رحلات direct تُخصم مقاعدها فوراً (confirmed)، أما رحلات
               // request فتنتظر موافقة السائق (pending) — حالتان مختلفتان
               // تماماً ولا يصحّ إظهارهما برسالة واحدة.
@@ -143,7 +155,7 @@ class _TripDetailsState extends State<TripDetails> {
                 return TripDetailsErrorView(
                   message: state.message,
                   onRetry: () =>
-                      context.read<TripDetailsCubit>().fetchTrip(tripId),
+                      context.read<TripDetailsCubit>().fetchTrip(tripId, asDriver: asDriver),
                 );
               }
             } else if (state is TripDetailsLoaded) {

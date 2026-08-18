@@ -187,20 +187,26 @@ void main() {
   });
 
   group('حالة بلا فرع خاص', () {
-    // `TripMeOneLoaded` (من showOneTrip) لا فرع لها في البناء. كانت
-    // تسقط في الفرع الأخير الذي يجدول `getMeTrips()` — فيقع طلب شبكة
-    // لا يقصده أحد لمجرّد أن الكيوبت أصدر حالة لا تعني القائمة.
+    // `TripMeCancel` لا فرع لها في البناء. كانت تسقط في الفرع الأخير
+    // الذي يجدول `getMeTrips()` — فيقع طلب شبكة لا يقصده أحد لمجرّد أن
+    // الكيوبت أصدر حالة لا تعني القائمة.
+    //
+    // (كانت هذه الحالة تُختبَر بـ`TripMeOneLoaded` من `showOneTrip`،
+    // وقد حُذفا: المسار `/rides/{id}/passangers` صار يُستدعى من شاشة
+    // التفاصيل نفسها.)
     testWidgets('لا تُطلق طلب شبكة من داخل البناء', (tester) async {
       when(() => repo.showAllTrip())
           .thenAnswer((_) async => right([_trip(1)]));
-      when(() => repo.showOneTrip(any()))
-          .thenAnswer((_) async => right(_trip(5)));
+      when(() => repo.cancelTrip(any())).thenAnswer((_) async {
+        // الإلغاء يُعيد التحميل عمداً — نمنعه لنعزل الفرع الأخير وحده
+        return left(const Filuar(message: 'x'));
+      });
 
       final cubit = await pump(tester);
       await tester.pump(const Duration(milliseconds: 800));
       clearInteractions(repo);
 
-      await cubit.showOneTrip(5);
+      await cubit.cancelTrip(5);
       await tester.pump(const Duration(milliseconds: 800));
       for (var i = 0; i < 5; i++) {
         await tester.pump(const Duration(milliseconds: 120));

@@ -122,10 +122,67 @@ class TripModel {
     return total;
   }
 
+  /// قائمة الحجوزات أياً كان موضعها وشكلها.
+  ///
+  /// ثلاثة أشكال وصلت من الخادم للحقل نفسه:
+  ///   • قائمة داخل الرحلة:      `{..., bookings: [...]}`
+  ///   • كائن شقيق لـ`data`:      `{data: {...}, bookings: {list: [...]}}`
+  ///   • كائن داخل الرحلة:        `{..., bookings: {list: [...]}}`
+  ///
+  /// الشكل الثاني هو ما يرسله `GET /rides/{id}/passangers`، وكان يضيع
+  /// كاملاً: `_unwrap` ينزل إلى `data` فتبقى `bookings` خارجها فلا
+  /// تُقرأ — وتظهر شاشة «حجوزات الرحلة» فارغة مهما بلغ عدد الحجوزات.
+  static List<dynamic> _bookingsFrom(
+      Map<String, dynamic> outer, Map<String, dynamic> data) {
+    for (final source in [data['bookings'], outer['bookings']]) {
+      final list = asList(source);
+      if (list != null) return list;
+
+      final map = asMap(source);
+      if (map != null) {
+        final inner = asList(pick(map, const ['list', 'data', 'items']));
+        if (inner != null) return inner;
+      }
+    }
+    return const [];
+  }
+
+  /// ملخّص المقاعد المرسَل مع قائمة الحجوزات، إن وُجد.
+  static Map<String, dynamic> _seatSummary(
+      Map<String, dynamic> outer, Map<String, dynamic> data) {
+    for (final source in [data['bookings'], outer['bookings']]) {
+      final map = asMap(source);
+      if (map == null) continue;
+      final summary = asMap(map['seat_summary']);
+      if (summary != null) return summary;
+    }
+    return const <String, dynamic>{};
+  }
+
+  /// المحجوز من الملخّص: المؤكَّد والمعلَّق كلاهما يشغل مقعداً.
+  static int? _bookedFromSummary(Map<String, dynamic> summary) {
+    final confirmed = asInt(summary['confirmed']);
+    final pending = asInt(summary['pending']);
+    if (confirmed == null && pending == null) return null;
+    return (confirmed ?? 0) + (pending ?? 0);
+  }
+
+  static dynamic _bookingsCountFrom(
+      Map<String, dynamic> outer, Map<String, dynamic> data) {
+    for (final source in [data['bookings'], outer['bookings']]) {
+      final map = asMap(source);
+      if (map != null && map['total_bookings'] != null) {
+        return map['total_bookings'];
+      }
+    }
+    return null;
+  }
+
   /// لتحويل JSON كائن رحلة واحدة
   factory TripModel.fromMap(Map<String, dynamic> json) {
     final data = _unwrap(json);
-    final rawBookings = asList(data['bookings']) ?? const [];
+    final rawBookings = _bookingsFrom(json, data);
+    final summary = _seatSummary(json, data);
 
     // الشكل الغنيّ يجمع المقاعد في كائن `{available, booked, total}`،
     // والمسطّح يبعثرها حقولاً مفردة. والمسار كذلك: `route.index` هنا
@@ -160,13 +217,16 @@ class TripModel {
             'remaining_seats',
             'seats_left',
           ])) ??
+          asInt(summary['available']) ??
           0,
+      // `seat_summary` يفصل المؤكَّد عن المعلَّق، وكلاهما مقعد محجوز
       seatsBooked: asInt(seats['booked']) ??
           asInt(pick(data, const [
             'seats_booked',
             'booked_seats',
             'reserved_seats',
           ])) ??
+          _bookedFromSummary(summary) ??
           _bookedFrom(rawBookings),
       pricePerSeat: asString(data['price_per_seat']) ?? '0',
       status: asString(data['status']) ?? '',
@@ -189,6 +249,7 @@ class TripModel {
             'booking_count',
             'total_bookings',
           ])) ??
+          asInt(_bookingsCountFrom(json, data)) ??
           rawBookings.length,
     );
   }

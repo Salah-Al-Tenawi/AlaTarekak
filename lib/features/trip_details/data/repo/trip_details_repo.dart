@@ -12,6 +12,14 @@ class TripDetailsRepoIM extends TripDetailsRepo {
   TripDetailsRepoIM({required this.remoteDataSource});
 
   @override
+  Future<Either<Filuar, TripModel>> featchTripWithBookings(int tripId) async {
+    try {
+      return right(await remoteDataSource.featchTripWithBookings(tripId));
+    } on ServerExpcptions catch (e) {
+      return left(e.error);
+    }
+  }
+
   Future<Either<Filuar, TripModel>> featchTrip(int tripId) async {
     try {
       final response = await remoteDataSource.featchTrip(tripId);

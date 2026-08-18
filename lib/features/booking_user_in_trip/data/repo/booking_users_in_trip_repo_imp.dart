@@ -4,11 +4,21 @@ import 'package:alatarekak/core/errors/filuar.dart';
 import 'package:alatarekak/features/booking_user_in_trip/data/data_source/booking_user_trip_remote_data.dart';
 import 'package:alatarekak/features/booking_user_in_trip/data/model/booking_user_modle.dart';
 import 'package:alatarekak/features/booking_user_in_trip/domain/repo/booking_user_in_trip_repo.dart';
+import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 
 class BookingUsersInTripRepoImp extends BookingUserInTripRepo {
   final BookingUserTripRemoteData remoteData;
 
   BookingUsersInTripRepoImp({required this.remoteData});
+
+  @override
+  Future<Either<Filuar, TripModel>> tripPassengers(int rideId) async {
+    try {
+      return right(await remoteData.tripPassengers(rideId));
+    } on ServerExpcptions catch (e) {
+      return left(e.error);
+    }
+  }
 
   @override
   Future<Either<Filuar, BookingUserModle>> acceptPassanger(int bookingId) async {

@@ -10,6 +10,18 @@ class TripDetailsRemoteDataSource {
 
   TripDetailsRemoteDataSource({required this.api});
 
+  /// `GET /rides/{id}/passangers` — الرحلة **وحجوزاتها**، لسائقها وحده.
+  ///
+  /// المسار العام `GET /rides/{id}` لا يرسل الحجوزات عمداً: لا يصحّ أن
+  /// يطّلع أي مستخدم على حجوزات رحلة ليست له. فمن يفتح رحلته من «رحلاتي»
+  /// يُجلب له هذا، ومن يفتح رحلة غيره من البحث يُجلب له الأول.
+  Future<TripModel> featchTripWithBookings(int tripId) async {
+    final response = await api.get("${ApiEndPoint.rides}/$tripId/passangers",
+        header: {ApiKey.authorization: "Bearer ${mytoken()}"});
+
+    return TripModel.fromMap(response);
+  }
+
   Future<TripModel> featchTrip(int tripId) async {
     final response = await api.get("${ApiEndPoint.rides}/$tripId",
         header: {ApiKey.authorization: "Bearer ${mytoken()}"});

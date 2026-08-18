@@ -46,6 +46,26 @@ final class BookingUserInTripUpdated extends BookingUserInTripState {
 
 final class BookingUserInTripSucc extends BookingUserInTripState {}
 
+/// جلب الرحلة وحجوزاتها جارٍ — يخصّ الشاشة كلها لا حجزاً بعينه.
+final class BookingUserInTripFetching extends BookingUserInTripState {}
+
+/// وصلت قائمة حجوزات الرحلة، ومعها موعد انطلاقها.
+///
+/// الموعد يحدّد متى يظهر بلاغ «لم يحضر»، وكان يُمرَّر من الشاشة السابقة
+/// فيغيب متى فُتحت الشاشة من مسار آخر.
+final class BookingUserInTripListLoaded extends BookingUserInTripState {
+  final List<BookingModel> bookings;
+  final DateTime departure;
+
+  const BookingUserInTripListLoaded({
+    required this.bookings,
+    required this.departure,
+  });
+
+  @override
+  List<Object> get props => [bookings, departure];
+}
+
 /// المحادثة مع الراكب جاهزة — الواجهة تنتقل إلى شاشة المحادثة.
 final class BookingUserInTripOpenConversation extends BookingUserInTripState {
   final int conversationId;

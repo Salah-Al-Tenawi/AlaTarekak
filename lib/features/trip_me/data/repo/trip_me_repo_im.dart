@@ -31,16 +31,4 @@ class TripMeRepoIm extends TripMeRepo {
     }
   }
 
-  @override
-  Future<Either<Filuar, TripModel>> showOneTrip(int tripId)async {
-     try {
-      final response = await _tripMeRemoteDataSource.showOneTrip(tripId);
-      return right(response);
-    } on ServerExpcptions catch (e) {
-      return left(e.error);
-    }
-    
-  }
-  
-
 }

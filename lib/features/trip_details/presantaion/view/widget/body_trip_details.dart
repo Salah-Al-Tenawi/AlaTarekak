@@ -15,6 +15,7 @@ import 'package:alatarekak/features/trip_create/data/model/booking_model.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_details/data/model/trip_details_mode.dart';
 import 'package:alatarekak/features/trip_details/presantaion/manger/cubit/tripdetails_cubit.dart';
+import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 
 /// تفاصيل الرحلة.
 ///
@@ -467,7 +468,6 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildBookingsListButton(),
-          _buildFinishRideButton(),
         ],
       );
     }
@@ -479,28 +479,15 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
       icon: Icons.list_alt_rounded,
       label: 'عرض الحجوزات (${trip.seatsBooked})',
       color: MyColors.primary,
-      onTap: () =>
-          Get.toNamed(RouteName.bookingUserInTrip, arguments: trip.booking),
-    );
-  }
-
-  Widget _buildFinishRideButton() {
-    if (trip.status != 'active' && trip.status != 'full') {
-      return const SizedBox.shrink();
-    }
-
-    // الخادم يرفض الإنهاء قبل موعد الانطلاق — نعطّل الزر بدل انتظار الرفض
-    final canFinish = trip.departure.difference(DateTime.now()).inSeconds <= 0;
-
-    return Padding(
-      padding: EdgeInsets.only(top: 10.h),
-      child: _ActionButton(
-        icon: canFinish ? Icons.flag_rounded : Icons.schedule_rounded,
-        label: canFinish ? 'إنهاء الرحلة' : 'لم يحن موعد الرحلة بعد',
-        color: MyColors.accent,
-        onTap: canFinish
-            ? () => context.read<TripDetailsCubit>().finishRide(trip.id)
-            : null,
+      // موعد الانطلاق يُمرَّر معها: بلاغ «لم يحضر» لا يظهر إلا بعد
+      // ساعة منه، والحجز وحده لا يحمل الموعد
+      onTap: () => Get.toNamed(
+        RouteName.bookingUserInTrip,
+        arguments: {
+          'rideId': trip.id,
+          'bookings': trip.booking,
+          'departure': trip.departure,
+        },
       ),
     );
   }
@@ -613,32 +600,12 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
   // ━━━━━━━━━━━━━━━━━━━ الحوارات ━━━━━━━━━━━━━━━━━━━
 
   void _showNoSeatsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: MyColors.surface,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18.r)),
-        title: Row(
-          children: [
-            Icon(Icons.event_busy_rounded, color: MyColors.error, size: 22.sp),
-            SizedBox(width: 8.w),
-            Text('لا مقاعد متاحة',
-                style: AppTextStyles.titleMedium.copyWith(fontSize: 16.sp)),
-          ],
-        ),
-        content: Text(
-          'حُجزت كل مقاعد هذه الرحلة. جرّب رحلة أخرى على المسار نفسه.',
-          style: TextStyle(fontSize: 14.sp, color: MyColors.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('حسناً',
-                style: TextStyle(color: MyColors.primary, fontSize: 14.sp)),
-          ),
-        ],
-      ),
+    showAppDialog(
+      context,
+      icon: Icons.event_busy_rounded,
+      accentColor: MyColors.error,
+      title: 'لا مقاعد متاحة',
+      message: 'حُجزت كل مقاعد هذه الرحلة. جرّب رحلة أخرى على المسار نفسه.',
     );
   }
 

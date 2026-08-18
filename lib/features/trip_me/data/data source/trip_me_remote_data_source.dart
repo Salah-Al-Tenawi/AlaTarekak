@@ -18,12 +18,9 @@ class TripMeRemoteDataSource {
     return trips;
   }
 
-  Future<TripModel> showOneTrip(int tripId) async {
-    final response = await api.get("${ApiEndPoint.rides}/$tripId/passangers",
-        header: {ApiKey.authorization: "Bearer ${mytoken()}"});
-
-    return TripModel.fromMap(response);
-  }
+  // showOneTrip حُذف: كان يستدعي `/rides/{id}/passangers` ولا يناديه
+  // أحد، بينما تجلب شاشة التفاصيل من `/rides/{id}` فتأتي بلا حجوزات.
+  // صار المسار يُستدعى من `TripDetailsRepoIM.featchTripWithBookings`.
 
   Future<dynamic> cancelTrip(int tripId) async {
     final response = await api.patch("${ApiEndPoint.rides}/$tripId/cancel",

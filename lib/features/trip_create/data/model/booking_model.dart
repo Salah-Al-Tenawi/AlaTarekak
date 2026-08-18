@@ -28,10 +28,15 @@ class BookingModel {
   /// يحوّله إلى انهيار نوعي عند أول حجز ينقصه حقل. الاحتياطي الآن من
   /// النوع نفسه، و`user` قد يغيب كاملاً فيُقرأ ككائن فارغ.
   factory BookingModel.fromJson(Map<String, dynamic> json) {
-    final user = asMap(json['user']) ?? const <String, dynamic>{};
+    // الراكب يصل تحت `user` في مسار، وتحت `passenger` في
+    // `GET /rides/{id}/passangers` — وقراءة الأول وحده كانت تُظهر بطاقات
+    // بلا اسم ولا صورة رغم وصولهما كاملين.
+    final user = asMap(pick(json, const ['user', 'passenger'])) ??
+        const <String, dynamic>{};
+
     return BookingModel(
         id: asInt(json['id']) ?? 0,
-        userName: asString(user['name']) ?? "",
+        userName: asString(pick(user, const ['name', 'full_name'])) ?? "",
         userId: asInt(user['id']) ?? 0,
         avatar: asString(user['avatar']),
         rating: asDouble(user['rating']) ?? 0,
@@ -39,7 +44,10 @@ class BookingModel {
         status: asString(json['status']) ?? "",
         totaPrice: asInt(json['total_price']) ?? 0,
         bookingat: asString(json['booked_at']) ?? "",
-        numberPhone: asString(user['communication_number']) ?? "");
+        // رقم التواصل حقل في الحجز لا في الراكب في المسار الجديد
+        numberPhone: asString(pick(json, const ['communication_number'])) ??
+            asString(user['communication_number']) ??
+            "");
   }
 }
 

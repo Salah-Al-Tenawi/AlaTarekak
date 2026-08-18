@@ -20,16 +20,6 @@ class TripMeCubit extends SafeCubit<TripMeState> {
     });
   }
 
-  Future showOneTrip(int tripId) async {
-    emit(TripMeLoading());
-    final response = await _tripMeRepoIm.showOneTrip(tripId);
-    response.fold((erorr) {
-      emit(TripMeErorr(message: HandelErorrMessage.showOneRide(erorr.message)));
-    }, (trip) {
-      emit(TripMeOneLoaded(trip: trip));
-    });
-  }
-
   Future cancelTrip(int tripId) async {
     emit(TripMeLoading());
     final response = await _tripMeRepoIm.cancelTrip(tripId);

@@ -80,9 +80,20 @@ class TripDetailsCubit extends SafeCubit<TripDetailsState> {
     return conversationId;
   }
 
-  Future<void> fetchTrip(int tripId) async {
+  /// [asDriver] يُمرَّر من «رحلاتي» حيث كل رحلة للمستخدم بالتعريف.
+  ///
+  /// **مسار مختلف لا وسيط إضافي:** `GET /rides/{id}` لا يرسل الحجوزات
+  /// عمداً — لا يصحّ أن يطّلع أحد على حجوزات رحلة ليست له — بينما
+  /// `GET /rides/{id}/passangers` يرسلها لسائقها. وكانت الشاشة تجلب
+  /// الأول دائماً، فيفتح السائق رحلته فيجدها بلا حجوزات.
+  ///
+  /// والقرار عند المستدعي لا بعد الجلب: معرفة أن الرحلة لي تأتي من
+  /// الشاشة التي فتحتها، ولا يمكن استنتاجها قبل أن يصل الرد.
+  Future<void> fetchTrip(int tripId, {bool asDriver = false}) async {
     emit(TripDetailsLoading());
-    final response = await tripDetailsRepoIM.featchTrip(tripId);
+    final response = asDriver
+        ? await tripDetailsRepoIM.featchTripWithBookings(tripId)
+        : await tripDetailsRepoIM.featchTrip(tripId);
 
     // شاشة التفاصيل تُغلَق بمغادرتها — والخروج السريع من نتائج البحث
     // شائع — بينما الطلب ما زال في الطريق، فيعود الردّ إلى كيوبت

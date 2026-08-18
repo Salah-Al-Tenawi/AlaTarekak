@@ -20,15 +20,6 @@ final class TripMeListLoaded extends TripMeState {
   List<Object> get props => [trips];
 }
 
-final class TripMeOneLoaded extends TripMeState {
-  final TripModel trip;
-
-  const TripMeOneLoaded({required this.trip});
-
-  @override
-  List<Object> get props => [trip];
-}
-
 final class TripMeErorr extends TripMeState {
   final String message;
 

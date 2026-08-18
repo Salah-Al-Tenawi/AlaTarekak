@@ -1,3 +1,4 @@
+import 'package:alatarekak/features/trip_create/data/model/booking_model.dart';
 import 'package:equatable/equatable.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/booking_user_in_trip/data/repo/booking_users_in_trip_repo_imp.dart';
@@ -41,6 +42,28 @@ class BookingUserInTripCubit extends SafeCubit<BookingUserInTripState> {
         conversationId: conversationId,
         title: name,
         avatar: avatar,
+      )),
+    );
+  }
+
+  /// جلب الرحلة وحجوزاتها من المسار الموضوع لذلك.
+  ///
+  /// [silent] لإعادة الجلب بعد قبول أو رفض بلا وميض مؤشّر تحميل فوق
+  /// قائمة معروضة أصلاً.
+  Future<void> loadBookings(int rideId, {bool silent = false}) async {
+    if (!silent) emit(BookingUserInTripFetching());
+
+    final response = await repo.tripPassengers(rideId);
+    response.fold(
+      (error) {
+        // فشل التحديث الصامت لا يمحو قائمة معروضة
+        if (silent) return;
+        emit(BookingUserInTripErorr(
+            message: HandelErorrMessage.showProfile(error.message)));
+      },
+      (trip) => emit(BookingUserInTripListLoaded(
+        bookings: trip.booking,
+        departure: trip.departure,
       )),
     );
   }

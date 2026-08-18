@@ -33,19 +33,6 @@ void main() {
       ],
     );
 
-    blocTest<TripMeCubit, TripMeState>(
-      'نجاح جلب رحلة واحدة',
-      build: () {
-        when(() => repo.showOneTrip(5))
-            .thenAnswer((_) async => right(fakeTrip()));
-        return TripMeCubit(repo);
-      },
-      act: (cubit) => cubit.showOneTrip(5),
-      expect: () => [
-        isA<TripMeLoading>(),
-        isA<TripMeOneLoaded>().having((s) => s.trip.id, 'id', 5),
-      ],
-    );
   });
 
   group('TripMeCubit — إلغاء رحلة', () {
