@@ -84,6 +84,10 @@ class HiveKeys {
   static const String scoreHistory = "score_history";
   static const String notifications = "notifications";
   static const String complaints = "complaints";
+
+  /// السياسات والأسئلة الشائعة — محتوى عام لا يخصّ مستخدماً بعينه،
+  /// ويجب أن يبقى معروضاً بلا شبكة لأن التسجيل يشترط الموافقة عليه.
+  static const String policies = "policies";
 }
 class HiveBoxes {
  
@@ -111,4 +115,15 @@ class HiveBoxes {
   // يُمسح بالكامل عند تسجيل الخروج.
   static const String cacheBoxName = 'cacheBox';
   static Box<String> get cacheBox => Hive.box<String>(cacheBoxName);
+
+  /// يمسح ما يخصّ المستخدم من الكاش عند الخروج، ويُبقي المحتوى العام.
+  ///
+  /// السياسات والأسئلة الشائعة ليست بيانات مستخدم — يقرأها من لا حساب له
+  /// أصلاً في شاشة إنشاء الحساب. ومسحها مع الباقي يعني أن أول شاشة بعد
+  /// الخروج تعرض النصّ المدمج القديم حتى يردّ الخادم، أو أبداً بلا شبكة.
+  static Future<void> clearUserCache() async {
+    const keep = {HiveKeys.policies};
+    final doomed = cacheBox.keys.where((k) => !keep.contains(k)).toList();
+    await cacheBox.deleteAll(doomed);
+  }
 }

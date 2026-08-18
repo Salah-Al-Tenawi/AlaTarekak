@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/animations/app_animations.dart';
+import 'package:alatarekak/features/policy/domain/entity/policy_content.dart';
+import 'package:alatarekak/features/policy/presantion/manger/cubit/policy_cubit.dart';
 import 'package:alatarekak/features/support/domain/entity/faq_entry.dart';
 
 /// مركز المساعدة: الأسئلة الشائعة، ومنها طريق مباشر إلى الدعم البشري.
@@ -20,18 +23,31 @@ class ProfileSupportScreen extends StatelessWidget {
         title: Text("مركز المساعدة", style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
         centerTitle: true,
       ),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 28.h),
-        children: [
-          ...FaqData.groups.asMap().entries.map(
-                (e) => StaggeredItem(
-                  index: e.key,
-                  child: _FaqGroupCard(group: e.value),
-                ),
-              ),
-          SizedBox(height: 8.h),
-          const _StillNeedHelp(),
-        ],
+      // الأسئلة يحرّرها الأدمن مع السياسات على `GET /policies` — انظر
+      // PolicyCubit في ترتيب المصادر وسبب غياب شاشة الخطأ.
+      body: BlocBuilder<PolicyCubit, PolicyState>(
+        builder: (context, state) {
+          final content =
+              state is PolicyLoaded ? state.content : PolicyContent.builtIn;
+
+          return RefreshIndicator(
+            onRefresh: () => context.read<PolicyCubit>().load(force: true),
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 28.h),
+              children: [
+                ...content.faq.asMap().entries.map(
+                      (e) => StaggeredItem(
+                        index: e.key,
+                        child: _FaqGroupCard(group: e.value),
+                      ),
+                    ),
+                SizedBox(height: 8.h),
+                const _StillNeedHelp(),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

@@ -100,4 +100,51 @@ void main() {
       }
     });
   });
+
+  group('سطر الموافقة يأتي من لوحة الأدمن', () {
+    testWidgets('النصّ المُمرَّر يُعرض بدل المدمج', (tester) async {
+      const fromAdmin = 'أقرّ بموافقتي على سياسة الخصوصية وسياسة الإلغاء';
+
+      await tester.pumpWidget(
+        ScreenUtilInit(
+          designSize: const Size(390, 844),
+          builder: (context, _) => MaterialApp(
+            home: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Scaffold(
+                body: PolicyConsentCheck(
+                  value: false,
+                  consentLabel: fromAdmin,
+                  onChanged: (_) {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('أقرّ بموافقتي'), findsOneWidget);
+      expect(find.textContaining(PolicyText.consentLabel), findsNothing);
+    });
+
+    testWidgets('بلا نصّ من اللوحة يعود إلى المدمج', (tester) async {
+      await tester.pumpWidget(
+        ScreenUtilInit(
+          designSize: const Size(390, 844),
+          builder: (context, _) => MaterialApp(
+            home: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Scaffold(
+                body: PolicyConsentCheck(value: false, onChanged: (_) {}),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining(PolicyText.consentLabel), findsOneWidget);
+    });
+  });
 }

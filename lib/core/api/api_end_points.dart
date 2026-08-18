@@ -84,6 +84,18 @@ class ApiEndPoint {
   static const pushTokens = "$baserUrl/push-tokens";
   static const pushTokensTest = "$pushTokens/test";
 
+  /// سياسة الخصوصية وسياسة الإلغاء والأسئلة الشائعة — يحرّرها الأدمن من
+  /// لوحته منذ 2026-08-18، وكانت نصّاً مكتوباً داخل التطبيق. مسار عام لا
+  /// يشترط تسجيل دخول: شاشة إنشاء الحساب تعرضها قبل أن يكون هناك حساب.
+  static const policies = "$baserUrl/policies";
+
+  /// رحلات مدينة المستخدم — تنطلق منها أو تتّجه إليها.
+  ///
+  /// يُستدعى حين يضغط المستخدم «بحث» بلا إدخال شيء: بدل رسالة «اختر مكان
+  /// الانطلاق» يرى رحلات تخصّه فعلاً. المدينة يقرأها الخادم من عنوان
+  /// حسابه، فلا وسائط للطلب.
+  static const cityTrips = "$rides/city-trips";
+
   // score (§5)
   static const score = "$baserUrl/score";
   /// سجلّ حركة النقاط. كان `/score/history` في المواصفة، وشحنه الباك إند

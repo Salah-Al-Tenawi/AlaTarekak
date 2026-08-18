@@ -174,8 +174,9 @@ class ApiInterCeptor extends QueuedInterceptor {
   Future<void> _hardLogout() async {
     await ChatSocketService.instance.disconnect();
     await HiveBoxes.authBox.clear();
-    // كاش الميزات (score, notifications, complaints) خاص بالمستخدم
-    await HiveBoxes.cacheBox.clear();
+    // كاش الميزات (score, notifications, complaints) خاص بالمستخدم —
+    // والسياسات محتوى عام يبقى
+    await HiveBoxes.clearUserCache();
     if (Get.currentRoute != RouteName.login) {
       Get.offAllNamed(RouteName.login);
     }

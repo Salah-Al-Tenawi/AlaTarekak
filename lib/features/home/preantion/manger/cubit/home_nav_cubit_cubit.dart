@@ -28,8 +28,8 @@ class HomeNavCubit extends SafeCubit<int> {
       },
       (success) async {
         await ChatSocketService.instance.disconnect();
-        // كاش الميزات خاص بالمستخدم — يُمسح عند الخروج
-        await HiveBoxes.cacheBox.clear();
+        // كاش الميزات خاص بالمستخدم — يُمسح عند الخروج، والسياسات تبقى
+        await HiveBoxes.clearUserCache();
         Get.offAllNamed(RouteName.login);
       },
     );

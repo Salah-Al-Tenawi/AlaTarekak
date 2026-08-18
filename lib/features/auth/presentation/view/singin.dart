@@ -1,3 +1,4 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
@@ -6,6 +7,7 @@ import 'package:alatarekak/features/auth/presentation/view/widget/button_singin.
 import 'package:alatarekak/features/auth/presentation/view/widget/drop_down_and_gender_sing.dart';
 import 'package:alatarekak/features/auth/presentation/view/widget/policy_consent_check.dart';
 import 'package:alatarekak/features/auth/presentation/view/widget/text_fileds_singin.dart';
+import 'package:alatarekak/features/policy/presantion/manger/cubit/policy_cubit.dart';
 
 class Singin extends StatefulWidget {
   const Singin({super.key});
@@ -163,13 +165,19 @@ class _SinginState extends State<Singin> {
 
                       SizedBox(height: 20.h),
 
-                      PolicyConsentCheck(
-                        value: _policyAccepted,
-                        showError: _policyErrorShown && !_policyAccepted,
-                        onChanged: (v) => setState(() {
-                          _policyAccepted = v;
-                          if (v) _policyErrorShown = false;
-                        }),
+                      // نصّ الموافقة يحرّره الأدمن مع السياسات
+                      BlocBuilder<PolicyCubit, PolicyState>(
+                        builder: (context, state) => PolicyConsentCheck(
+                          value: _policyAccepted,
+                          consentLabel: state is PolicyLoaded
+                              ? state.content.settings.consentLabel
+                              : null,
+                          showError: _policyErrorShown && !_policyAccepted,
+                          onChanged: (v) => setState(() {
+                            _policyAccepted = v;
+                            if (v) _policyErrorShown = false;
+                          }),
+                        ),
                       ),
 
                       SizedBox(height: 20.h),
