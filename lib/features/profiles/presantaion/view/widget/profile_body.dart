@@ -9,6 +9,7 @@ import 'package:alatarekak/core/service/locator_ser.dart';
 import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
+import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 import 'package:alatarekak/core/utils/functions/show_image.dart';
 import 'package:alatarekak/features/score/domain/entity/score_entity.dart';
 import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
@@ -1323,27 +1324,15 @@ class _LogoutButton extends StatelessWidget {
   const _LogoutButton();
 
   Future<void> _logout(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text('تسجيل الخروج', style: AppTextStyles.titleMedium),
-        content: Text('هل أنت متأكد أنك تريد تسجيل الخروج؟',
-            style: AppTextStyles.bodyMedium),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('إلغاء',
-                style: AppTextStyles.labelMedium
-                    .copyWith(color: MyColors.textSecondary)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text('خروج',
-                style: AppTextStyles.labelMedium
-                    .copyWith(color: MyColors.error)),
-          ),
-        ],
-      ),
+    final confirmed = await showAppDialog(
+      context,
+      icon: Icons.logout_rounded,
+      title: 'تسجيل الخروج',
+      message: 'ستحتاج إلى إدخال بريدك وكلمة المرور مرة أخرى للدخول. '
+          'رحلاتك وحجوزاتك تبقى كما هي.',
+      confirmLabel: 'تسجيل الخروج',
+      cancelLabel: 'البقاء',
+      destructive: true,
     );
     if (confirmed != true) return;
     final result = await getit.get<AuthRepoIm>().logout();

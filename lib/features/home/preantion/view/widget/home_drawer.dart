@@ -4,11 +4,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
-import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/functions/get_userid.dart';
 import 'package:alatarekak/core/utils/widgets/cutom_list_tile.dart';
-import 'package:alatarekak/core/utils/widgets/my_button.dart';
 import 'package:alatarekak/features/home/preantion/manger/cubit/home_nav_cubit_cubit.dart';
+import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 
 class HomeDrawer extends StatelessWidget {
   final BuildContext scaffoldContext;
@@ -185,33 +184,20 @@ class HomeDrawer extends StatelessWidget {
       title: "تسجيل الخروج",
       padding: EdgeInsets.symmetric(horizontal: 15.w),
       titleTextStyle: font15ggreyw600,
-      onTap: () {
-        showDialog(
-          context: scaffoldContext,
-          builder: (ctx) {
-            return AlertDialog(
-              title: const Text("تأكيد"),
-              content: const Text("هل أنت متأكد من تسجيل الخروج؟"),
-              actions: [
-                MyButton(
-                  color: MyColors.accent,
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text("لا", style: AppTextStyles.bodyMedium),
-                ),
-                MyButton(
-                  color: MyColors.primary,
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                    scaffoldContext
-                        .read<HomeNavCubit>()
-                        .logout(scaffoldContext);
-                  },
-                  child: Text("نعم", style: AppTextStyles.bodyMedium),
-                ),
-              ],
-            );
-          },
+      // الحوار نفسه الذي في «حسابي» — كان لكل مدخل شكله ونصّه
+      onTap: () async {
+        final confirmed = await showAppDialog(
+          scaffoldContext,
+          icon: Icons.logout_rounded,
+          title: 'تسجيل الخروج',
+          message: 'ستحتاج إلى إدخال بريدك وكلمة المرور مرة أخرى للدخول. '
+              'رحلاتك وحجوزاتك تبقى كما هي.',
+          confirmLabel: 'تسجيل الخروج',
+          cancelLabel: 'البقاء',
+          destructive: true,
         );
+        if (confirmed != true || !scaffoldContext.mounted) return;
+        scaffoldContext.read<HomeNavCubit>().logout(scaffoldContext);
       },
       trailing: Icon(
         Icons.login_outlined,

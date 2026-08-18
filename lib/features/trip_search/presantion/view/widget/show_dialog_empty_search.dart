@@ -1,39 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
-import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/features/trip_search/presantion/view/widget/empty_trips_content.dart';
 
-Future<void> showNoTripsDialog(BuildContext context) async {
+/// «لا توجد رحلات» فوق شاشة البحث — يُغلَق ليعود المستخدم إلى معايير بحثه.
+///
+/// `Dialog` لا `AlertDialog`: الأخير يفرض حشواته وترتيب أزراره، وهنا
+/// المحتوى نفسه يحمل زرّه ضمن تصميمه.
+Future<void> showNoTripsDialog(BuildContext context,
+    {bool fromCity = false}) async {
   return showDialog(
     context: context,
-    builder: (ctx) => AlertDialog(
+    builder: (ctx) => Dialog(
       backgroundColor: MyColors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.r),
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const EmptyTripsContent(compact: true),
-          SizedBox(height: 20.h),
-          SizedBox(
-            width: double.infinity,
-            height: 46.h,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: MyColors.primary,
-                foregroundColor: MyColors.textOnDark,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                elevation: 0,
-              ),
-              onPressed: () => Navigator.pop(ctx),
-              child: Text('حسناً', style: AppTextStyles.buttonLarge),
+      surfaceTintColor: Colors.transparent,
+      insetPadding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.r)),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        // الوضع الأفقي والشاشات القصيرة: يمرّر بدل أن يفيض
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(20.w, 26.h, 20.w, 20.h),
+            child: EmptyTripsContent(
+              compact: true,
+              fromCity: fromCity,
+              onAdjustSearch: () => Navigator.pop(ctx),
             ),
           ),
-        ],
+        ),
       ),
     ),
   );

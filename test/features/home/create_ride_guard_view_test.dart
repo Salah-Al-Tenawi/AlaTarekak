@@ -1,3 +1,5 @@
+import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:alatarekak/features/profiles/domain/entity/car_entity.dart';
 import 'package:alatarekak/features/profiles/domain/entity/profile_entity.dart';
 import 'package:alatarekak/features/profiles/presantaion/manger/profile_cubit.dart';
@@ -53,7 +55,10 @@ void main() {
         initialState: state);
 
     await tester.pumpWidget(
-      MaterialApp(
+      // الحوار يقيس بـ ScreenUtil كبقية واجهات التطبيق، وmain يهيّئه دائماً
+      ScreenUtilInit(
+        designSize: const Size(390, 844),
+        child: MaterialApp(
         home: Directionality(
           textDirection: TextDirection.rtl,
           child: BlocProvider<ProfileCubit>.value(
@@ -77,6 +82,7 @@ void main() {
             ),
           ),
         ),
+        ),
       ),
     );
     await tester.pump();
@@ -97,7 +103,7 @@ void main() {
       await tap(tester);
 
       expect(find.text('معالج إنشاء الرحلة'), findsOneWidget);
-      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byType(AppDialogContent), findsNothing);
     });
   });
 
@@ -156,7 +162,7 @@ void main() {
       await tester.tap(find.text('لاحقاً'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byType(AppDialogContent), findsNothing);
       expect(find.text('معالج إنشاء الرحلة'), findsNothing);
     });
   });

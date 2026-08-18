@@ -12,6 +12,7 @@ import 'package:alatarekak/features/chat/domain/entity/message_entity.dart';
 import 'package:alatarekak/features/chat/domain/entity/quick_messages.dart';
 import 'package:alatarekak/features/chat/presentation/manager/message_cubit/message_cubit.dart';
 import 'package:alatarekak/features/support/domain/entity/support_conversation.dart';
+import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -229,38 +230,18 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  void _showDeleteDialog(int messageId) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text('حذف الرسالة', style: AppTextStyles.titleMedium),
-        content: Text(
-          'هل تريد حذف هذه الرسالة؟',
-          style: AppTextStyles.bodyMedium,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'إلغاء',
-              style: AppTextStyles.labelMedium.copyWith(
-                color: MyColors.textSecondary,
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.read<MessageCubit>().deleteMessage(messageId);
-            },
-            child: Text(
-              'حذف',
-              style: AppTextStyles.labelMedium.copyWith(color: MyColors.error),
-            ),
-          ),
-        ],
-      ),
+  Future<void> _showDeleteDialog(int messageId) async {
+    final cubit = context.read<MessageCubit>();
+    final confirmed = await showAppDialog(
+      context,
+      icon: Icons.delete_outline_rounded,
+      title: 'حذف الرسالة',
+      message: 'تُحذف من عندك ومن الطرف الآخر، ولا يمكن التراجع.',
+      confirmLabel: 'حذف',
+      destructive: true,
     );
+
+    if (confirmed == true) cubit.deleteMessage(messageId);
   }
 }
 

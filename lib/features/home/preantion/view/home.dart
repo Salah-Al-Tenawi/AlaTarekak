@@ -14,6 +14,7 @@ import 'package:alatarekak/features/home/preantion/view/widget/home_drawer.dart'
 import 'package:alatarekak/features/trip_booking/presantion/view/booking_me_list.dart';
 import 'package:alatarekak/features/trip_me/presantion/view/trip_me_list.dart';
 import 'package:alatarekak/features/trip_search/presantion/view/trip_search.dart';
+import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -108,31 +109,17 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   }
 
   Future<bool> _onWillPop() async {
-    final shouldExit = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("تأكيد"),
-        content: const Text("هل تريد الخروج من التطبيق؟"),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(result: false),
-            style: TextButton.styleFrom(
-              foregroundColor: MyColors.accent,
-              backgroundColor: MyColors.surfaceAlt,
-            ),
-            child: const Text("لا"),
-          ),
-          TextButton(
-            onPressed: () => Get.back(result: true),
-            style: TextButton.styleFrom(
-              foregroundColor: MyColors.primary,
-              backgroundColor: MyColors.surfaceAlt,
-            ),
-            child: const Text("نعم"),
-          ),
-        ],
-      ),
+    final shouldExit = await showAppDialog(
+      context,
+      icon: Icons.exit_to_app_rounded,
+      title: 'الخروج من التطبيق',
+      message: 'ستبقى مسجّلاً في حسابك، ورحلاتك وحجوزاتك كما هي. '
+          'وستصلك الإشعارات حتى وأنت خارج التطبيق.',
+      confirmLabel: 'خروج',
+      cancelLabel: 'البقاء',
+      destructive: true,
     );
+
     return shouldExit ?? false;
   }
 }

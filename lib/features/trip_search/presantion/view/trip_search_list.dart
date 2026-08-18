@@ -18,9 +18,20 @@ class TripSearchList extends StatefulWidget {
 class _TripSearchListState extends State<TripSearchList> {
   late final List<TripModel> trips;
 
+  /// النتائج من «رحلات مدينتي» لا من بحث بمعايير.
+  bool fromCity = false;
+
   @override
   void initState() {
-    trips = Get.arguments as List<TripModel>;
+    // الشكل الحالي خريطة تحمل المصدر معها؛ والقائمة المجرّدة تُقبل أيضاً
+    // لأن الشاشة مسار مسمّى قد يُنادى من مكان آخر.
+    final args = Get.arguments;
+    if (args is Map) {
+      trips = (args['trips'] as List?)?.cast<TripModel>() ?? const [];
+      fromCity = args['fromCity'] == true;
+    } else {
+      trips = (args as List?)?.cast<TripModel>() ?? const [];
+    }
     super.initState();
   }
 
@@ -31,14 +42,16 @@ class _TripSearchListState extends State<TripSearchList> {
       appBar: AppBar(
         elevation: 0,
         centerTitle: true,
-        title: const Text('الرحلات المتاحة'),
+        title: Text(fromCity ? 'رحلات مدينتك' : 'الرحلات المتاحة'),
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(36.h),
           child: Container(
             width: double.infinity,
             padding: EdgeInsets.only(bottom: 10.h),
             child: Text(
-              '${trips.length} رحلة متاحة',
+              fromCity
+                  ? '${trips.length} رحلة من مدينتك أو إليها'
+                  : '${trips.length} رحلة متاحة',
               textAlign: TextAlign.center,
               style: AppTextStyles.bodySmall.copyWith(
                 color: MyColors.textOnDark.withValues(alpha: 0.8),
@@ -49,10 +62,15 @@ class _TripSearchListState extends State<TripSearchList> {
       ),
       body: trips.isEmpty
           ? FadeSlideIn(
-              child: Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 32.w),
-                  child: const EmptyTripsContent(),
+              // قابل للتمرير: المحتوى مع الاقتراحات لا يسع شاشة قصيرة
+              // ولا الوضع الأفقي
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+                child: Center(
+                  child: EmptyTripsContent(
+                    onAdjustSearch: () => Get.back(),
+                  ),
                 ),
               ),
             )

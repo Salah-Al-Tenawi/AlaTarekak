@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
-import 'package:alatarekak/core/them/text_style_app.dart';
+import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 import 'package:alatarekak/features/profiles/presantaion/manger/profile_cubit.dart';
 import 'package:alatarekak/features/trip_create/domain/create_ride_gate.dart';
 
@@ -69,54 +69,16 @@ class CreateRideGuard {
       BuildContext context, CreateRideBlock block) async {
     final action = CreateRideGate.actionLabel(block);
 
-    final proceed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: MyColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: Row(
-          children: [
-            Icon(
-              block == CreateRideBlock.noCar
-                  ? Icons.directions_car_outlined
-                  : Icons.verified_outlined,
-              color: MyColors.accent,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(CreateRideGate.title(block),
-                  style: AppTextStyles.titleMedium),
-            ),
-          ],
-        ),
-        content: Text(
-          CreateRideGate.message(block),
-          style: AppTextStyles.bodyMedium.copyWith(height: 1.6),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(
-              // لا زرّ إجراء أثناء المراجعة، فلا معنى لـ «لاحقاً»
-              action == null ? 'حسناً' : 'لاحقاً',
-              style: AppTextStyles.labelLarge
-                  .copyWith(color: MyColors.textSecondary),
-            ),
-          ),
-          if (action != null)
-            ElevatedButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: MyColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              ),
-              child: Text(action),
-            ),
-        ],
-      ),
+    final proceed = await showAppDialog(
+      context,
+      icon: _iconFor(block),
+      // المراجعة انتظار لا عطل، والرفض حالة تستدعي انتباهاً
+      accentColor: _colorFor(block),
+      title: CreateRideGate.title(block),
+      message: CreateRideGate.message(block),
+      confirmLabel: action,
+      // لا زرّ إجراء أثناء المراجعة، فلا معنى لـ «لاحقاً»
+      cancelLabel: 'لاحقاً',
     );
 
     if (proceed != true || !context.mounted) return;
@@ -134,4 +96,20 @@ class CreateRideGuard {
         break;
     }
   }
+
+  /// أيقونة تصف الحالة لا أيقونة واحدة للجميع.
+  static IconData _iconFor(CreateRideBlock block) => switch (block) {
+        CreateRideBlock.noCar => Icons.directions_car_outlined,
+        CreateRideBlock.verificationPending => Icons.hourglass_top_rounded,
+        CreateRideBlock.verificationRejected => Icons.gpp_bad_outlined,
+        CreateRideBlock.notVerified => Icons.verified_user_outlined,
+        CreateRideBlock.none => Icons.check_circle_outline_rounded,
+      };
+
+  /// المراجعة انتظارٌ لا خطأ، والرفض وحده يستحقّ الأحمر.
+  static Color _colorFor(CreateRideBlock block) => switch (block) {
+        CreateRideBlock.verificationPending => MyColors.warning,
+        CreateRideBlock.verificationRejected => MyColors.error,
+        _ => MyColors.primary,
+      };
 }
