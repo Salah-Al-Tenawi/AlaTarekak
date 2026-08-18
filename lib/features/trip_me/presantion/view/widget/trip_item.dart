@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
-import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/class/format_date_time.dart';
+import 'package:alatarekak/core/utils/class/ride_time_rules.dart';
 import 'package:alatarekak/core/utils/class/format_money.dart';
-import 'package:alatarekak/core/utils/functions/get_userid.dart';
 import 'package:alatarekak/core/utils/widgets/trip_card_parts.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 
@@ -43,23 +41,13 @@ class ItemTrip extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ━━ رأس البطاقة: السائق + الحالة ━━
-              Row(
-                children: [
-                  TripAvatar(avatar: trip.driver.avatar),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: Text(
-                      trip.driver.name.isEmpty ? 'رحلتي' : trip.driver.name,
-                      style: AppTextStyles.bodyLarge
-                          .copyWith(fontWeight: FontWeight.w600),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  SizedBox(width: 8.w),
-                  TripStatusBadge(status: trip.status),
-                ],
-              ),
+              // ━━ رأس البطاقة: موعد الانطلاق + الحالة ━━
+              //
+              // كان الرأس صورة السائق واسمه. وهذه «رحلاتي»: السائق هو
+              // المستخدم نفسه دائماً، والخادم لا يرسل كائن `driver` في
+              // `GET /rides` أصلاً — فكان يظهر إطار صورة فارغ وكلمة
+              // «رحلتي». الموعد هو ما يميّز رحلة عن أخرى فعلاً.
+              _DepartureHeader(departure: trip.departure, status: trip.status),
 
               SizedBox(height: 14.h),
               Divider(height: 1, color: MyColors.divider),
@@ -78,90 +66,35 @@ class ItemTrip extends StatelessWidget {
                 text: trip.destination.address,
               ),
 
+              // المسافة والمدّة سطراً خافتاً تحت المسار لا رقاقة مستقلّة:
+              // معلومة عن المسار نفسه، ومكانها تحته.
+              if (trip.distance.meters > 0) ...[
+                SizedBox(height: 10.h),
+                _RouteMeta(
+                  label: _routeLabel(
+                      trip.distance.kilometers, trip.duration.minutes),
+                ),
+              ],
+
               SizedBox(height: 14.h),
 
-              // ━━ الموعد ━━
-              Row(
-                children: [
-                  TripInfoChip(
-                    icon: Icons.calendar_today_rounded,
-                    label: DateTimeUtils.formatDate(trip.departure),
-                    color: MyColors.primary,
-                  ),
-                  SizedBox(width: 8.w),
-                  TripInfoChip(
-                    icon: Icons.access_time_rounded,
-                    label: DateTimeUtils.formatTime(trip.departure),
-                    color: MyColors.accent,
-                  ),
-                ],
+              // ━━ الأرقام ━━
+              //
+              // كانت ستّ رقاقات في ثلاثة صفوف متساوية الوزن، فلا شيء
+              // فيها يبرز. السعر أوّل ما يبحث عنه السائق والراكب، فيأخذ
+              // حجمه، والمقاعد والحجوزات إلى جانبه بوزن أخفّ.
+              _MetricsRow(
+                price: Money.withCurrency(trip.pricePerSeat),
+                seats: trip.seatsAvailable,
+                bookings: trip.bookingsCount,
               ),
 
-              SizedBox(height: 8.h),
-
-              // ━━ السعر والمقاعد ━━
-              Row(
-                children: [
-                  Expanded(
-                    child: TripInfoChip(
-                      expand: true,
-                      icon: Icons.monetization_on_rounded,
-                      label: '${Money.withCurrency(trip.pricePerSeat)} / راكب',
-                      color: MyColors.warning,
-                    ),
-                  ),
-                  SizedBox(width: 8.w),
-                  Expanded(
-                    child: TripInfoChip(
-                      expand: true,
-                      icon: Icons.event_seat_rounded,
-                      // `available_seats` هي المقاعد المتبقّية لا الإجمالي،
-                      // فصياغة «س من ص» تصف شيئاً لا يرسله الخادم.
-                      // والصفر يُصاغ نفياً صريحاً: «مقاعد متاحة» وحدها كانت
-                      // تُقرأ إثباتاً على رحلة ممتلئة.
-                      label: _seatsLabel(trip.seatsAvailable),
-                      color: trip.seatsAvailable > 0
-                          ? MyColors.success
-                          : MyColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-
-              SizedBox(height: 8.h),
-
-              // ━━ الحجوزات والمسار ━━
-              // `bookings_count` يصل في قائمة الرحلات ولم يكن يُعرض، وهو
-              // أول ما يبحث عنه السائق في رحلته. والمسافة والمدّة تصلان
-              // معه فتُعرضان بدل أن تُهدرا.
-              Row(
-                children: [
-                  Expanded(
-                    child: TripInfoChip(
-                      expand: true,
-                      icon: Icons.people_alt_rounded,
-                      label: _bookingsLabel(trip.bookingsCount),
-                      color: trip.bookingsCount > 0
-                          ? MyColors.primary
-                          : MyColors.textSecondary,
-                    ),
-                  ),
-                  if (trip.distance.meters > 0) ...[
-                    SizedBox(width: 8.w),
-                    Expanded(
-                      child: TripInfoChip(
-                        expand: true,
-                        icon: Icons.route_rounded,
-                        label: _routeLabel(
-                            trip.distance.kilometers, trip.duration.minutes),
-                        color: MyColors.blue,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-
-              if (trip.driver.id == myid()) _buildActions(context),
+              // بلا شرط «هل الرحلة لي؟»: `GET /rides` لا يرجع إلا رحلات
+              // المستخدم، وهذه البطاقة لا تُستعمل في غير «رحلاتي». وكان
+              // الشرط يقارن `driver.id` بـ`myid()` فيبتلع كل الإجراءات
+              // بصمت متى اختلّ أحد الطرفين — والصفّ الخام لا يرسل كائن
+              // `driver` أصلاً، بل `driver_id` مفرداً.
+              _buildActions(context),
             ],
           ),
         ),
@@ -169,37 +102,40 @@ class ItemTrip extends StatelessWidget {
     );
   }
 
-  /// إجراءات السائق على رحلته.
+  /// إجراءات السائق على رحلته: **الإلغاء وحده**.
   ///
-  /// كان زرّ الإلغاء يملأ عرض البطاقة بارتفاع كبير فيطغى على محتواها كلّه،
-  /// وهو إجراء هدّام لا يُبرَّر إبرازه هكذا. صار الإجراء الأساسي (العدّ
-  /// التنازلي أو إنهاء الرحلة) هو الممتدّ، والإلغاء زرّاً محدَّداً بحجمه
-  /// إلى جانبه.
+  /// زرّ «إنهاء الرحلة» أُزيل بتغيّر المتطلبات — السائق لم يعد يُنهي
+  /// الرحلة، بل تكتمل بتأكيد الركّاب وصولهم.
+  ///
+  /// والإلغاء مقيَّد بـ [RideTimeRules.cancelCutoff]: نصف ساعة قبل
+  /// الانطلاق. بعدها يبقى العدّ التنازلي معلومةً بلا زرّ، فيرى السائق
+  /// أن الباب أُغلق بدل أن يضغط فيرفض الخادم.
   Widget _buildActions(BuildContext context) {
-    final remaining = trip.departure.difference(DateTime.now());
-    final departed = remaining.inSeconds <= 0;
+    final now = DateTime.now();
+    final remaining = trip.departure.difference(now);
 
-    final canCancel = trip.status == 'active' && !departed;
-    final canFinish = departed &&
-        trip.status != 'finished' &&
-        trip.status != 'awaiting_confirmation' &&
-        trip.status != 'cancelled';
+    // رحلة انطلقت: لا إجراء ولا عدّ
+    if (RideTimeRules.hasDeparted(trip.departure, now: now)) {
+      return const SizedBox.shrink();
+    }
 
-    if (!canCancel && !canFinish) return const SizedBox.shrink();
+    // **الحالات المنتهية وحدها تمنع الإلغاء.** كان الشرط معكوساً — يسمح
+    // لـ`active` وحدها — فأي حالة جديدة أو مكتوبة بحرف كبير من الخادم
+    // تُخفي الزرّ بلا سبب ظاهر. والسماح عند الشكّ أسلم: الخادم يحسم.
+    const closed = {'cancelled', 'canceled', 'finished', 'completed',
+        'awaiting_confirmation', 'no_show'};
+    if (closed.contains(trip.status.trim().toLowerCase())) {
+      return const SizedBox.shrink();
+    }
 
+    // الرحلة لم تنطلق: الإلغاء متاح بلا مهلة مسبقة — انظر [RideTimeRules]
     return Padding(
       padding: EdgeInsets.only(top: 14.h),
       child: Row(
         children: [
-          Expanded(
-            child: canFinish
-                ? _FinishButton(tripId: trip.id)
-                : _CountdownChip(remaining: remaining),
-          ),
-          if (canCancel) ...[
-            SizedBox(width: 10.w),
-            _CancelButton(onCancel: onCancel),
-          ],
+          Expanded(child: _CountdownChip(remaining: remaining)),
+          SizedBox(width: 10.w),
+          _CancelButton(onCancel: onCancel),
         ],
       ),
     );
@@ -245,36 +181,6 @@ class _CountdownChip extends StatelessWidget {
   }
 }
 
-class _FinishButton extends StatelessWidget {
-  final int tripId;
-  const _FinishButton({required this.tripId});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 42.h,
-      child: ElevatedButton.icon(
-        onPressed: () =>
-            Get.toNamed(RouteName.tripDetails, arguments: tripId),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: MyColors.accent,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          padding: EdgeInsets.symmetric(horizontal: 12.w),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-        ),
-        icon: Icon(Icons.flag_rounded, size: 16.sp),
-        label: Text(
-          'إنهاء الرحلة',
-          style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
-  }
-}
-
 /// إجراء هدّام: يُعرَض محدَّداً ومحدَّد اللون بالحدّ لا بالتعبئة، فلا يُضغط
 /// سهواً ولا يسحب انتباه البطاقة إليه.
 class _CancelButton extends StatelessWidget {
@@ -310,20 +216,6 @@ class _CancelButton extends StatelessWidget {
 // العربية تُثنّي وتجمع بصيغ مختلفة، و«1 مقاعد» أو «2 حجوزات» يقرأها
 // المستخدم خطأً في التطبيق لا في بياناته. المفرد والمثنّى يُصاغان صراحةً.
 
-String _seatsLabel(int available) {
-  if (available <= 0) return 'لا مقاعد متاحة';
-  if (available == 1) return 'مقعد واحد متاح';
-  if (available == 2) return 'مقعدان متاحان';
-  return '$available مقاعد متاحة';
-}
-
-String _bookingsLabel(int count) {
-  if (count <= 0) return 'لا حجوزات';
-  if (count == 1) return 'حجز واحد';
-  if (count == 2) return 'حجزان';
-  return '$count حجوزات';
-}
-
 /// «47.8 كم · 41 د» — والمدّة الطويلة بالساعات فلا تُقرأ «150 د».
 String _routeLabel(double kilometers, int minutes) {
   final distance = kilometers >= 10
@@ -348,5 +240,254 @@ String formatRemainingTime(Duration duration) {
     return 'متبقٍ ${duration.inMinutes} دقيقة';
   } else {
     return 'حان موعد الانطلاق';
+  }
+}
+
+/// كتلة الموعد: رقم اليوم وشهره، ثم اسم اليوم والساعة، والحالة في الطرف.
+class _DepartureHeader extends StatelessWidget {
+  final DateTime departure;
+  final String? status;
+
+  const _DepartureHeader({required this.departure, required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 52.w,
+          padding: EdgeInsets.symmetric(vertical: 8.h),
+          decoration: BoxDecoration(
+            color: MyColors.primary.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(14.r),
+            border: Border.all(
+                color: MyColors.primary.withValues(alpha: 0.18), width: 1),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${departure.day}',
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.bold,
+                  color: MyColors.primary,
+                  height: 1.1,
+                ),
+              ),
+              Text(
+                DateTimeUtils.monthName(departure),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 9.sp,
+                  fontWeight: FontWeight.w600,
+                  color: MyColors.primary.withValues(alpha: 0.8),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(width: 12.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                DateTimeUtils.weekdayName(departure),
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.bodyLarge
+                    .copyWith(fontWeight: FontWeight.w600),
+              ),
+              SizedBox(height: 2.h),
+              Row(
+                children: [
+                  Icon(Icons.access_time_rounded,
+                      size: 13.sp, color: MyColors.textSecondary),
+                  SizedBox(width: 4.w),
+                  Flexible(
+                    child: Text(
+                      DateTimeUtils.formatTime(departure),
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.bodySmall
+                          .copyWith(color: MyColors.textSecondary),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        SizedBox(width: 8.w),
+        TripStatusBadge(status: status),
+      ],
+    );
+  }
+}
+
+/// «47.8 كم · 41 د» تحت المسار.
+class _RouteMeta extends StatelessWidget {
+  final String label;
+  const _RouteMeta({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsetsDirectional.only(start: 30.w),
+      child: Row(
+        children: [
+          Icon(Icons.route_rounded, size: 14.sp, color: MyColors.textSecondary),
+          SizedBox(width: 6.w),
+          Flexible(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.labelSmall
+                  .copyWith(color: MyColors.textSecondary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// السعر بارزاً، والمقاعد والحجوزات إلى جانبه بوزن أخفّ.
+///
+/// **العنوان فئة والقيمة رقم** — لا «مقعدان» ولا «مقعد واحد متاح». صياغة
+/// تطابق العدد تصير ركيكة فوق رقم: «2 مقعدان» تكرار، و«1 مقاعد» خطأ.
+/// والصفر يظهر رقماً صريحاً بلون خافت، فلا يُقرأ «مقاعد متاحة» إثباتاً
+/// على رحلة ممتلئة كما كان يحدث حين كان النصّ وحده.
+class _MetricsRow extends StatelessWidget {
+  final String price;
+  final int seats;
+  final int bookings;
+
+  const _MetricsRow({
+    required this.price,
+    required this.seats,
+    required this.bookings,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      decoration: BoxDecoration(
+        color: MyColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(14.r),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  price,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.bold,
+                    color: MyColors.textPrimary,
+                  ),
+                ),
+                Text(
+                  'للراكب الواحد',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.labelSmall
+                      .copyWith(color: MyColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+          const _CellDivider(),
+          Expanded(
+            flex: 2,
+            child: _Metric(
+              icon: Icons.event_seat_rounded,
+              value: '$seats',
+              label: 'مقاعد متاحة',
+              color: seats > 0 ? MyColors.success : MyColors.textSecondary,
+            ),
+          ),
+          const _CellDivider(),
+          Expanded(
+            flex: 2,
+            child: _Metric(
+              icon: Icons.people_alt_rounded,
+              value: '$bookings',
+              label: 'حجوزات مؤكَّدة',
+              color: bookings > 0 ? MyColors.primary : MyColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CellDivider extends StatelessWidget {
+  const _CellDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      height: 28.h,
+      margin: EdgeInsets.symmetric(horizontal: 10.w),
+      color: MyColors.border,
+    );
+  }
+}
+
+class _Metric extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+
+  const _Metric({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 14.sp, color: color),
+            SizedBox(width: 4.w),
+            Flexible(
+              child: Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+            ),
+          ],
+        ),
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style:
+              AppTextStyles.labelSmall.copyWith(color: MyColors.textSecondary),
+        ),
+      ],
+    );
   }
 }

@@ -28,6 +28,22 @@ class DateTimeUtils {
         '${date.minute.toString().padLeft(2, '0')} $period';
   }
 
+  /// أسماء الشهور المستعملة في سوريا وبلاد الشام — لا «يناير/فبراير».
+  static const List<String> _months = [
+    'كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران',
+    'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول',
+  ];
+
+  /// `DateTime.weekday` يبدأ بالاثنين (1) وينتهي بالأحد (7).
+  static const List<String> _weekdays = [
+    'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس',
+    'الجمعة', 'السبت', 'الأحد',
+  ];
+
+  static String monthName(DateTime date) => _months[date.month - 1];
+
+  static String weekdayName(DateTime date) => _weekdays[date.weekday - 1];
+
   // تنسيق التاريخ والوقت معاً
   static String formatDateTime(DateTime date) {
     return '${formatDate(date)} - ${formatTime(date)}';

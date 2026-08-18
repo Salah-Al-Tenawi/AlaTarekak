@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:alatarekak/core/utils/class/ride_time_rules.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
@@ -421,7 +422,12 @@ class _BookingItemState extends State<BookingItem> {
 
   Widget _buildActionButtons(
       BuildContext context, String bookingState, int userId) {
-    final departed = b.departureTime.difference(DateTime.now()).inSeconds <= 0;
+    final now = DateTime.now();
+    final departed = RideTimeRules.hasDeparted(b.departureTime, now: now);
+    // البلاغ لا يُفتح مع انطلاق الرحلة بل بعد ساعة منه: سائق تأخّر
+    // عشر دقائق ليس سائقاً غائباً، والبلاغ يخصم من نقاط ثقته.
+    final canReport =
+        RideTimeRules.canReportNoShow(b.departureTime, now: now);
 
     switch (bookingState) {
       case 'completed':
@@ -467,8 +473,8 @@ class _BookingItemState extends State<BookingItem> {
         );
 
       default:
-        // بعد موعد الانطلاق: تأكيد الوصول أو الإبلاغ عن غياب السائق.
-        // وقبله: إلغاء الحجز فقط.
+        // ثلاث مراحل: قبل الانطلاق إلغاء الحجز، ومع الانطلاق تأكيد
+        // الوصول، وبعد ساعة منه يُضاف بلاغ غياب السائق.
         if (!departed) {
           return _Action(
             icon: Icons.close_rounded,
@@ -478,27 +484,29 @@ class _BookingItemState extends State<BookingItem> {
             onTap: _askCancelSeats,
           );
         }
+        final confirmAction = _Action(
+          icon: Icons.check_rounded,
+          label: 'تأكيد الوصول',
+          color: MyColors.primary,
+          onTap: () async {
+            // الكيوبت يُلتقط قبل الانتظار: استعمال context بعد فجوة غير
+            // متزامنة يعتمد على بقاء الشجرة قائمة
+            final cubit = context.read<BookingMeCubit>();
+            final confirm = await _showConfirmationDialog(
+              'تأكيدك يعني وصولك إلى وجهتك ونجاح الرحلة، وبه تكتمل '
+              'الرحلة ويُحرَّر المبلغ للسائق.',
+            );
+            if (!(confirm ?? false) || !mounted) return;
+            cubit.finishTrip(b.bookingId);
+          },
+        );
+
+        // قبل مضيّ الساعة: التأكيد وحده ممتدّاً
+        if (!canReport) return confirmAction;
+
         return Row(
           children: [
-            Expanded(
-              flex: 3,
-              child: _Action(
-                icon: Icons.check_rounded,
-                label: 'تأكيد الوصول',
-                color: MyColors.primary,
-                onTap: () async {
-                  // الكيوبت يُلتقط قبل الانتظار: استعمال context بعد فجوة
-                  // غير متزامنة يعتمد على بقاء الشجرة قائمة
-                  final cubit = context.read<BookingMeCubit>();
-                  final confirm = await _showConfirmationDialog(
-                    'هل أنت متأكد من إنهاء الرحلة؟ تأكيدك يعني وصولك إلى '
-                    'الموقع المحدد ونجاح الرحلة.',
-                  );
-                  if (!(confirm ?? false) || !mounted) return;
-                  cubit.finishTrip(b.bookingId);
-                },
-              ),
-            ),
+            Expanded(flex: 3, child: confirmAction),
             SizedBox(width: 8.w),
             Expanded(
               flex: 2,

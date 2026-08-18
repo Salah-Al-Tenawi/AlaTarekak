@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
+import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
 import 'package:alatarekak/core/constant/imagesUrl.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
@@ -13,6 +14,8 @@ import 'package:alatarekak/core/utils/class/format_date_time.dart';
 import 'package:alatarekak/core/utils/class/format_money.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/widgets/trip_card_parts.dart';
+import 'package:alatarekak/core/utils/class/ride_time_rules.dart';
+import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 import 'package:alatarekak/features/booking_user_in_trip/presantion/manger/cubit/booking_user_in_trip_cubit.dart';
 import 'package:alatarekak/features/trip_create/data/model/booking_model.dart';
 
@@ -70,11 +73,40 @@ class BookingUserINTrip extends StatefulWidget {
 class _BookingUserINTripState extends State<BookingUserINTrip> {
   List<BookingModel> usersBooking = [];
 
+  /// موعد انطلاق الرحلة — يحدّد متى يظهر بلاغ «لم يحضر». غيابه يعني
+  /// أننا لا نعرف الموعد، فلا نُظهر البلاغ إطلاقاً: بلاغ بلا موعد قد
+  /// يُرسَل قبل أن تبدأ الرحلة.
+  DateTime? departure;
+
+  /// معرّف الرحلة — بدونه لا تستطيع الشاشة الجلب بنفسها.
+  int? rideId;
+
   @override
   void initState() {
     super.initState();
     final args = Get.arguments;
-    if (args is List<BookingModel>) usersBooking = args;
+    // الشكل الحالي خريطة تحمل معرّف الرحلة وموعدها؛ والقائمة المجرّدة
+    // تُقبل أيضاً لأن الشاشة مسار مسمّى قد يُنادى من إشعار أو رابط قديم.
+    if (args is Map) {
+      final list = args['bookings'];
+      if (list is List<BookingModel>) usersBooking = list;
+      final at = args['departure'];
+      if (at is DateTime) departure = at;
+      rideId = args['rideId'] is int ? args['rideId'] as int : null;
+    } else if (args is List<BookingModel>) {
+      usersBooking = args;
+    }
+
+    // **الشاشة تجلب بنفسها.** ما يصلها من شاشة التفاصيل يُعرض فوراً، ثم
+    // يستبدله `GET /rides/{id}/passangers` — المسار الموضوع لهذا الغرض.
+    // كانت تعتمد كلياً على ما مرّرته الشاشة السابقة، فتظهر فارغة إن لم
+    // يُرسل `GET /rides/{id}` الحجوزات، ولا تتحدّث بعد قبول أو رفض.
+    final id = rideId;
+    if (id != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.read<BookingUserInTripCubit>().loadBookings(id);
+      });
+    }
 
     // معاينة التصميم فقط — انظر التحذير أعلى الملف
     if (usersBooking.isEmpty && kDebugMode && kPreviewSampleBookings) {
@@ -113,11 +145,46 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
               'title': state.title ?? 'الراكب',
               'avatar': state.avatar,
             });
+          } else if (state is BookingUserInTripListLoaded) {
+            // ما جلبته الشاشة يحلّ محلّ ما مُرّر إليها
+            setState(() {
+              usersBooking = state.bookings;
+              departure = state.departure;
+            });
+          } else if (state is BookingUserInTripUpdated) {
+            // قبول أو رفض غيّر الحالة على الخادم: العدّادات في الأعلى
+            // تُحسب من القائمة، فتبقى قديمة بلا إعادة جلب
+            final id = rideId;
+            if (id != null) {
+              context
+                  .read<BookingUserInTripCubit>()
+                  .loadBookings(id, silent: true);
+            }
           }
         },
-        child: usersBooking.isEmpty
-            ? const _EmptyBookings()
-            : ListView(
+        child: BlocBuilder<BookingUserInTripCubit, BookingUserInTripState>(
+          buildWhen: (_, current) =>
+              current is BookingUserInTripFetching ||
+              current is BookingUserInTripListLoaded ||
+              current is BookingUserInTripErorr,
+          builder: (context, state) {
+            if (state is BookingUserInTripFetching && usersBooking.isEmpty) {
+              return const Center(child: LoadingWidgetSize150());
+            }
+
+            if (usersBooking.isEmpty) return const _EmptyBookings();
+
+            return RefreshIndicator(
+              onRefresh: () async {
+                final id = rideId;
+                if (id != null) {
+                  await context
+                      .read<BookingUserInTripCubit>()
+                      .loadBookings(id, silent: true);
+                }
+              },
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 20.h),
                 children: [
                   _BookingsSummary(bookings: usersBooking),
@@ -125,10 +192,16 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
                   for (int i = 0; i < usersBooking.length; i++)
                     StaggeredItem(
                       index: i,
-                      child: _BookingCard(booking: usersBooking[i]),
+                      child: _BookingCard(
+                        booking: usersBooking[i],
+                        departure: departure,
+                      ),
                     ),
                 ],
               ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -262,7 +335,9 @@ class _BookingsSummary extends StatelessWidget {
 
 class _BookingCard extends StatelessWidget {
   final BookingModel booking;
-  const _BookingCard({required this.booking});
+  final DateTime? departure;
+
+  const _BookingCard({required this.booking, this.departure});
 
   @override
   Widget build(BuildContext context) {
@@ -301,7 +376,12 @@ class _BookingCard extends StatelessWidget {
               SizedBox(height: 14.h),
               _CardChips(booking: booking),
               SizedBox(height: 14.h),
-              _CardActions(booking: booking, status: status, isBusy: isBusy),
+              _CardActions(
+                booking: booking,
+                status: status,
+                isBusy: isBusy,
+                departure: departure,
+              ),
             ],
           ),
         );
@@ -462,6 +542,10 @@ class _CardChips extends StatelessWidget {
 // ─── الإجراءات ────────────────────────────────────────────────────────────────
 
 class _CardActions extends StatelessWidget {
+  /// موعد انطلاق الرحلة — بلاغ عدم الحضور لا يظهر قبل مضيّ
+  /// [RideTimeRules.noShowDelay] عليه.
+  final DateTime? departure;
+
   final BookingModel booking;
   final String status;
   final bool isBusy;
@@ -470,6 +554,7 @@ class _CardActions extends StatelessWidget {
     required this.booking,
     required this.status,
     required this.isBusy,
+    this.departure,
   });
 
   @override
@@ -512,22 +597,28 @@ class _CardActions extends StatelessWidget {
 
       case 'confirmed':
       case 'accepted':
+        // البلاغ لا يُفتح إلا بعد ساعة من الانطلاق: التأخّر نصف ساعة
+        // زحمة سير لا غياب، والبلاغ يخصم من نقاط ثقة الراكب.
+        final canReport = departure != null &&
+            RideTimeRules.canReportNoShow(departure!);
+
+        final chat = _FilledAction(
+          label: 'مراسلة',
+          icon: Icons.chat_bubble_outline_rounded,
+          color: MyColors.primary,
+          onTap: () =>
+              context.read<BookingUserInTripCubit>().openChatWithPassenger(
+                    userId: booking.userId,
+                    name: booking.userName,
+                    avatar: booking.avatar,
+                  ),
+        );
+
+        if (!canReport) return chat;
+
         return Row(
           children: [
-            Expanded(
-              child: _FilledAction(
-                label: 'مراسلة',
-                icon: Icons.chat_bubble_outline_rounded,
-                color: MyColors.primary,
-                onTap: () => context
-                    .read<BookingUserInTripCubit>()
-                    .openChatWithPassenger(
-                      userId: booking.userId,
-                      name: booking.userName,
-                      avatar: booking.avatar,
-                    ),
-              ),
-            ),
+            Expanded(child: chat),
             SizedBox(width: 10.w),
             Expanded(
               child: _OutlinedAction(
@@ -549,50 +640,18 @@ class _CardActions extends StatelessWidget {
 
   Future<void> _confirmNoShow(BuildContext context) async {
     final cubit = context.read<BookingUserInTripCubit>();
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: MyColors.surface,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.r)),
-        title: Row(
-          children: [
-            Icon(Icons.warning_amber_rounded,
-                color: MyColors.error, size: 24.sp),
-            SizedBox(width: 8.w),
-            Text('تأكيد',
-                style: AppTextStyles.titleMedium.copyWith(fontSize: 17.sp)),
-          ],
-        ),
-        content: Text(
-          'هل أنت متأكد أن الراكب لم يحضر؟ سيُسجَّل بلاغ بحقه.',
-          style: AppTextStyles.bodyMedium.copyWith(fontSize: 14.sp, height: 1.6),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text('لا',
-                style: AppTextStyles.labelLarge.copyWith(
-                    fontSize: 14.sp, color: MyColors.textSecondary)),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: MyColors.error,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r)),
-            ),
-            child: Text('نعم',
-                style: TextStyle(
-                    fontSize: 14.sp, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
+    final confirm = await showAppDialog(
+      context,
+      icon: Icons.report_problem_outlined,
+      title: 'الراكب لم يحضر؟',
+      message: 'سيُسجَّل بلاغ بحقّ ${booking.userName} وتُخصم من نقاط ثقته. '
+          'لا تُرسله إلا بعد انتظاره فعلاً.',
+      confirmLabel: 'تسجيل البلاغ',
+      cancelLabel: 'تراجع',
+      destructive: true,
     );
 
-    if (confirm ?? false) cubit.passengerNoShow(booking.id);
+    if (confirm == true) cubit.passengerNoShow(booking.id);
   }
 }
 

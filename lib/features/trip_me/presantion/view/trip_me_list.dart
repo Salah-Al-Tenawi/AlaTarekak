@@ -13,6 +13,7 @@ import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_me/presantion/manger/cubit/trip_me_cubit.dart';
 import 'package:alatarekak/features/trip_me/presantion/view/widget/trip_item.dart';
+import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 
 class TripMeList extends StatefulWidget {
   const TripMeList({super.key});
@@ -112,105 +113,31 @@ class _TripMeListState extends State<TripMeList> {
                           child: ItemTrip(
                             trip: trip,
                             onTap: () {
+                              // كل رحلة هنا للمستخدم بالتعريف، فتُجلب
+                              // بحجوزاتها من مسار السائق
                               Get.toNamed(
                                 RouteName.tripDetails,
-                                arguments: trip.id,
+                                arguments: {
+                                  'tripId': trip.id,
+                                  'asDriver': true,
+                                },
                               );
                             },
                             onCancel: () async {
-                              final confirm = await showDialog<bool>(
-                                context: context,
-                                builder: (ctx) => AlertDialog(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  backgroundColor: MyColors.surface,
-                                  title: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.warning_amber_rounded,
-                                        color: MyColors.error,
-                                        size: 28,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'تأكيد',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 20,
-                                          color: MyColors.textPrimary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  content: Text(
-                                    'هل أنت متأكد من إلغاء الرحلة؟',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: MyColors.textPrimary,
-                                    ),
-                                  ),
-                                  actionsPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  actions: [
-                                    ElevatedButton(
-                                      onPressed: () =>
-                                          Navigator.pop(ctx, false),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: MyColors.surfaceAlt,
-                                        foregroundColor: MyColors.textPrimary,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 24,
-                                          vertical: 12,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        'لا',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: MyColors.textPrimary,
-                                        ),
-                                      ),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () => Navigator.pop(ctx, true),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: MyColors.error,
-                                        foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 24,
-                                          vertical: 12,
-                                        ),
-                                      ),
-                                      child: const Text(
-                                        'نعم',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                              final cubit = context.read<TripMeCubit>();
+                              final confirm = await showAppDialog(
+                                context,
+                                icon: Icons.cancel_schedule_send_rounded,
+                                title: 'إلغاء الرحلة',
+                                message: 'سيصل إشعار بالإلغاء إلى من حجز '
+                                    'فيها، وتُعاد إليهم مبالغهم. ولا يمكن '
+                                    'التراجع بعده.',
+                                confirmLabel: 'إلغاء الرحلة',
+                                cancelLabel: 'تراجع',
+                                destructive: true,
                               );
 
-                              if (confirm == true) {
-                                await context.read<TripMeCubit>().cancelTrip(
-                                  trip.id,
-                                );
-                              }
+                              if (confirm == true) cubit.cancelTrip(trip.id);
                             },
                           ),
                         );
