@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
@@ -189,11 +188,11 @@ class _TripSelectPriceAndBookingTypeState
                     _OptionData(
                         value: 'cash',
                         label: 'كاش',
-                        icon: FontAwesomeIcons.moneyBillWave),
+                        icon: Icons.payments_rounded),
                     _OptionData(
                         value: 'e-pay',
                         label: 'إلكتروني',
-                        icon: FontAwesomeIcons.creditCard),
+                        icon: Icons.credit_card_rounded),
                   ],
                   selected: _cashType,
                   onSelect: (v) => setState(() {
@@ -214,11 +213,11 @@ class _TripSelectPriceAndBookingTypeState
                     _OptionData(
                         value: 'Direct',
                         label: 'أي شخص',
-                        icon: FontAwesomeIcons.userGroup),
+                        icon: Icons.groups_rounded),
                     _OptionData(
                         value: 'request',
                         label: 'بعد الموافقة',
-                        icon: FontAwesomeIcons.userCheck),
+                        icon: Icons.how_to_reg_rounded),
                   ],
                   selected: _bookingType,
                   onSelect: (v) => setState(() {
@@ -569,7 +568,7 @@ class _OptionRow<T> extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  FaIcon(opt.icon,
+                  Icon(opt.icon,
                       size: 24.sp,
                       color: isSelected ? Colors.white : MyColors.accent),
                   SizedBox(height: 6.h),

@@ -333,16 +333,15 @@ class _RechargeCard extends StatelessWidget {
                 // القناة الداخلية أولاً: لا تُخرج المستخدم من التطبيق،
                 // ومحادثتها محفوظة يمكنه الرجوع إليها لمتابعة طلبه
                 _ContactTile(
-                  icon: Icons.headset_mic_outlined,
+                  icon: Icon(Icons.headset_mic_outlined),
                   iconColor: MyColors.primary,
                   title: 'الدعم الفني',
                   subtitle: 'محادثة مباشرة داخل التطبيق',
-                  isAppIcon: true,
                   onTap: () => Get.toNamed(RouteName.profileContactUs),
                 ),
                 SizedBox(height: 10.h),
                 _ContactTile(
-                  icon: FontAwesomeIcons.whatsapp,
+                  icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 22),
                   iconColor: const Color(0xFF25D366),
                   title: 'واتساب',
                   subtitle: '+963 988 626 577',
@@ -350,7 +349,7 @@ class _RechargeCard extends StatelessWidget {
                 ),
                 SizedBox(height: 10.h),
                 _ContactTile(
-                  icon: FontAwesomeIcons.telegram,
+                  icon: const FaIcon(FontAwesomeIcons.telegram, size: 22),
                   iconColor: const Color(0xFF229ED9),
                   title: 'تلغرام',
                   subtitle: '@salah577',
@@ -366,14 +365,15 @@ class _RechargeCard extends StatelessWidget {
 }
 
 class _ContactTile extends StatelessWidget {
-  final IconData icon;
+  /// ويدجت لا `IconData`: أيقونات العلامات التجارية في font_awesome 11
+  /// نوع مستقلّ (`FaIconData`) لا يرث `IconData` — صار الأخير
+  /// `final class` في Flutter 3.47. فيمرّر المستدعي `Icon` أو `FaIcon`.
+  final Widget icon;
+
   final Color iconColor;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
-
-  /// أيقونة Material لا FontAwesome — لقنوات التطبيق الداخلية.
-  final bool isAppIcon;
 
   const _ContactTile({
     required this.icon,
@@ -381,7 +381,6 @@ class _ContactTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
-    this.isAppIcon = false,
   });
 
   @override
@@ -405,10 +404,14 @@ class _ContactTile extends StatelessWidget {
                 color: iconColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
+              // الأيقونة ويدجت لا IconData: أيقونات العلامات التجارية في
+              // font_awesome 11 نوع مستقلّ (FaIconData) لا يرث IconData —
+              // صار الأخير final class في Flutter 3.47.
               child: Center(
-                child: isAppIcon
-                    ? Icon(icon, color: iconColor, size: 22)
-                    : FaIcon(icon, color: iconColor, size: 22),
+                child: IconTheme(
+                  data: IconThemeData(color: iconColor, size: 22),
+                  child: icon,
+                ),
               ),
             ),
             SizedBox(width: 12.w),

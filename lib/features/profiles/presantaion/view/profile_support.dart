@@ -20,15 +20,19 @@ class ProfileSupportScreen extends StatelessWidget {
       backgroundColor: MyColors.background,
       appBar: AppBar(
         elevation: 0,
-        title: Text("مركز المساعدة", style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
+        title: Text(
+          "مركز المساعدة",
+          style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark),
+        ),
         centerTitle: true,
       ),
       // الأسئلة يحرّرها الأدمن مع السياسات على `GET /policies` — انظر
       // PolicyCubit في ترتيب المصادر وسبب غياب شاشة الخطأ.
       body: BlocBuilder<PolicyCubit, PolicyState>(
         builder: (context, state) {
-          final content =
-              state is PolicyLoaded ? state.content : PolicyContent.builtIn;
+          final content = state is PolicyLoaded
+              ? state.content
+              : PolicyContent.builtIn;
 
           return RefreshIndicator(
             onRefresh: () => context.read<PolicyCubit>().load(force: true),
@@ -37,11 +41,11 @@ class ProfileSupportScreen extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 28.h),
               children: [
                 ...content.faq.asMap().entries.map(
-                      (e) => StaggeredItem(
-                        index: e.key,
-                        child: _FaqGroupCard(group: e.value),
-                      ),
-                    ),
+                  (e) => StaggeredItem(
+                    index: e.key,
+                    child: _FaqGroupCard(group: e.value),
+                  ),
+                ),
                 SizedBox(height: 8.h),
                 const _StillNeedHelp(),
               ],
@@ -59,37 +63,46 @@ class _FaqGroupCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Material لا Container: صندوق ملوَّن فوق ExpansionTile يحجب تموّج
+    // لمسه — ونبّه عليه Flutter 3.47 بتأكيد صريح.
     return Container(
       margin: EdgeInsets.only(bottom: 14.h),
       decoration: BoxDecoration(
-        color: MyColors.surface,
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: MyColors.border),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 6.h),
-            child: Row(
-              children: [
-                Container(
-                  width: 32.w,
-                  height: 32.w,
-                  decoration: BoxDecoration(
-                    color: MyColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(9.r),
+      clipBehavior: Clip.antiAlias,
+      child: Material(
+        color: MyColors.surface,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 6.h),
+              child: Row(
+                children: [
+                  Container(
+                    width: 32.w,
+                    height: 32.w,
+                    decoration: BoxDecoration(
+                      color: MyColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(9.r),
+                    ),
+                    child: Icon(
+                      group.icon,
+                      size: 17.sp,
+                      color: MyColors.primary,
+                    ),
                   ),
-                  child: Icon(group.icon, size: 17.sp, color: MyColors.primary),
-                ),
-                SizedBox(width: 10.w),
-                Text(group.title, style: AppTextStyles.labelLarge),
-              ],
+                  SizedBox(width: 10.w),
+                  Text(group.title, style: AppTextStyles.labelLarge),
+                ],
+              ),
             ),
-          ),
-          ...group.entries.map((e) => _FaqTile(entry: e)),
-          SizedBox(height: 6.h),
-        ],
+            ...group.entries.map((e) => _FaqTile(entry: e)),
+            SizedBox(height: 6.h),
+          ],
+        ),
       ),
     );
   }
@@ -147,7 +160,11 @@ class _StillNeedHelp extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(Icons.headset_mic_outlined, size: 28.sp, color: MyColors.primary),
+          Icon(
+            Icons.headset_mic_outlined,
+            size: 28.sp,
+            color: MyColors.primary,
+          ),
           SizedBox(height: 10.h),
           Text(
             'لم تجد إجابتك؟',
@@ -158,8 +175,10 @@ class _StillNeedHelp extends StatelessWidget {
           Text(
             'راسل فريق الدعم مباشرة، أو أرسل شكوى إن كانت المشكلة تخصّ رحلة '
             'أو مبلغاً محدداً.',
-            style: AppTextStyles.bodySmall
-                .copyWith(color: MyColors.textSecondary, height: 1.6),
+            style: AppTextStyles.bodySmall.copyWith(
+              color: MyColors.textSecondary,
+              height: 1.6,
+            ),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 14.h),
@@ -178,9 +197,12 @@ class _StillNeedHelp extends StatelessWidget {
                     elevation: 0,
                   ),
                   icon: Icon(Icons.chat_outlined, size: 17.sp),
-                  label: Text('تواصل مع الدعم',
-                      style: AppTextStyles.labelMedium
-                          .copyWith(color: MyColors.textOnDark)),
+                  label: Text(
+                    'تواصل مع الدعم',
+                    style: AppTextStyles.labelMedium.copyWith(
+                      color: MyColors.textOnDark,
+                    ),
+                  ),
                 ),
               ),
               SizedBox(width: 10.w),
@@ -196,9 +218,12 @@ class _StillNeedHelp extends StatelessWidget {
                     ),
                   ),
                   icon: Icon(Icons.report_problem_outlined, size: 17.sp),
-                  label: Text('تقديم شكوى',
-                      style: AppTextStyles.labelMedium
-                          .copyWith(color: MyColors.primary)),
+                  label: Text(
+                    'تقديم شكوى',
+                    style: AppTextStyles.labelMedium.copyWith(
+                      color: MyColors.primary,
+                    ),
+                  ),
                 ),
               ),
             ],

@@ -31,7 +31,7 @@ dependencies:
   flutter_screenutil: ^5.9.3
   flutter_secure_storage: ^10.3.1
   flutter_svg: ^2.2.3
-  font_awesome_flutter: ^10.12.0
+  font_awesome_flutter: 11.0.0
   geocoding: ^4.0.0
   get: ^4.7.3
   get_it: ^9.2.0
@@ -79,7 +79,14 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
-  hive_generator: ^2.0.1
+  # hive_generator أُزيلت مع ترقية Flutter إلى 3.47: الحزمة مهجورة
+  # (آخر إصدار يشترط Dart < 3) ولا إصدار منها يتوافق مع flutter_test في
+  # الإصدارات الحديثة.
+  #
+  # لا أثر لذلك على البناء ولا الاختبارات: المحوّل الوحيد في المشروع
+  # (user_model.g.dart) مولَّد ومتتبَّع في git. ولإعادة توليده عند تغيير
+  # UserModel: أعِد السطر مؤقتاً بإصدار متوافق، أو اكتب المحوّل يدوياً —
+  # وهو ثلاثون سطراً.
   integration_test:
     sdk: flutter
   mocktail: ^1.0.5
