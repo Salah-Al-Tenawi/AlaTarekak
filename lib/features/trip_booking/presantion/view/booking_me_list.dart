@@ -3,15 +3,21 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_core/get_core.dart';
 import 'package:get/get_navigation/get_navigation.dart';
+
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
+import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/core/utils/functions/my_dilaog.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
-import 'package:alatarekak/core/utils/animations/app_animations.dart';
+import 'package:alatarekak/core/utils/widgets/app_error_view.dart';
 import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
+import 'package:alatarekak/core/utils/widgets/status_filter_bar.dart';
+import 'package:alatarekak/features/trip_booking/data/model/booking_me_model.dart';
 import 'package:alatarekak/features/trip_booking/presantion/manger/cubit/booking_me_cubit.dart';
+import 'package:alatarekak/features/trip_booking/presantion/view/widget/booking_details_sheet.dart';
 import 'package:alatarekak/features/trip_booking/presantion/view/widget/booking_item.dart';
+import 'package:alatarekak/features/trip_booking/presantion/view/widget/booking_status_filter.dart';
 
 class BookingMeList extends StatefulWidget {
   const BookingMeList({super.key});
@@ -21,6 +27,19 @@ class BookingMeList extends StatefulWidget {
 }
 
 class _BookingMeListState extends State<BookingMeList> {
+  BookingStatusFilter _filter = BookingStatusFilter.all;
+
+  /// آخر قائمة وصلت من الخادم.
+  ///
+  /// الكيوبت واحد لكل عمليات الشاشة، فكل إلغاء أو تقييم يُخرجه من
+  /// `BookingMeListLoaded` — وكانت الشاشة حينها تعرض `SizedBox.shrink()`
+  /// فتختفي الحجوزات كلها بعد أول إجراء ولا تعود إلا بإعادة فتح التبويب.
+  /// الاحتفاظ بالقائمة هنا يُبقيها معروضة حتى يصل التحديث.
+  List<BookingMe>? _bookings;
+
+  /// الجلب الأول يُطلب مرّة واحدة لا مرّة لكل بناء.
+  bool _fetchRequested = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,126 +62,209 @@ class _BookingMeListState extends State<BookingMeList> {
         ],
       ),
       body: BlocConsumer<BookingMeCubit, BookingMeState>(
-        listener: (context, state) {
-          if (state is BookingMeCanceled) {
-            final refund = state.cancelModel.data.refundPolicy.refundPercentage;
-            myConfirmDilaogWithPolicy(
-              context,
-              "تم استرداد $refund ل.س من قيمة الحجز",
-              title: "تم إلغاء الحجز",
-            );
-          } else if (state is BookingMeOpenConversation) {
-            Get.toNamed(RouteName.chatScreen, arguments: {
-              'conversationId': state.conversationId,
-              'title': state.title ?? 'سائق الرحلة',
-              'avatar': state.avatar,
-            });
-          } else if (state is BookingMeErorr) {
-            // الرسالة معرّبة مسبقاً في الكيوبت حسب نوع العملية
-            showMySnackBar(context, state.message);
-          }
-        },
+        listener: _onState,
         builder: (context, state) {
-          if (state is BookingMeListloading) {
-            return const Center(child: LoadingWidgetSize150());
-          } else if (state is BookingMeListLoaded) {
-            return RefreshIndicator(
-              onRefresh: _refreshData,
-              child: state.bookings.isEmpty
-                  ? SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: MediaQuery.of(context).size.height,
-                        child: Column(
-                          children: [
-                            SizedBox(height: 80.h),
-                            Image.asset(
-                              'assets/images/Empty.png',
-                              width: 300.w,
-                              height: 300.h,
-                              fit: BoxFit.contain,
-                            ),
-                            SizedBox(height: 16.h),
-                            const Text(
-                              'لا توجد حجوزات',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : ListView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      itemCount: state.bookings.length,
-                      itemBuilder: (context, index) {
-                        final booking = state.bookings[index];
-                        return StaggeredItem(
-                          index: index,
-                          child: BookingItem(
-                            booking: booking,
-                            onTapDetails: () {
-                              Get.toNamed(
-                                RouteName.tripDetails,
-                                arguments: state.bookings[index].rideId,
-                              );
-                            },
-                          ),
-                        );
-                      },
-                    ),
-            );
-          } else if (state is BookingMeErorr) {
-            return RefreshIndicator(
-              onRefresh: _refreshData,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: SizedBox(
-                  height: MediaQuery.of(context).size.height,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text("خطأ حاول مجددا"),
-                        SizedBox(height: 16.h),
-                        IconButton(
-                          onPressed: () {
-                            context.read<BookingMeCubit>().getMyBooking();
-                          },
-                          icon: Icon(
-                            Icons.refresh,
-                            color: MyColors.accent,
-                            size: 50,
-                          ),
-                        ),
-                        SizedBox(height: 70.h),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          } else {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              final cubit = context.read<BookingMeCubit>();
-              if (cubit.state is! BookingMeFinish &&
-                  cubit.state is! BookingMeCanceled &&
-                  cubit.state is! BookingMeRated) {
-                cubit.getMyBooking();
-              }
-            });
+          if (state is BookingMeListLoaded) _bookings = state.bookings;
+          final bookings = _bookings;
 
-            return const SizedBox.shrink();
+          if (bookings == null) {
+            if (state is BookingMeErorr) return _errorView(state.message);
+            if (state is! BookingMeListloading) _requestFirstFetch(context);
+            return const Center(child: LoadingWidgetSize150());
           }
+
+          return _loadedBody(
+            bookings,
+            // إجراء قيد التنفيذ: أُرسل من ورقة التفاصيل التي أُغلقت فور
+            // الإرسال، فلولا هذا الشريط لبدت الشاشة جامدة حتى يصل الردّ.
+            busy: state is BookingMeloading || state is BookingMeButtonloading,
+          );
         },
       ),
     );
   }
 
+  // ━━━━━━━━━━━━━━━━ التفاعل مع الكيوبت ━━━━━━━━━━━━━━━━
+
+  void _onState(BuildContext context, BookingMeState state) {
+    if (state is BookingMeCanceled) {
+      final refund = state.cancelModel.data.refundPolicy.refundPercentage;
+      myConfirmDilaogWithPolicy(
+        context,
+        "تم استرداد $refund ل.س من قيمة الحجز",
+        title: "تم إلغاء الحجز",
+      );
+      _refreshData();
+    } else if (state is BookingMeWholeCanceled) {
+      showMySnackBar(context, state.message);
+      _refreshData();
+    } else if (state is BookingMeFinish) {
+      showMySnackBar(context, "تم تأكيد وصولك");
+      _refreshData();
+    } else if (state is BookingMeRated) {
+      showMySnackBar(context, "شكراً لك على تقييمك");
+      _refreshData();
+    } else if (state is BookingMeDriverNoShowReported) {
+      showMySnackBar(context, state.message);
+      _refreshData();
+    } else if (state is BookingMeOpenConversation) {
+      Get.toNamed(RouteName.chatScreen, arguments: {
+        'conversationId': state.conversationId,
+        'title': state.title ?? 'سائق الرحلة',
+        'avatar': state.avatar,
+      });
+    } else if (state is BookingMeErorr) {
+      // الرسالة معرّبة مسبقاً في الكيوبت حسب نوع العملية
+      showMySnackBar(context, state.message);
+    }
+  }
+
+  void _requestFirstFetch(BuildContext context) {
+    if (_fetchRequested) return;
+    _fetchRequested = true;
+
+    final cubit = context.read<BookingMeCubit>();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) cubit.getMyBooking();
+    });
+  }
+
   Future<void> _refreshData() async {
     await context.read<BookingMeCubit>().getMyBooking();
+  }
+
+  // ━━━━━━━━━━━━━━━━ الجسم ━━━━━━━━━━━━━━━━
+
+  Widget _loadedBody(List<BookingMe> bookings, {required bool busy}) {
+    final visible = _filter.apply(bookings);
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 2.h,
+          child: busy
+              ? LinearProgressIndicator(
+                  minHeight: 2.h,
+                  backgroundColor: Colors.transparent,
+                  color: MyColors.accent,
+                )
+              : null,
+        ),
+        _filterBar(bookings),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: _refreshData,
+            color: MyColors.accent,
+            child: visible.isEmpty
+                ? _emptyView()
+                : ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.only(top: 4.h, bottom: 16.h),
+                    itemCount: visible.length,
+                    itemBuilder: (context, index) {
+                      final booking = visible[index];
+                      return StaggeredItem(
+                        index: index,
+                        child: BookingItem(
+                          // المفتاح يمنع إعادة استعمال حالة بطاقة لحجز
+                          // آخر حين يتغيّر التصنيف وتُعاد ترتيب القائمة.
+                          key: ValueKey(booking.bookingId),
+                          booking: booking,
+                          onTap: () =>
+                              BookingDetailsSheet.show(context, booking),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _filterBar(List<BookingMe> bookings) {
+    final counts = countByFilter(bookings);
+
+    return StatusFilterBar(
+      options: [
+        for (final filter in BookingStatusFilter.values)
+          StatusFilterOption(
+            label: filter.label,
+            color: filter.color,
+            icon: filter.icon,
+            count: counts[filter] ?? 0,
+            isSelected: filter == _filter,
+            onTap: () => setState(() => _filter = filter),
+          ),
+      ],
+    );
+  }
+
+  /// الشاشة الفارغة برسالة التصنيف المختار — «لا توجد حجوزات» العامّة
+  /// تُوهم من فلتر على «ملغاة» أن حجوزاته كلها اختفت.
+  Widget _emptyView() {
+    final isFiltered = _filter != BookingStatusFilter.all;
+
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(height: 24.h),
+              Image.asset(
+                'assets/images/Empty.png',
+                width: 240.w,
+                height: 240.h,
+                fit: BoxFit.contain,
+              ),
+              SizedBox(height: 12.h),
+              Text(
+                _filter.emptyMessage,
+                style: AppTextStyles.titleMedium.copyWith(fontSize: 16.sp),
+              ),
+              if (isFiltered) ...[
+                SizedBox(height: 12.h),
+                TextButton.icon(
+                  onPressed: () =>
+                      setState(() => _filter = BookingStatusFilter.all),
+                  icon: Icon(Icons.list_rounded, size: 18.sp),
+                  label: const Text('عرض كل الحجوزات'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: MyColors.accent,
+                  ),
+                ),
+              ],
+              SizedBox(height: 24.h),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _errorView(String message) {
+    return RefreshIndicator(
+      onRefresh: _refreshData,
+      color: MyColors.accent,
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: AppErrorView(
+                title: 'تعذّر جلب حجوزاتك',
+                message: message,
+                actionLabel: 'إعادة المحاولة',
+                onAction: _refreshData,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

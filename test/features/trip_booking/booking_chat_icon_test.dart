@@ -2,7 +2,7 @@ import 'package:alatarekak/features/chat/domain/repo/chat_repo.dart';
 import 'package:alatarekak/features/trip_booking/data/model/booking_me_model.dart';
 import 'package:alatarekak/features/trip_booking/data/repo/booking_me_repo.dart';
 import 'package:alatarekak/features/trip_booking/presantion/manger/cubit/booking_me_cubit.dart';
-import 'package:alatarekak/features/trip_booking/presantion/view/widget/booking_item.dart';
+import 'package:alatarekak/features/trip_booking/presantion/view/widget/booking_details_sheet.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,40 +11,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/fixtures.dart';
+
 class MockBookingMeRepo extends Mock implements BookingMeRepo {}
 
 class MockChatRepo extends Mock implements ChatRepo {}
 
-/// أيقونة مراسلة السائق في بطاقة «حجوزاتي».
+/// أيقونة مراسلة السائق في ورقة تفاصيل الحجز.
 ///
 /// سياسة التطبيق: لا محادثة بلا حجز. وكان الراكب الطرف الوحيد بلا طريق
-/// إليها من قائمة حجوزاته — للسائق زرّ مراسلة في شاشة حجوزات رحلته،
-/// وللراكب لا شيء.
-
-BookingMe _booking({String status = 'confirmed'}) => BookingMe(
-      bookingId: 10,
-      status: status,
-      seats: 2,
-      totalPrice: 50000,
-      bookingDate: DateTime(2026, 7, 1),
-      passengerCommunicationNumber: '0999999999',
-      driverCommunicationNumber: '0988888888',
-      rideId: 5,
-      pickupAddress: 'دمشق',
-      destinationAddress: 'حمص',
-      departureTime: DateTime(2026, 7, 15, 8),
-      distanceKm: 160,
-      durationMinutes: 120,
-      pricePerSeat: 25000,
-      paymentMethod: 'wallet',
-      vehicleType: 'sedan',
-      rideStatus: 'active',
-      driverName: 'أحمد',
-      driverRating: 4.5,
-      driverAvatar: '',
-      userDriver: 3,
-    );
-
+/// إليها من حجوزاته — للسائق زرّ مراسلة في شاشة حجوزات رحلته، وللراكب
+/// لا شيء. موضعها انتقل من البطاقة إلى الورقة حين صارت البطاقة ملخّصاً.
 void main() {
   late MockBookingMeRepo repo;
   late MockChatRepo chatRepo;
@@ -72,15 +49,10 @@ void main() {
         child: MaterialApp(
           home: Directionality(
             textDirection: TextDirection.rtl,
-            child: Scaffold(
-              body: SingleChildScrollView(
-                child: BlocProvider<BookingMeCubit>.value(
-                  value: cubit,
-                  child: BookingItem(
-                    booking: booking,
-                    onTapDetails: () {},
-                  ),
-                ),
+            child: BlocProvider<BookingMeCubit>.value(
+              value: cubit,
+              child: Scaffold(
+                body: BookingDetailsContent(booking: booking),
               ),
             ),
           ),
@@ -101,13 +73,13 @@ void main() {
       'finished',
     ]) {
       testWidgets('حجز «$status» — تظهر', (tester) async {
-        await pump(tester, _booking(status: status));
+        await pump(tester, fakeBooking(status: status));
         expect(chatIcon(), findsOneWidget);
       });
     }
 
     testWidgets('حالة بأحرف كبيرة تُقرأ كذلك', (tester) async {
-      await pump(tester, _booking(status: 'CONFIRMED'));
+      await pump(tester, fakeBooking(status: 'CONFIRMED'));
       expect(chatIcon(), findsOneWidget);
     });
   });
@@ -120,7 +92,7 @@ void main() {
       'rejected',
     ]) {
       testWidgets('حجز «$status» — لا تظهر', (tester) async {
-        await pump(tester, _booking(status: status));
+        await pump(tester, fakeBooking(status: status));
         expect(chatIcon(), findsNothing);
       });
     }
@@ -131,7 +103,7 @@ void main() {
       when(() => chatRepo.startConversation(userId: any(named: 'userId')))
           .thenAnswer((_) async => right(77));
 
-      await pump(tester, _booking());
+      await pump(tester, fakeBooking());
       await tester.tap(chatIcon());
       await tester.pump();
 
@@ -146,13 +118,12 @@ void main() {
       final states = <BookingMeState>[];
       cubit.stream.listen(states.add);
 
-      await pump(tester, _booking());
+      await pump(tester, fakeBooking());
       await tester.tap(chatIcon());
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 
-      final opened =
-          states.whereType<BookingMeOpenConversation>().single;
+      final opened = states.whereType<BookingMeOpenConversation>().single;
       expect(opened.conversationId, 77);
       expect(opened.title, 'أحمد');
     });

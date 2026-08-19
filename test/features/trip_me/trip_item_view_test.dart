@@ -347,4 +347,40 @@ void main() {
           reason: 'هذه شاشة «رحلاتي» — كل رحلة فيها للمستخدم بالتعريف');
     });
   });
+
+  group('البطاقة ملخّص: التفصيل في شاشة الرحلة', () {
+    testWidgets('ارتفاعها في حدود معقولة', (tester) async {
+      // مقاس التصميم نفسه: عندها يكون 1 منطقي = 1 فيزيائي في ScreenUtil،
+      // فيُقرأ الارتفاع المقيس بالأرقام التي كُتب بها التصميم. بقيّة
+      // اختبارات هذا الملف تقرأ نصّاً لا مقاساً فلا يعنيها القياس.
+      tester.view.physicalSize = const Size(375, 812);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await pumpCard(
+          tester, _row(id: 9, availableSeats: 2, bookingsCount: 1));
+
+      // رحلة قادمة (بعدّادها وزرّ إلغائها): كانت 366 بمقاس التصميم —
+      // المسار وحده ثلاثة أسطر وخيط بينها — وصارت 273. والمنتهية بلا
+      // إجراءات: من 291 إلى 225.
+      expect(tester.getSize(find.byType(ItemTrip)).height, lessThan(290));
+    });
+
+    testWidgets('سهم يدلّ على أن للبطاقة عمقاً', (tester) async {
+      await pumpCard(
+          tester, _row(id: 10, availableSeats: 2, bookingsCount: 0));
+
+      expect(find.byIcon(Icons.arrow_forward_ios_rounded), findsOneWidget);
+    });
+
+    testWidgets('المسار سطر واحد بطرفيه مسمَّيين', (tester) async {
+      await pumpCard(
+          tester, _row(id: 11, availableSeats: 2, bookingsCount: 0));
+
+      expect(find.text('من'), findsOneWidget);
+      expect(find.text('إلى'), findsOneWidget);
+      expect(find.text('السفارة الأرجنتينية'), findsOneWidget);
+    });
+  });
 }

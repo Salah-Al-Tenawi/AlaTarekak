@@ -25,19 +25,19 @@ class ItemTrip extends StatelessWidget {
     final radius = BorderRadius.circular(20.r);
 
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 8.h, horizontal: 16.w),
+      margin: EdgeInsets.symmetric(vertical: 6.h, horizontal: 14.w),
       shape: RoundedRectangleBorder(
         borderRadius: radius,
         side: BorderSide(color: MyColors.border, width: 1),
       ),
-      elevation: 3,
+      elevation: 2,
       shadowColor: MyColors.shadowMedium,
       color: MyColors.surface,
       child: InkWell(
         borderRadius: radius,
         onTap: onTap,
         child: Padding(
-          padding: EdgeInsets.all(16.w),
+          padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 12.h),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -49,34 +49,30 @@ class ItemTrip extends StatelessWidget {
               // «رحلتي». الموعد هو ما يميّز رحلة عن أخرى فعلاً.
               _DepartureHeader(departure: trip.departure, status: trip.status),
 
-              SizedBox(height: 14.h),
+              SizedBox(height: 10.h),
               Divider(height: 1, color: MyColors.divider),
-              SizedBox(height: 14.h),
+              SizedBox(height: 10.h),
 
               // ━━ المسار ━━
-              TripLocationLine(
-                icon: Icons.circle,
-                iconColor: MyColors.primary,
-                text: trip.pickup.address,
-              ),
-              const TripRouteConnector(),
-              TripLocationLine(
-                icon: Icons.location_pin,
-                iconColor: MyColors.accent,
-                text: trip.destination.address,
+              //
+              // كان سطرين وخيطاً بينهما — وافياً لشاشة التفاصيل، مسرفاً
+              // في بطاقة قائمة حيث كل سطر يُقاس. صار طرفين وسهماً.
+              TripRouteRow(
+                from: trip.pickup.address,
+                to: trip.destination.address,
               ),
 
               // المسافة والمدّة سطراً خافتاً تحت المسار لا رقاقة مستقلّة:
               // معلومة عن المسار نفسه، ومكانها تحته.
               if (trip.distance.meters > 0) ...[
-                SizedBox(height: 10.h),
+                SizedBox(height: 8.h),
                 _RouteMeta(
                   label: _routeLabel(
                       trip.distance.kilometers, trip.duration.minutes),
                 ),
               ],
 
-              SizedBox(height: 14.h),
+              SizedBox(height: 10.h),
 
               // ━━ الأرقام ━━
               //
@@ -130,7 +126,7 @@ class ItemTrip extends StatelessWidget {
 
     // الرحلة لم تنطلق: الإلغاء متاح بلا مهلة مسبقة — انظر [RideTimeRules]
     return Padding(
-      padding: EdgeInsets.only(top: 14.h),
+      padding: EdgeInsets.only(top: 10.h),
       child: Row(
         children: [
           Expanded(child: _CountdownChip(remaining: remaining)),
@@ -150,9 +146,9 @@ class _CountdownChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 42.h,
+      height: 38.h,
       alignment: Alignment.center,
-      padding: EdgeInsets.symmetric(horizontal: 12.w),
+      padding: EdgeInsets.symmetric(horizontal: 10.w),
       decoration: BoxDecoration(
         color: MyColors.warningLight,
         borderRadius: BorderRadius.circular(12.r),
@@ -190,7 +186,7 @@ class _CancelButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 42.h,
+      height: 38.h,
       child: OutlinedButton.icon(
         onPressed: onCancel,
         style: OutlinedButton.styleFrom(
@@ -255,8 +251,8 @@ class _DepartureHeader extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 52.w,
-          padding: EdgeInsets.symmetric(vertical: 8.h),
+          width: 46.w,
+          padding: EdgeInsets.symmetric(vertical: 6.h),
           decoration: BoxDecoration(
             color: MyColors.primary.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(14.r),
@@ -269,7 +265,7 @@ class _DepartureHeader extends StatelessWidget {
               Text(
                 '${departure.day}',
                 style: TextStyle(
-                  fontSize: 20.sp,
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
                   color: MyColors.primary,
                   height: 1.1,
@@ -318,8 +314,13 @@ class _DepartureHeader extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(width: 8.w),
+        SizedBox(width: 6.w),
         TripStatusBadge(status: status),
+        SizedBox(width: 2.w),
+        // إشارة أن للبطاقة عمقاً: الضغط يفتح الرحلة على الخريطة بحجوزاتها.
+        // الأيقونة تنعكس مع اتجاه النصّ فتشير يساراً في الواجهة العربية.
+        Icon(Icons.arrow_forward_ios_rounded,
+            size: 13.sp, color: MyColors.textHint),
       ],
     );
   }
@@ -372,10 +373,10 @@ class _MetricsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: MyColors.surfaceAlt,
-        borderRadius: BorderRadius.circular(14.r),
+        borderRadius: BorderRadius.circular(12.r),
       ),
       child: Row(
         children: [
@@ -389,7 +390,7 @@ class _MetricsRow extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 15.sp,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.bold,
                     color: MyColors.textPrimary,
                   ),
@@ -437,8 +438,8 @@ class _CellDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 1,
-      height: 28.h,
-      margin: EdgeInsets.symmetric(horizontal: 10.w),
+      height: 26.h,
+      margin: EdgeInsets.symmetric(horizontal: 8.w),
       color: MyColors.border,
     );
   }

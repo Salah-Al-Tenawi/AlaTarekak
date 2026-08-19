@@ -296,3 +296,134 @@ class TripSectionCard extends StatelessWidget {
     );
   }
 }
+
+/// المسار في سطر واحد — لبطاقات الملخّص في «حجوزاتي» و«رحلاتي».
+///
+/// [TripLocationLine] مع [TripRouteConnector] يرسم المسار في ثلاثة أسطر:
+/// وافٍ لشاشة التفاصيل، مسرف في بطاقة القائمة حيث كل سطر يُقاس. هنا
+/// طرفان متساويان وسهم بينهما.
+///
+/// السهم `arrow_forward` بعينه: أيقونة تنعكس مع اتجاه النصّ، فتشير
+/// يساراً في الواجهة العربية — أي في جهة السير.
+class TripRouteRow extends StatelessWidget {
+  final String from;
+  final String to;
+
+  const TripRouteRow({super.key, required this.from, required this.to});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _RouteEndpoint(
+            label: 'من',
+            text: from,
+            icon: Icons.circle,
+            color: MyColors.primary,
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8.w),
+          child: Icon(Icons.arrow_forward_rounded,
+              size: 16.sp, color: MyColors.textHint),
+        ),
+        Expanded(
+          child: _RouteEndpoint(
+            label: 'إلى',
+            text: to,
+            icon: Icons.location_pin,
+            color: MyColors.accent,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// طرف مسار: تسمية صغيرة فوق العنوان، بنقطة ملوّنة تُميّز الانطلاق عن
+/// الوجهة كما في بقيّة بطاقات التطبيق.
+class _RouteEndpoint extends StatelessWidget {
+  final String label;
+  final String text;
+  final IconData icon;
+  final Color color;
+
+  const _RouteEndpoint({
+    required this.label,
+    required this.text,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTextStyles.labelSmall
+              .copyWith(fontSize: 10.sp, color: MyColors.textHint),
+        ),
+        SizedBox(height: 2.h),
+        Row(
+          children: [
+            Icon(icon, size: 12.sp, color: color),
+            SizedBox(width: 5.w),
+            Expanded(
+              child: Text(
+                text.trim().isEmpty ? '—' : text,
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w600,
+                  color: MyColors.textPrimary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// معلومة سطرية: أيقونة ملوّنة ونصّها. أخفّ من [TripInfoChip] كاملة
+/// الحدود، فتتّسع ثلاث معلومات في سطر واحد بدل ثلاثة أسطر.
+class TripFactLine extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final Color color;
+
+  const TripFactLine({
+    super.key,
+    required this.icon,
+    required this.text,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 13.sp, color: color),
+        SizedBox(width: 5.w),
+        Flexible(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 11.5.sp,
+              fontWeight: FontWeight.w600,
+              color: MyColors.textSecondary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+}

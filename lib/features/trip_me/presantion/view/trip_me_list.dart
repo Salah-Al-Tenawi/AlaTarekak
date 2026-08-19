@@ -4,16 +4,20 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_core/get_core.dart';
 import 'package:get/get_navigation/get_navigation.dart';
+
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
+import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
+import 'package:alatarekak/core/utils/widgets/app_error_view.dart';
 import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
+import 'package:alatarekak/core/utils/widgets/status_filter_bar.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_me/presantion/manger/cubit/trip_me_cubit.dart';
 import 'package:alatarekak/features/trip_me/presantion/view/widget/trip_item.dart';
-import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
+import 'package:alatarekak/features/trip_me/presantion/view/widget/trip_status_filter.dart';
 
 class TripMeList extends StatefulWidget {
   const TripMeList({super.key});
@@ -23,6 +27,16 @@ class TripMeList extends StatefulWidget {
 }
 
 class _TripMeListState extends State<TripMeList> {
+  TripStatusFilter _filter = TripStatusFilter.all;
+
+  /// آخر قائمة وصلت من الخادم.
+  ///
+  /// الكيوبت واحد لكل عمليات الشاشة، فالإلغاء يُخرجه من
+  /// `TripMeListLoaded` إلى `TripMeLoading` — وكانت الشاشة تستبدل
+  /// الرحلات كلها بمؤشّر دوّار حتى يعود الجلب. الاحتفاظ بالقائمة هنا
+  /// يُبقيها معروضة، ويكفي شريط تقدّم رفيع ليُعلم أن شيئاً يجري.
+  List<TripModel>? _trips;
+
   @override
   void initState() {
     super.initState();
@@ -51,7 +65,9 @@ class _TripMeListState extends State<TripMeList> {
       appBar: AppBar(
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: Text('رحلاتي', style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
+        title: Text('رحلاتي',
+            style:
+                AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
         centerTitle: true,
       ),
       body: BlocConsumer<TripMeCubit, TripMeState>(
@@ -63,125 +79,179 @@ class _TripMeListState extends State<TripMeList> {
           }
         },
         builder: (context, state) {
-          if (state is TripMeLoading) {
+          if (state is TripMeListLoaded) _trips = state.trips;
+          final trips = _trips;
+
+          if (trips == null) {
+            if (state is TripMeErorr) return _errorView(state.message);
             return const Center(child: LoadingWidgetSize150());
-          } else if (state is TripMeListLoaded) {
-            final List<TripModel> trips = state.trips;
-
-            Future<void> refreshData() async {
-              await context.read<TripMeCubit>().getMeTrips();
-            }
-
-            return RefreshIndicator(
-              onRefresh: refreshData,
-              child: trips.isEmpty
-                  ? SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: MediaQuery.of(context).size.height,
-                        child: Column(
-                          children: [
-                            SizedBox(height: 80.h),
-                            Image.asset(
-                              'assets/images/Empty.png',
-                              width: 300.w,
-                              height: 300.h,
-                              fit: BoxFit.contain,
-                            ),
-                            SizedBox(height: 16.h),
-                            const Text(
-                              'لا توجد رحلات',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : ListView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.only(top: 8, bottom: 16),
-                      itemCount: trips.length,
-                      itemBuilder: (context, index) {
-                        final trip = trips[index];
-
-                        return StaggeredItem(
-                          index: index,
-                          child: ItemTrip(
-                            trip: trip,
-                            onTap: () {
-                              // كل رحلة هنا للمستخدم بالتعريف، فتُجلب
-                              // بحجوزاتها من مسار السائق
-                              Get.toNamed(
-                                RouteName.tripDetails,
-                                arguments: {
-                                  'tripId': trip.id,
-                                  'asDriver': true,
-                                },
-                              );
-                            },
-                            onCancel: () async {
-                              final cubit = context.read<TripMeCubit>();
-                              final confirm = await showAppDialog(
-                                context,
-                                icon: Icons.cancel_schedule_send_rounded,
-                                title: 'إلغاء الرحلة',
-                                message: 'سيصل إشعار بالإلغاء إلى من حجز '
-                                    'فيها، وتُعاد إليهم مبالغهم. ولا يمكن '
-                                    'التراجع بعده.',
-                                confirmLabel: 'إلغاء الرحلة',
-                                cancelLabel: 'تراجع',
-                                destructive: true,
-                              );
-
-                              if (confirm == true) cubit.cancelTrip(trip.id);
-                            },
-                          ),
-                        );
-                      },
-                    ),
-            );
-          } else if (state is TripMeErorr) {
-            return RefreshIndicator(
-              onRefresh: () async {
-                await context.read<TripMeCubit>().getMeTrips();
-              },
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: SizedBox(
-                  height: MediaQuery.of(context).size.height,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(state.message),
-                        SizedBox(height: 16.h),
-                        IconButton(
-                          onPressed: () {
-                            context.read<TripMeCubit>().getMeTrips();
-                          },
-                          icon: Icon(
-                            Icons.refresh,
-                            color: MyColors.accent,
-                            size: 50,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
           }
 
-          // `TripMeCancel` و`TripMeOneLoaded` و`TripMeFinishTrip` تمرّ
-          // هنا: الكيوبت نفسه يُعيد تحميل القائمة بعد الإلغاء، فلا نطلب
-          // شيئاً — نُبقي مؤشّراً حتى تصل القائمة الجديدة.
-          return const Center(child: LoadingWidgetSize150());
+          // إلغاء قيد التنفيذ: الكيوبت يمرّ بـ`TripMeLoading` ثم يعيد
+          // الجلب بنفسه. القائمة تبقى، والشريط الرفيع وحده يشي بالعمل.
+          return _loadedBody(trips, busy: state is TripMeLoading);
         },
+      ),
+    );
+  }
+
+  Future<void> _refreshData() async {
+    await context.read<TripMeCubit>().getMeTrips();
+  }
+
+  // ━━━━━━━━━━━━━━━━ الجسم ━━━━━━━━━━━━━━━━
+
+  Widget _loadedBody(List<TripModel> trips, {required bool busy}) {
+    final visible = _filter.apply(trips);
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 2.h,
+          child: busy
+              ? LinearProgressIndicator(
+                  minHeight: 2.h,
+                  backgroundColor: Colors.transparent,
+                  color: MyColors.accent,
+                )
+              : null,
+        ),
+        _filterBar(trips),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: _refreshData,
+            color: MyColors.accent,
+            child: visible.isEmpty
+                ? _emptyView()
+                : ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.only(top: 4.h, bottom: 16.h),
+                    itemCount: visible.length,
+                    itemBuilder: (context, index) {
+                      final trip = visible[index];
+
+                      return StaggeredItem(
+                        index: index,
+                        child: ItemTrip(
+                          // المفتاح يمنع إعادة استعمال حالة بطاقة لرحلة
+                          // أخرى حين يتغيّر التصنيف وتُعاد ترتيب القائمة.
+                          key: ValueKey(trip.id),
+                          trip: trip,
+                          onTap: () {
+                            // كل رحلة هنا للمستخدم بالتعريف، فتُجلب
+                            // بحجوزاتها من مسار السائق
+                            Get.toNamed(
+                              RouteName.tripDetails,
+                              arguments: {'tripId': trip.id, 'asDriver': true},
+                            );
+                          },
+                          onCancel: () => _askCancel(trip),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _filterBar(List<TripModel> trips) {
+    final counts = countTripsByFilter(trips);
+
+    return StatusFilterBar(
+      options: [
+        for (final filter in TripStatusFilter.values)
+          StatusFilterOption(
+            label: filter.label,
+            color: filter.color,
+            icon: filter.icon,
+            count: counts[filter] ?? 0,
+            isSelected: filter == _filter,
+            onTap: () => setState(() => _filter = filter),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _askCancel(TripModel trip) async {
+    final cubit = context.read<TripMeCubit>();
+    final confirm = await showAppDialog(
+      context,
+      icon: Icons.cancel_schedule_send_rounded,
+      title: 'إلغاء الرحلة',
+      message: 'سيصل إشعار بالإلغاء إلى من حجز فيها، وتُعاد إليهم '
+          'مبالغهم. ولا يمكن التراجع بعده.',
+      confirmLabel: 'إلغاء الرحلة',
+      cancelLabel: 'تراجع',
+      destructive: true,
+    );
+
+    if (confirm == true) cubit.cancelTrip(trip.id);
+  }
+
+  /// الشاشة الفارغة برسالة التصنيف المختار — «لا توجد رحلات» العامّة
+  /// تُوهم من فلتر على «ملغاة» أن رحلاته كلها اختفت.
+  Widget _emptyView() {
+    final isFiltered = _filter != TripStatusFilter.all;
+
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(height: 24.h),
+              Image.asset(
+                'assets/images/Empty.png',
+                width: 240.w,
+                height: 240.h,
+                fit: BoxFit.contain,
+              ),
+              SizedBox(height: 12.h),
+              Text(
+                _filter.emptyMessage,
+                style: AppTextStyles.titleMedium.copyWith(fontSize: 16.sp),
+              ),
+              if (isFiltered) ...[
+                SizedBox(height: 12.h),
+                TextButton.icon(
+                  onPressed: () =>
+                      setState(() => _filter = TripStatusFilter.all),
+                  icon: Icon(Icons.list_rounded, size: 18.sp),
+                  label: const Text('عرض كل الرحلات'),
+                  style: TextButton.styleFrom(foregroundColor: MyColors.accent),
+                ),
+              ],
+              SizedBox(height: 24.h),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _errorView(String message) {
+    return RefreshIndicator(
+      onRefresh: _refreshData,
+      color: MyColors.accent,
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: AppErrorView(
+                title: 'تعذّر جلب رحلاتك',
+                message: message,
+                actionLabel: 'إعادة المحاولة',
+                onAction: _refreshData,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
