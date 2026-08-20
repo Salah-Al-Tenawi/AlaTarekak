@@ -52,10 +52,17 @@ final class BookingMeWholeCanceled extends BookingMeState {
 final class BookingMeDriverNoShowReported extends BookingMeState {
   final String message;
 
-  const BookingMeDriverNoShowReported({required this.message});
+  /// ما آل إليه البلاغ — تُبنى عليه رسالة الشاشة: قبولٌ بمهلة اعتراض،
+  /// أو تعارضٌ فُتحت به شكوى، أو بلاغ سبق تسجيله.
+  final NoShowOutcome outcome;
+
+  const BookingMeDriverNoShowReported({
+    required this.message,
+    this.outcome = NoShowOutcome.reported,
+  });
 
   @override
-  List<Object> get props => [message];
+  List<Object> get props => [message, outcome];
 }
 
 final class BookingMeFinish extends BookingMeState {

@@ -14,6 +14,9 @@ import 'package:alatarekak/core/utils/class/format_date_time.dart';
 import 'package:alatarekak/core/utils/class/format_money.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/widgets/trip_card_parts.dart';
+import 'package:alatarekak/core/service/no_show_report_store.dart';
+import 'package:alatarekak/core/utils/class/arabic_plural.dart';
+import 'package:alatarekak/core/utils/class/no_show_report.dart';
 import 'package:alatarekak/core/utils/class/ride_time_rules.dart';
 import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 import 'package:alatarekak/features/booking_user_in_trip/presantion/manger/cubit/booking_user_in_trip_cubit.dart';
@@ -114,6 +117,28 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
     }
   }
 
+  /// التعارض ليس سناك بار — انظر نظيرتها في شاشة «حجوزاتي».
+  ///
+  /// حين يبلّغ الطرفان كلٌّ عن غياب الآخر لا عقوبة تلقائية، بل شكوى
+  /// يبتّ فيها الدعم. **والسائق لا يراها في `GET /complaints`**: الشكوى
+  /// تُنسب إلى الراكب وحده، فجلبها برقمها يردّ 404. فالإشعار
+  /// `noshow_conflict` هو طريق السائق إليها، وهذا الحوار يخبره بها.
+  void _onNoShowReported(
+      BuildContext context, BookingUserInTripNoShowReported state) {
+    if (state.outcome != NoShowOutcome.conflict) {
+      showMySnackBar(context, state.message);
+      return;
+    }
+
+    showAppDialog(
+      context,
+      icon: Icons.gavel_rounded,
+      title: 'تعارض في البلاغات',
+      message: state.message,
+      accentColor: MyColors.warning,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -139,6 +164,16 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
         listener: (context, state) {
           if (state is BookingUserInTripErorr) {
             showMySnackBar(context, state.message);
+          } else if (state is BookingUserInTripNoShowReported) {
+            _onNoShowReported(context, state);
+            // الحالة الناتجة `no_show` تصل مع القائمة، والعدّادات في
+            // الأعلى تُحسب منها
+            final id = rideId;
+            if (id != null) {
+              context
+                  .read<BookingUserInTripCubit>()
+                  .loadBookings(id, silent: true);
+            }
           } else if (state is BookingUserInTripOpenConversation) {
             Get.toNamed(RouteName.chatScreen, arguments: {
               'conversationId': state.conversationId,
@@ -614,20 +649,14 @@ class _CardActions extends StatelessWidget {
                   ),
         );
 
-        if (!canReport) return chat;
+        // موعد مجهول: لا نعرض بلاغاً قد يقع قبل أوانه — انظر [departure]
+        if (departure == null) return chat;
 
         return Row(
           children: [
             Expanded(child: chat),
             SizedBox(width: 10.w),
-            Expanded(
-              child: _OutlinedAction(
-                label: 'لم يحضر',
-                icon: Icons.report_problem_outlined,
-                color: MyColors.error,
-                onTap: () => _confirmNoShow(context),
-              ),
-            ),
+            Expanded(child: _noShowAction(context, canReport: canReport)),
           ],
         );
 
@@ -638,13 +667,50 @@ class _CardActions extends StatelessWidget {
     }
   }
 
+  /// زرّ «لم يحضر» بأحواله الثلاثة — كما في جانب الراكب.
+  ///
+  /// **لا يُخفى قبل أوانه بل يُعطَّل ومعه ما بقي**: السائق الذي انتظر
+  /// راكباً يبحث عن الإبلاغ، وغيابُ الزرّ يوهمه أن التطبيق لا يتيحه.
+  /// والمُبلَّغ عنه سابقاً يُعطَّل — الحالة محلية لأن الخادم لا يكشف
+  /// تقارير الغياب في أي مسار.
+  Widget _noShowAction(BuildContext context, {required bool canReport}) {
+    if (NoShowReportStore.wasReported(
+        NoShowReportStore.bookingKey(booking.id))) {
+      return _OutlinedAction(
+        label: 'تم الإبلاغ',
+        icon: Icons.flag_rounded,
+        color: MyColors.textSecondary,
+        onTap: null,
+      );
+    }
+
+    final remaining = RideTimeRules.untilNoShowGate(departure!);
+    if (remaining != null) {
+      final minutes = remaining.inMinutes + 1; // كسر الدقيقة يُقرَّب لأعلى
+      return _OutlinedAction(
+        label: 'بعد ${arabicMinutes(minutes)}',
+        icon: Icons.schedule_rounded,
+        color: MyColors.textSecondary,
+        onTap: null,
+      );
+    }
+
+    return _OutlinedAction(
+      label: 'لم يحضر',
+      icon: Icons.report_problem_outlined,
+      color: MyColors.error,
+      onTap: canReport ? () => _confirmNoShow(context) : null,
+    );
+  }
+
   Future<void> _confirmNoShow(BuildContext context) async {
     final cubit = context.read<BookingUserInTripCubit>();
     final confirm = await showAppDialog(
       context,
       icon: Icons.report_problem_outlined,
       title: 'الراكب لم يحضر؟',
-      message: 'سيُسجَّل بلاغ بحقّ ${booking.userName} وتُخصم من نقاط ثقته. '
+      message: 'سيُسجَّل بلاغ بحقّ ${booking.userName}، وله ساعتان '
+          'للاعتراض قبل أن يُحسم تلقائياً وتُخصم من نقاط ثقته. '
           'لا تُرسله إلا بعد انتظاره فعلاً.',
       confirmLabel: 'تسجيل البلاغ',
       cancelLabel: 'تراجع',
@@ -692,7 +758,9 @@ class _OutlinedAction extends StatelessWidget {
   final String label;
   final IconData icon;
   final Color color;
-  final VoidCallback onTap;
+
+  /// `null` يعرض الزرّ معطّلاً — لبلاغ لم يحن أوانه أو سبق تسجيله.
+  final VoidCallback? onTap;
 
   const _OutlinedAction({
     required this.label,

@@ -26,8 +26,21 @@ class NotificationRouter {
   }) async {
     final payload = data ?? const <String, dynamic>{};
     final rideId = asInt(payload['ride_id']);
+    final bookingId = asInt(payload['booking_id']);
     final conversationId = asInt(payload['conversation_id']);
     final complaintId = asInt(payload['complaint_id']);
+
+    // تعارض بلاغَي الغياب: شكوى تُفتح تلقائياً ويصل الإشعار **للطرفين**
+    // بالاسم نفسه وبرقم الشكوى نفسه — ولا حقل يقول أيّهما أنت.
+    //
+    // والشكوى تُنسب إلى الراكب وحده، فالسائق يجلبها بـ 404. ولمّا كنّا
+    // لا نميّز الطرفين هنا، فتحُها برقمها يعني رسالة «الشكوى غير موجودة»
+    // في وجه من أخبرناه للتوّ أن شكوى فُتحت. فالقائمة هي الوجهة:
+    // الراكب يجدها في صدرها، والسائق يرى قائمته بلا تناقض.
+    if (type == 'noshow_conflict') {
+      Get.toNamed(RouteName.complaintList);
+      return;
+    }
 
     // قبِل السائق الحجز ← صار بين الطرفين حجز فعلي، فنفتح المحادثة
     // للاتفاق على مكان اللقاء بدل الاكتفاء بعرض تفاصيل الرحلة.
@@ -62,6 +75,14 @@ class NotificationRouter {
 
     if (rideId != null) {
       Get.toNamed(RouteName.tripDetails, arguments: rideId);
+      return;
+    }
+
+    // حجزٌ بلا رحلة — `noshow_resolved_in_your_favor` يصل هكذا، وكان
+    // يسقط إلى «لا وجهة» فلا يحدث شيء عند الضغط. لا شاشة لحجز مفرد،
+    // فالقائمة هي أقرب ما يوصل إليه.
+    if (bookingId != null) {
+      Get.toNamed(RouteName.bookingMeList);
       return;
     }
 

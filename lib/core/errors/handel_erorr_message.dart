@@ -1,3 +1,6 @@
+import 'package:alatarekak/core/utils/class/arabic_plural.dart';
+import 'package:alatarekak/core/utils/class/no_show_report.dart';
+
 /// ترجمة رسائل الباك إند الإنجليزية إلى عربية وفق مستند مواصفات الـ API.
 /// القاعدة: لا تُعرض رسالة الباك إند للمستخدم أبداً — تُطابق برمجياً فقط.
 /// المطابقة بـ contains() على lowercase لأن بعض الرسائل تحتوي أرقاماً متغيرة
@@ -373,10 +376,29 @@ class HandelErorrMessage {
         "already confirmed": "قمت بتأكيد هذه الرحلة مسبقاً",
       });
 
-  static String driverNoShow(String message) => _match(message, {
-        "before the departure time": "لا يمكن الإبلاغ قبل موعد الانطلاق",
-        "no confirmed booking found": "لا يوجد لديك حجز مؤكد في هذه الرحلة",
-      });
+  /// بلاغ الراكب عن غياب السائق.
+  ///
+  /// «unlocks» تحمل الدقائق المتبقية في نصّها، فتُعرض بها بدل جملة عامّة
+  /// لا تقول للمستخدم متى يعود.
+  static String driverNoShow(String message) {
+    final minutes = NoShowReport.minutesUntilUnlock(message);
+    if (minutes != null) return _unlocksIn(minutes);
+
+    return _match(message, {
+      "before the departure time": "لا يمكن الإبلاغ قبل موعد الانطلاق",
+      "no confirmed booking found": "لا يوجد لديك حجز مؤكد في هذه الرحلة",
+      "already submitted": "سبق أن أبلغت عن هذه الرحلة",
+      "cannot report no-show for a ride with status":
+          "لم يعد الإبلاغ متاحاً لهذه الرحلة",
+      // «غير موجود» يصل 422 برسالة Laravel خام لا 404 — تُطابَق بنصّها
+      "no query results for model": "الرحلة غير موجودة",
+    });
+  }
+
+  /// «يمكنك الإبلاغ بعد ٣٧ دقيقة» — بصيغة العربية لا «37 دقيقة» دائماً.
+  static String _unlocksIn(int minutes) =>
+      'الإبلاغ عن الغياب يُفتح بعد ساعة من الانطلاق — يمكنك الإبلاغ بعد '
+      '${arabicMinutes(minutes)}';
 
   // =====================================================================
   // §8 الحجوزات
@@ -414,11 +436,23 @@ class HandelErorrMessage {
         "already confirmed": "قمت بالتأكيد مسبقاً",
       });
 
-  static String passengerNoShow(String message) => _match(message, {
-        "only the ride driver": "متاح لسائق الرحلة فقط",
-        "for confirmed bookings": "الحجز غير مؤكد",
-        "before the departure time": "لا يمكن الإبلاغ قبل موعد الانطلاق",
-      });
+  /// بلاغ السائق عن غياب راكب — لكل حجز على حدة.
+  static String passengerNoShow(String message) {
+    final minutes = NoShowReport.minutesUntilUnlock(message);
+    if (minutes != null) return _unlocksIn(minutes);
+
+    return _match(message, {
+      "only the ride driver": "متاح لسائق الرحلة فقط",
+      "only report no-shows for your own rides": "متاح لسائق الرحلة فقط",
+      "for confirmed bookings": "الحجز غير مؤكد",
+      "is not in 'confirmed' status": "هذا الحجز غير مؤكَّد",
+      "before the departure time": "لا يمكن الإبلاغ قبل موعد الانطلاق",
+      "already submitted": "سبق أن أبلغت عن هذا الراكب",
+      "cannot report no-show for a ride with status":
+          "لم يعد الإبلاغ متاحاً لهذه الرحلة",
+      "no query results for model": "الحجز غير موجود",
+    });
+  }
 
   // =====================================================================
   // §9 المحادثات

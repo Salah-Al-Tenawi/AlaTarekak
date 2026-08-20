@@ -21,7 +21,10 @@ StatusInfo getStatusInfo(String? status) {
   switch (normalized) {
     case 'pending':
       return StatusInfo('قيد الانتظار', MyColors.accent);
+    // `launched` حلّت محلّ `awaiting_confirmation` في الخادم، والقديمة
+    // باقية لصفوف أُنشئت قبل التغيير — فتُقبل الاثنتان.
     case 'awaiting_confirmation':
+    case 'launched':
       return StatusInfo('بانظار تأكيد الوصول', MyColors.warning);
     case 'accepted':
       return StatusInfo('مقبول', MyColors.success);

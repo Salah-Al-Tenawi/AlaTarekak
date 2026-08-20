@@ -82,6 +82,13 @@ class NotificationEntity {
     // RideController في مساره الموازي، وكانا يسقطان إلى عنوان الخادم
     'booking_cancelled_by_passenger': 'ألغى الراكب حجزه',
     'ride_finished': 'انتهت الرحلة',
+    // نظام الغياب: للطرفين ساعتان للاعتراض بعد أي بلاغ، ثم يُحسم
+    // تلقائياً — إلا أن يكون الطرفان أبلغا فتُفتح شكوى بلا عقوبة.
+    'noshow_driver_reported_you': 'السائق أبلغ عن غيابك',
+    'noshow_passenger_reported_you': 'الراكب أبلغ عن غيابك',
+    'noshow_conflict': 'تعارض في تقارير الغياب',
+    'noshow_penalty_applied': 'طُبّقت عقوبة الغياب',
+    'noshow_resolved_in_your_favor': 'حُسم بلاغ الغياب لصالحك',
   };
 
   /// التصنيف المعروض — يُشتقّ من `type` لا من الحقل الواصل.
@@ -123,7 +130,45 @@ class NotificationEntity {
         t.startsWith('confirm')) {
       return 'ride';
     }
+    // نظام الغياب: التعارض والعقوبة قراران إداريان لا حدثا رحلة —
+    // يصنّفهما الباك إند `system`، والباقي `ride`.
+    if (t.startsWith('noshow')) {
+      return (t == 'noshow_conflict' || t == 'noshow_penalty_applied')
+          ? 'system'
+          : 'ride';
+    }
     return null;
+  }
+
+  /// **عائلة إشعار الغياب** — لإزالة تكرار الخادم.
+  ///
+  /// كل بلاغ غياب يصل الطرف المستهدف **إشعارين**: واحداً من الخدمة
+  /// وآخر من الكونترولر، لهما رقمان مختلفان ونصّان متقاربان عن الحدث
+  /// نفسه. فيُجمعان بعائلة واحدة ويُعرض أحدثهما.
+  ///
+  /// `null` لكل ما ليس من هذا الازدواج — فلا يُخفى إشعار مستقلّ سهواً.
+  static String? noShowFamily(String? type) {
+    switch (type?.trim().toLowerCase()) {
+      case 'noshow_driver_reported_you':
+      case 'no_show_recorded':
+        return 'noshow_reported_passenger';
+      case 'noshow_passenger_reported_you':
+      case 'driver_no_show_recorded':
+        return 'noshow_reported_driver';
+      default:
+        return null;
+    }
+  }
+
+  /// مفتاح إزالة التكرار: العائلة والكيان الذي تخصّه. `null` يعني
+  /// «اعرضه كما هو».
+  String? get dedupeKey {
+    final family = noShowFamily(type);
+    if (family == null) return null;
+
+    // البلاغ عن راكب يخصّ حجزه، والبلاغ عن سائق يخصّ الرحلة
+    final entity = bookingId ?? rideId;
+    return entity == null ? null : '$family:$entity';
   }
 
   /// تسميات التصنيفات بالعربية — الباك إند يرسلها إنجليزية (§10.3)

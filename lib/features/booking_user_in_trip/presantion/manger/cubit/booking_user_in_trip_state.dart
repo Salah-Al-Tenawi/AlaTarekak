@@ -44,6 +44,26 @@ final class BookingUserInTripUpdated extends BookingUserInTripState {
   List<Object> get props => [bookingId, statusRide];
 }
 
+/// نتيجة بلاغ السائق عن غياب راكب.
+///
+/// منفصلة عن [BookingUserInTripUpdated] لأن للبلاغ رسالةً تُقال للسائق —
+/// مهلة اعتراض، أو شكوى فُتحت عند التعارض — بينما التحديث يغيّر بطاقةً
+/// بصمت. والحالة الناتجة `no_show` تصل مع إعادة الجلب.
+final class BookingUserInTripNoShowReported extends BookingUserInTripState {
+  final int bookingId;
+  final String message;
+  final NoShowOutcome outcome;
+
+  const BookingUserInTripNoShowReported({
+    required this.bookingId,
+    required this.message,
+    this.outcome = NoShowOutcome.reported,
+  });
+
+  @override
+  List<Object> get props => [bookingId, message, outcome];
+}
+
 final class BookingUserInTripSucc extends BookingUserInTripState {}
 
 /// جلب الرحلة وحجوزاتها جارٍ — يخصّ الشاشة كلها لا حجزاً بعينه.

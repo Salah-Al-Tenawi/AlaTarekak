@@ -108,7 +108,9 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
                 crossAxisSpacing: 8.w,
                 mainAxisSpacing: 8.h,
                 childAspectRatio: 0.82,
-                children: ComplaintType.values
+                // القابل للإرسال وحده: «تعارض تقارير الغياب» يصنعه
+                // النظام، ويرفضه `POST /complaints` بـ 422.
+                children: ComplaintType.userSubmittable
                     .map((type) => _TypeCell(
                           type: type,
                           selected: _selectedType == type,

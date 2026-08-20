@@ -38,6 +38,12 @@ const _referenceTypes = <String>[
   'seats_partially_cancelled',
   'no_show_recorded',
   'driver_no_show_recorded',
+  // نظام الغياب (تحديث الباك إند c1c0513)
+  'noshow_driver_reported_you',
+  'noshow_passenger_reported_you',
+  'noshow_conflict',
+  'noshow_penalty_applied',
+  'noshow_resolved_in_your_favor',
 ];
 
 NotificationEntity _n(String type, {String category = 'general'}) =>
@@ -67,10 +73,22 @@ void main() {
   group('التصنيف يُشتقّ من النوع', () {
     // category غير موجود في قاعدة بيانات الباك إند إطلاقاً (يُمرَّر إلى
     // FCM فقط) فيسقط كل إشعار إلى general: أيقونة واحدة ولون واحد للجميع.
+    /// قرارا التعارض والعقوبة إداريّان لا حدثا رحلة — يصنّفهما الباك إند
+    /// `system` (تحديث c1c0513)، وبقيّة إشعارات الغياب `ride`.
+    const systemTypes = {'noshow_conflict', 'noshow_penalty_applied'};
+
     test('إشعارات الرحلات والحجوزات تُصنَّف ride', () {
       for (final type in _referenceTypes) {
+        if (systemTypes.contains(type)) continue;
         expect(NotificationEntity.categoryOf(type), 'ride',
             reason: '«$type» من مرجع الرحلات والحجوزات');
+      }
+    });
+
+    test('قرارا التعارض والعقوبة يُصنَّفان system', () {
+      for (final type in systemTypes) {
+        expect(NotificationEntity.categoryOf(type), 'system',
+            reason: '«$type» قرار إداري لا حدث رحلة');
       }
     });
 

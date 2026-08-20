@@ -6,6 +6,8 @@ import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:alatarekak/core/route/route_name.dart';
+import 'package:alatarekak/core/service/no_show_report_store.dart';
+import 'package:alatarekak/core/utils/class/arabic_plural.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/class/format_date_time.dart';
@@ -624,33 +626,61 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
           },
         );
 
-        // قبل مضيّ الساعة: التأكيد وحده ممتدّاً
-        if (!canReport) return confirmAction;
-
         return Row(
           children: [
             Expanded(flex: 3, child: confirmAction),
             SizedBox(width: 8.w),
-            Expanded(
-              flex: 2,
-              child: _Action(
-                icon: Icons.report_problem_rounded,
-                label: 'لم يحضر',
-                color: MyColors.error,
-                outlined: true,
-                onTap: () async {
-                  final confirm = await _showConfirmationDialog(
-                    'هل أنت متأكد أن السائق لم يحضر؟ سيُسجَّل بلاغ '
-                    'ويراجعه فريق الدعم.',
-                  );
-                  if (!(confirm ?? false) || !mounted) return;
-                  _dispatch((cubit) => cubit.reportDriverNoShow(b.rideId));
-                },
-              ),
-            ),
+            Expanded(flex: 2, child: _noShowAction(canReport: canReport)),
           ],
         );
     }
+  }
+
+  /// زرّ «لم يحضر» بأحواله الثلاثة.
+  ///
+  /// **لا يُخفى قبل أوانه بل يُعطَّل ومعه ما بقي**: من انتظر سائقاً ولم
+  /// يأتِ يبحث عن هذا الزرّ، وغيابُه يوهمه أن التطبيق لا يتيح الإبلاغ
+  /// فيقصد الدعم. والمُبلَّغ عنه سابقاً يُعطَّل كذلك — الحالة محفوظة
+  /// محلياً لأن الخادم لا يكشف تقارير الغياب في أي مسار.
+  Widget _noShowAction({required bool canReport}) {
+    if (NoShowReportStore.wasReported(NoShowReportStore.rideKey(b.rideId))) {
+      return _Action(
+        icon: Icons.flag_rounded,
+        label: 'تم الإبلاغ',
+        color: MyColors.textSecondary,
+        outlined: true,
+        onTap: null,
+      );
+    }
+
+    final remaining = RideTimeRules.untilNoShowGate(b.departureTime);
+    if (remaining != null) {
+      final minutes = remaining.inMinutes + 1; // كسر الدقيقة يُقرَّب لأعلى
+      return _Action(
+        icon: Icons.schedule_rounded,
+        label: 'بعد ${arabicMinutes(minutes)}',
+        color: MyColors.textSecondary,
+        outlined: true,
+        onTap: null,
+      );
+    }
+
+    return _Action(
+      icon: Icons.report_problem_rounded,
+      label: 'لم يحضر',
+      color: MyColors.error,
+      outlined: true,
+      onTap: canReport
+          ? () async {
+              final confirm = await _showConfirmationDialog(
+                'هل أنت متأكد أن السائق لم يحضر؟ سيُسجَّل بلاغ، وللسائق '
+                'ساعتان للاعتراض قبل أن يُحسم تلقائياً.',
+              );
+              if (!(confirm ?? false) || !mounted) return;
+              _dispatch((cubit) => cubit.reportDriverNoShow(b.rideId));
+            }
+          : null,
+    );
   }
 
   Future<void> _askCancelSeats() async {

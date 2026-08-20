@@ -18,6 +18,27 @@ NotificationEntity _n(int id, {bool isRead = false}) => NotificationEntity(
       isRead: isRead,
     );
 
+/// إشعار غياب بنوعه وكيانه — لاختبار إزالة التكرار.
+NotificationEntity _noShow(
+  int id,
+  String type, {
+  int? bookingId,
+  int? rideId,
+  bool isRead = false,
+}) =>
+    NotificationEntity(
+      id: id,
+      title: 'إشعار $id',
+      message: 'نص الإشعار',
+      category: 'ride',
+      type: type,
+      isRead: isRead,
+      data: {
+        if (bookingId != null) 'booking_id': bookingId,
+        if (rideId != null) 'ride_id': rideId,
+      },
+    );
+
 NotificationsPageEntity _page({
   List<NotificationEntity>? items,
   int unread = 1,
@@ -174,6 +195,78 @@ void main() {
             .having((s) => s.notifications.every((n) => n.isRead),
                 'الكل مقروء', isTrue),
       ],
+    );
+  });
+
+  group('NotificationsCubit — تكرار إشعارات الغياب', () {
+    // الخادم يرسل إشعارين لكل بلاغ: واحداً من الخدمة وآخر من الكونترولر،
+    // برقمين مختلفين وعن الحدث نفسه.
+    List<NotificationEntity> twinPair() => [
+          _noShow(20, 'noshow_driver_reported_you', bookingId: 7),
+          _noShow(21, 'no_show_recorded', bookingId: 7),
+        ];
+
+    blocTest<NotificationsCubit, NotificationsState>(
+      'التوأمان يُعرضان واحداً',
+      build: () {
+        when(() => repo.getCachedFirstPage()).thenReturn(null);
+        stubNetwork(_page(items: twinPair(), unread: 2));
+        return NotificationsCubit(repo);
+      },
+      act: (cubit) => cubit.load(),
+      verify: (cubit) {
+        final state = cubit.state as NotificationsLoaded;
+        expect(state.notifications.length, 1);
+        expect(state.notifications.single.id, 20, reason: 'الأحدث يبقى');
+      },
+    );
+
+    blocTest<NotificationsCubit, NotificationsState>(
+      'بلاغان على حجزين مختلفين يبقيان اثنين',
+      build: () {
+        when(() => repo.getCachedFirstPage()).thenReturn(null);
+        stubNetwork(_page(items: [
+          _noShow(20, 'noshow_driver_reported_you', bookingId: 7),
+          _noShow(21, 'noshow_driver_reported_you', bookingId: 8),
+        ], unread: 2));
+        return NotificationsCubit(repo);
+      },
+      act: (cubit) => cubit.load(),
+      verify: (cubit) {
+        expect((cubit.state as NotificationsLoaded).notifications.length, 2);
+      },
+    );
+
+    blocTest<NotificationsCubit, NotificationsState>(
+      'الإشعارات العادية لا تُمَسّ',
+      build: () {
+        when(() => repo.getCachedFirstPage()).thenReturn(null);
+        stubNetwork(_page(items: [_n(1), _n(2), _n(3)], unread: 3));
+        return NotificationsCubit(repo);
+      },
+      act: (cubit) => cubit.load(),
+      verify: (cubit) {
+        expect((cubit.state as NotificationsLoaded).notifications.length, 3);
+      },
+    );
+
+    blocTest<NotificationsCubit, NotificationsState>(
+      'قراءة الظاهر تُعلّم التوأم المخفيّ — وإلا علق العدّاد على رقم لا يُرى',
+      build: () {
+        when(() => repo.getCachedFirstPage()).thenReturn(null);
+        stubNetwork(_page(items: twinPair(), unread: 2));
+        when(() => repo.markRead(any())).thenAnswer((_) async => right(null));
+        return NotificationsCubit(repo);
+      },
+      act: (cubit) async {
+        await cubit.load();
+        await cubit.markRead(20);
+      },
+      verify: (cubit) {
+        expect((cubit.state as NotificationsLoaded).unreadCount, 0);
+        verify(() => repo.markRead(20)).called(1);
+        verify(() => repo.markRead(21)).called(1);
+      },
     );
   });
 }

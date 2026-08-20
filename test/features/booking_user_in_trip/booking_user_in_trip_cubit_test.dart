@@ -1,4 +1,5 @@
 import 'package:alatarekak/core/errors/filuar.dart';
+import 'package:alatarekak/core/utils/class/no_show_report.dart';
 import 'package:alatarekak/features/booking_user_in_trip/data/model/booking_user_modle.dart';
 import 'package:alatarekak/features/booking_user_in_trip/data/repo/booking_users_in_trip_repo_imp.dart';
 import 'package:alatarekak/features/booking_user_in_trip/presantion/manger/cubit/booking_user_in_trip_cubit.dart';
@@ -102,19 +103,65 @@ void main() {
   });
 
   group('BookingUserInTripCubit — بلاغ عدم حضور الراكب', () {
+    // البلاغ لم يعد تحديثَ بطاقةٍ صامتاً: له رسالة تُقال للسائق (مهلة
+    // اعتراض، أو شكوى فُتحت عند التعارض)، والحالة `no_show` تصل مع
+    // إعادة الجلب التي تُطلقها الشاشة.
     blocTest<BookingUserInTripCubit, BookingUserInTripState>(
-      'نجاح البلاغ: الحالة no_show (قيمة الـ enum) لا passenger_no_show',
+      'نجاح البلاغ: نتيجة «مُبلَّغ» تذكر مهلة اعتراض الراكب',
       build: () {
         when(() => repo.passengerNoShow(7)).thenAnswer((_) async => right({
               'status': 'success',
-              'message': 'Passenger no-show recorded. Settlement processed.',
+              'message': 'No-show report submitted. The passenger has 2 '
+                  'hours to dispute. If no dispute, the penalty is applied '
+                  'automatically.',
             }));
         return BookingUserInTripCubit(repo);
       },
       act: (cubit) => cubit.passengerNoShow(7),
       expect: () => [
         isA<BookingUserInTripLoading>(),
-        const BookingUserInTripUpdated(bookingId: 7, statusRide: 'no_show'),
+        isA<BookingUserInTripNoShowReported>()
+            .having((s) => s.bookingId, 'bookingId', 7)
+            .having((s) => s.outcome, 'outcome', NoShowOutcome.reported)
+            .having((s) => s.message, 'message', contains('ساعتان')),
+      ],
+    );
+
+    blocTest<BookingUserInTripCubit, BookingUserInTripState>(
+      'تعارض: يصل 200 كالنجاح، ويُقرأ من نصّه لا من رمزه',
+      build: () {
+        when(() => repo.passengerNoShow(7)).thenAnswer((_) async => right({
+              'status': 'success',
+              'message': 'Both parties filed a no-show report. A support '
+                  'complaint has been opened automatically. No automatic '
+                  'penalty will be applied — the support team will '
+                  'investigate.',
+            }));
+        return BookingUserInTripCubit(repo);
+      },
+      act: (cubit) => cubit.passengerNoShow(7),
+      expect: () => [
+        isA<BookingUserInTripLoading>(),
+        isA<BookingUserInTripNoShowReported>()
+            .having((s) => s.outcome, 'outcome', NoShowOutcome.conflict)
+            .having((s) => s.message, 'message', contains('شكوى')),
+      ],
+    );
+
+    blocTest<BookingUserInTripCubit, BookingUserInTripState>(
+      '«سبق أن أبلغت» يصل 422 وهو نجاح متأخّر لا خطأ',
+      build: () {
+        when(() => repo.passengerNoShow(7)).thenAnswer((_) async => left(
+            const Filuar(
+                message: 'You have already submitted a no-show report for '
+                    'this booking.')));
+        return BookingUserInTripCubit(repo);
+      },
+      act: (cubit) => cubit.passengerNoShow(7),
+      expect: () => [
+        isA<BookingUserInTripLoading>(),
+        isA<BookingUserInTripNoShowReported>()
+            .having((s) => s.outcome, 'outcome', NoShowOutcome.alreadyReported),
       ],
     );
 

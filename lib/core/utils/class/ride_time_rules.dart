@@ -32,4 +32,16 @@ class RideTimeRules {
   /// يُسمح بالإبلاغ عن عدم الحضور: بعد الانطلاق بـ [noShowDelay].
   static bool canReportNoShow(DateTime departure, {DateTime? now}) =>
       !_now(now).isBefore(departure.add(noShowDelay));
+
+  /// ما بقي حتى تُفتح بوابة الإبلاغ — `null` إن فُتحت.
+  ///
+  /// الزرّ يُعرض معطّلاً بهذه المدّة بدل أن يُخفى: من انتظر سائقاً ولم
+  /// يأتِ يبحث عن الإبلاغ، وغيابُ الزرّ يجعله يظنّ أن التطبيق لا يتيحه
+  /// أصلاً فيراسل الدعم. وهي تقدير محليّ: الخادم هو من يفتح البوابة
+  /// فعلاً ورسالته تحمل الدقائق الباقية عنده.
+  static Duration? untilNoShowGate(DateTime departure, {DateTime? now}) {
+    final gate = departure.add(noShowDelay);
+    final current = _now(now);
+    return current.isBefore(gate) ? gate.difference(current) : null;
+  }
 }

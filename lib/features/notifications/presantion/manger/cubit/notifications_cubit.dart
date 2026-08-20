@@ -108,19 +108,38 @@ class NotificationsCubit extends SafeCubit<NotificationsState> {
     final index = _items.indexWhere((n) => n.id == id);
     if (index == -1 || _items[index].isRead) return;
 
+    // التوائم المخفيّة تُعلَّم معه: قراءة ما يراه المستخدم يجب أن تُنهي
+    // العدّاد، ولا يبقى رقم يشير إلى إشعار لا يظهر في القائمة أصلاً.
+    final twins = _twinsOf(_items[index]).where((n) => !n.isRead).toList();
+
     // تحديث تفاؤلي فوري
     _replaceAt(index, isRead: true);
     _unreadCount = _unreadCount > 0 ? _unreadCount - 1 : 0;
+    for (final twin in twins) {
+      final at = _items.indexWhere((n) => n.id == twin.id);
+      if (at != -1) {
+        _replaceAt(at, isRead: true);
+        _unreadCount = _unreadCount > 0 ? _unreadCount - 1 : 0;
+      }
+    }
     _emitLoaded();
 
     final result = await _repo.markRead(id);
     if (isClosed) return;
-    result.fold(
-      (_) {
+    await result.fold(
+      (_) async {
         // §10.5: حتى 404 يعني "حدّث القائمة بصمت" — نعيد المزامنة
         load(category: _categoryFilter);
       },
-      (_) => _persistCache(),
+      (_) async {
+        // فشل تعليم توأم مخفيّ لا يستحق رسالة: المستخدم لا يراه أصلاً،
+        // وأول إعادة تحميل تُصحّح العدّاد من الخادم.
+        for (final twin in twins) {
+          await _repo.markRead(twin.id);
+          if (isClosed) return;
+        }
+        _persistCache();
+      },
     );
   }
 
@@ -186,11 +205,37 @@ class NotificationsCubit extends SafeCubit<NotificationsState> {
   }
 
   void _emitLoaded() => emit(NotificationsLoaded(
-        notifications: List.unmodifiable(_items),
+        notifications: List.unmodifiable(_deduped()),
         unreadCount: _unreadCount,
         hasMore: _hasMore,
         isLoadingMore: _isLoadingMore,
       ));
+
+  /// القائمة كما تُعرض — بلا تكرار الخادم.
+  ///
+  /// كل بلاغ غياب يصل الطرف المستهدف مرّتين: الخدمة والكونترولر يرسلان
+  /// كلٌّ إشعاره عن الحدث نفسه. تُخفى الثانية من العرض **ولا تُحذف من
+  /// [_items]**: القائمة الكاملة هي ما يُرقَّم ويُخزَّن ويُعلَّم مقروءاً،
+  /// وحذفها منها كان سيُربك الترقيم والكاش.
+  ///
+  /// والأحدث يُبقى — القائمة تصل من الخادم مرتَّبة تنازلياً.
+  List<NotificationEntity> _deduped() {
+    final seen = <String>{};
+    return [
+      for (final item in _items)
+        if (item.dedupeKey == null || seen.add(item.dedupeKey!)) item,
+    ];
+  }
+
+  /// توائم إشعارٍ مخفيّة — تُعلَّم مقروءةً معه.
+  ///
+  /// بدونها يبقى التوأم المخفيّ غير مقروء، فيعلق شارة العدّاد على رقم
+  /// لا يجد المستخدم ما يُقابله في القائمة.
+  Iterable<NotificationEntity> _twinsOf(NotificationEntity item) {
+    final key = item.dedupeKey;
+    if (key == null) return const [];
+    return _items.where((n) => n.id != item.id && n.dedupeKey == key);
+  }
 
   void _emitActionFailed(String error) => emit(NotificationsActionFailed(
         notifications: List.unmodifiable(_items),

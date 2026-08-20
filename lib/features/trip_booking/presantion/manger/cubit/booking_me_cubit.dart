@@ -4,7 +4,9 @@ import 'package:alatarekak/features/trip_booking/data/model/booking_me_model.dar
 import 'package:alatarekak/features/trip_booking/data/model/cancel_booking_model.dart';
 import 'package:alatarekak/features/trip_booking/data/repo/booking_me_repo.dart';
 import 'package:alatarekak/features/chat/domain/repo/chat_repo.dart';
+import 'package:alatarekak/core/service/no_show_report_store.dart';
 import 'package:alatarekak/core/service/safe_cubit.dart';
+import 'package:alatarekak/core/utils/class/no_show_report.dart';
 
 part 'booking_me_state.dart';
 
@@ -85,16 +87,43 @@ class BookingMeCubit extends SafeCubit<BookingMeState> {
     });
   }
 
-  /// بلاغ أن السائق لم يحضر
+  /// بلاغ الراكب أن السائق لم يحضر.
+  ///
+  /// ثلاث نهايات لا واحدة، والخادم لا يميّزها بحقل: التعارض يصل **200
+  /// كالنجاح** بنصّ مختلف، و«سبق الإبلاغ» يصل **422 كالخطأ** وهو في
+  /// المعنى نجاح متأخّر — انظر [NoShowReport].
   Future<void> reportDriverNoShow(int rideId) async {
     emit(BookingMeButtonloading());
     final response = await _repo.driverNoShow(rideId);
-    response.fold((erorr) {
+    if (isClosed) return;
+
+    await response.fold((erorr) async {
+      // الحالة المحلية تضيع بإعادة التثبيت أو الخروج، فيعود الزرّ ظاهراً
+      // ويردّ الخادم «already submitted». ذلك ليس خطأً يُعرض بالأحمر:
+      // البلاغ قائم فعلاً — يُقفل الزرّ ويُذكَّر المستخدم.
+      if (NoShowReport.isAlreadyReported(erorr.message)) {
+        await NoShowReportStore.remember(NoShowReportStore.rideKey(rideId));
+        if (isClosed) return;
+        emit(const BookingMeDriverNoShowReported(
+          message: "سبق أن أبلغت عن هذه الرحلة",
+          outcome: NoShowOutcome.alreadyReported,
+        ));
+        return;
+      }
       emit(BookingMeErorr(
           message: HandelErorrMessage.driverNoShow(erorr.message)));
-    }, (_) {
-      emit(const BookingMeDriverNoShowReported(
-          message: "تم تسجيل البلاغ، سيُعالج من فريق الدعم"));
+    }, (response) async {
+      await NoShowReportStore.remember(NoShowReportStore.rideKey(rideId));
+      if (isClosed) return;
+
+      final conflict = NoShowReport.isConflict(response);
+      emit(BookingMeDriverNoShowReported(
+        message: conflict
+            ? "أبلغ الطرفان كلٌّ عن الآخر، فلا عقوبة تلقائية. فُتحت شكوى "
+                "وسيتواصل معك فريق الدعم."
+            : "تم تسجيل البلاغ. للسائق ساعتان للاعتراض، ثم يُحسم تلقائياً.",
+        outcome: conflict ? NoShowOutcome.conflict : NoShowOutcome.reported,
+      ));
     });
   }
 

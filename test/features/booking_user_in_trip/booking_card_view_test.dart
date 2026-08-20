@@ -214,7 +214,11 @@ void main() {
       expect(find.text('رفض'), findsOneWidget);
     });
 
-    testWidgets('confirmed → مراسلة، والبلاغ لا يظهر قبل موعد الانطلاق',
+    // البلاغ لا **يُتاح** قبل مضيّ ساعة على الانطلاق، لكنه صار يُعرض
+    // معطّلاً بما بقي بدل أن يُخفى: من انتظر راكباً ولم يأتِ يبحث عن
+    // الزرّ، وغيابُه يوهمه أن التطبيق لا يتيح الإبلاغ فيقصد الدعم.
+
+    testWidgets('confirmed → مراسلة، والبلاغ معطّل بعدّاده قبل الانطلاق',
         (tester) async {
       await pump(
         tester,
@@ -226,9 +230,11 @@ void main() {
       expect(find.text('قبول'), findsNothing);
       expect(find.text('لم يحضر'), findsNothing,
           reason: 'الرحلة لم تنطلق بعد — لا غياب يُبلَّغ عنه');
+      expect(find.textContaining('بعد '), findsOneWidget,
+          reason: 'يُعرض ما بقي حتى تُفتح البوابة');
     });
 
-    testWidgets('البلاغ لا يظهر قبل مضيّ ساعة على الانطلاق', (tester) async {
+    testWidgets('قبل مضيّ ساعة على الانطلاق: معطّل لا مخفيّ', (tester) async {
       await pump(
         tester,
         [_booking(status: 'confirmed')],
@@ -238,6 +244,17 @@ void main() {
       expect(find.text('مراسلة'), findsOneWidget);
       expect(find.text('لم يحضر'), findsNothing,
           reason: 'تأخّر أربعين دقيقة زحمة سير لا غياب، والبلاغ يخصم نقاطاً');
+
+      // عشرون دقيقة باقية على فتح البوابة
+      expect(find.textContaining('20 دقيقة'), findsOneWidget);
+
+      final button = tester.widget<OutlinedButton>(
+        find.ancestor(
+          of: find.textContaining('20 دقيقة'),
+          matching: find.byType(OutlinedButton),
+        ),
+      );
+      expect(button.onPressed, isNull, reason: 'معطّل فعلاً لا شكلاً');
     });
 
     testWidgets('بعد ساعة من الانطلاق يظهر البلاغ', (tester) async {

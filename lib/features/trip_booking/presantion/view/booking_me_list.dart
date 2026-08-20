@@ -10,6 +10,8 @@ import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/core/utils/functions/my_dilaog.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
+import 'package:alatarekak/core/utils/class/no_show_report.dart';
+import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 import 'package:alatarekak/core/utils/widgets/app_error_view.dart';
 import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
 import 'package:alatarekak/core/utils/widgets/status_filter_bar.dart';
@@ -105,7 +107,7 @@ class _BookingMeListState extends State<BookingMeList> {
       showMySnackBar(context, "شكراً لك على تقييمك");
       _refreshData();
     } else if (state is BookingMeDriverNoShowReported) {
-      showMySnackBar(context, state.message);
+      _onNoShowReported(context, state);
       _refreshData();
     } else if (state is BookingMeOpenConversation) {
       Get.toNamed(RouteName.chatScreen, arguments: {
@@ -117,6 +119,30 @@ class _BookingMeListState extends State<BookingMeList> {
       // الرسالة معرّبة مسبقاً في الكيوبت حسب نوع العملية
       showMySnackBar(context, state.message);
     }
+  }
+
+  /// التعارض ليس سناك بار.
+  ///
+  /// حين يبلّغ الطرفان كلٌّ عن غياب الآخر لا تُطبَّق عقوبة تلقائية، بل
+  /// تُفتح شكوى يبتّ فيها الدعم. وهذا خبرٌ يغيّر توقّع المستخدم — يمرّ
+  /// على شريط يختفي بعد ثوانٍ، فيُعرض حواراً يُقرأ ويُغلق بقصد.
+  ///
+  /// ولا يُوجَّه إلى الشكوى برقمها: الخادم لا يُرجع `complaint_id` في
+  /// استجابة البلاغ — مصدره الوحيد إشعار `noshow_conflict`.
+  void _onNoShowReported(
+      BuildContext context, BookingMeDriverNoShowReported state) {
+    if (state.outcome != NoShowOutcome.conflict) {
+      showMySnackBar(context, state.message);
+      return;
+    }
+
+    showAppDialog(
+      context,
+      icon: Icons.gavel_rounded,
+      title: 'تعارض في البلاغات',
+      message: state.message,
+      accentColor: MyColors.warning,
+    );
   }
 
   void _requestFirstFetch(BuildContext context) {

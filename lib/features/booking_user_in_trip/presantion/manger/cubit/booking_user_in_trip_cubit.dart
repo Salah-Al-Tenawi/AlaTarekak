@@ -3,7 +3,9 @@ import 'package:equatable/equatable.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/booking_user_in_trip/data/repo/booking_users_in_trip_repo_imp.dart';
 import 'package:alatarekak/features/chat/domain/repo/chat_repo.dart';
+import 'package:alatarekak/core/service/no_show_report_store.dart';
 import 'package:alatarekak/core/service/safe_cubit.dart';
+import 'package:alatarekak/core/utils/class/no_show_report.dart';
 
 part 'booking_user_in_trip_state.dart';
 
@@ -105,21 +107,48 @@ class BookingUserInTripCubit extends SafeCubit<BookingUserInTripState> {
     );
   }
 
-  /// بلاغ السائق أن الراكب لم يحضر
+  /// بلاغ السائق أن الراكب لم يحضر — **لكل حجز على حدة**، فلكل راكب حجزه.
+  ///
+  /// ثلاث نهايات لا واحدة، والخادم لا يميّزها بحقل: التعارض يصل **200
+  /// كالنجاح** بنصّ مختلف، و«سبق الإبلاغ» يصل **422 كالخطأ** وهو في
+  /// المعنى نجاح متأخّر — انظر [NoShowReport].
   Future<void> passengerNoShow(int bookingId) async {
     emit(BookingUserInTripLoading(bookingId: bookingId));
 
     final response = await repo.passengerNoShow(bookingId);
-    response.fold(
-      (error) => emit(BookingUserInTripErorr(
-          message: HandelErorrMessage.passengerNoShow(error.message))),
-      // رد البلاغ لا يحمل كائن الحجز، والحالة الناتجة في الخادم هي
-      // "no_show" وليست "passenger_no_show"
-      (raw) => emit(BookingUserInTripUpdated(
+    if (isClosed) return;
+
+    await response.fold((error) async {
+      // الحالة المحلية تضيع بإعادة التثبيت أو الخروج، فيعود الزرّ ظاهراً
+      // ويردّ الخادم «already submitted». ذلك ليس خطأً يُعرض بالأحمر.
+      if (NoShowReport.isAlreadyReported(error.message)) {
+        await NoShowReportStore.remember(
+            NoShowReportStore.bookingKey(bookingId));
+        if (isClosed) return;
+        emit(BookingUserInTripNoShowReported(
+          bookingId: bookingId,
+          message: "سبق أن أبلغت عن هذا الراكب",
+          outcome: NoShowOutcome.alreadyReported,
+        ));
+        return;
+      }
+      emit(BookingUserInTripErorr(
+          message: HandelErorrMessage.passengerNoShow(error.message)));
+    }, (raw) async {
+      await NoShowReportStore.remember(
+          NoShowReportStore.bookingKey(bookingId));
+      if (isClosed) return;
+
+      final conflict = NoShowReport.isConflict(raw);
+      emit(BookingUserInTripNoShowReported(
         bookingId: bookingId,
-        statusRide: _statusFrom(raw, "no_show"),
-      )),
-    );
+        message: conflict
+            ? "أبلغ الطرفان كلٌّ عن الآخر، فلا عقوبة تلقائية. فُتحت شكوى "
+                "وسيتواصل معك فريق الدعم."
+            : "تم تسجيل البلاغ. للراكب ساعتان للاعتراض، ثم يُحسم تلقائياً.",
+        outcome: conflict ? NoShowOutcome.conflict : NoShowOutcome.reported,
+      ));
+    });
   }
 
   /// حالة الحجز كما يعيدها الخادم داخل data.status. القيم الممكنة هي
