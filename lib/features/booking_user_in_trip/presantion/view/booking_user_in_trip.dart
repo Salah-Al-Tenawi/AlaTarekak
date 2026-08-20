@@ -16,10 +16,10 @@ import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/widgets/trip_card_parts.dart';
 import 'package:alatarekak/core/service/no_show_report_store.dart';
-import 'package:alatarekak/core/utils/class/arabic_plural.dart';
 import 'package:alatarekak/core/utils/class/no_show_report.dart';
 import 'package:alatarekak/core/utils/class/ride_time_rules.dart';
 import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
+import 'package:alatarekak/core/utils/widgets/no_show_gate.dart';
 import 'package:alatarekak/core/utils/widgets/rate_user_sheet.dart';
 import 'package:alatarekak/features/booking_user_in_trip/presantion/manger/cubit/booking_user_in_trip_cubit.dart';
 import 'package:alatarekak/features/trip_create/data/model/booking_model.dart';
@@ -720,22 +720,26 @@ class _CardActions extends StatelessWidget {
       );
     }
 
-    final remaining = RideTimeRules.untilNoShowGate(departure!);
-    if (remaining != null) {
-      final minutes = remaining.inMinutes + 1; // كسر الدقيقة يُقرَّب لأعلى
-      return _OutlinedAction(
-        label: 'بعد ${arabicMinutes(minutes)}',
-        icon: Icons.schedule_rounded,
-        color: MyColors.textSecondary,
-        onTap: null,
-      );
-    }
-
-    return _OutlinedAction(
-      label: 'لم يحضر',
-      icon: Icons.report_problem_outlined,
-      color: MyColors.error,
-      onTap: canReport ? () => _confirmNoShow(context) : null,
+    // العدّاد حيّ: يُعيد بناء نفسه كل دقيقة، ثم يفتح الزرّ عند انقضاء
+    // المهلة بلا أن يغادر السائق الشاشة ويعود.
+    return NoShowGate(
+      departure: departure!,
+      builder: (context, remaining) {
+        if (remaining != null) {
+          return _OutlinedAction(
+            label: noShowCountdownLabel(remaining),
+            icon: Icons.schedule_rounded,
+            color: MyColors.textSecondary,
+            onTap: null,
+          );
+        }
+        return _OutlinedAction(
+          label: 'لم يحضر',
+          icon: Icons.report_problem_outlined,
+          color: MyColors.error,
+          onTap: () => _confirmNoShow(context),
+        );
+      },
     );
   }
 
