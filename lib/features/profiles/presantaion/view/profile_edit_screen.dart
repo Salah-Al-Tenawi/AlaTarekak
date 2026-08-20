@@ -10,7 +10,7 @@ import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/functions/input_valid.dart';
-import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:alatarekak/core/utils/widgets/province_picker.dart';
 import 'package:alatarekak/features/profiles/data/model/enum/image_mode.dart';
 import 'package:alatarekak/features/profiles/data/model/enum/profile_mode.dart';
@@ -263,7 +263,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               if (isLoading)
                 Container(
                   color: Colors.black.withValues(alpha: 0.3),
-                  child: const Center(child: LoadingWidgetSize150()),
+                  child: const Center(child: AppLoader()),
                 ),
             ],
           ),

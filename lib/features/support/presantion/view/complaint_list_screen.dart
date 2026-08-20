@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -40,9 +41,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
       body: BlocBuilder<ComplaintListCubit, ComplaintListState>(
         builder: (context, state) {
           if (state is ComplaintListLoading) {
-            return Center(
-              child: CircularProgressIndicator(color: MyColors.primary),
-            );
+            return const Center(child: AppLoader());
           }
           if (state is ComplaintListFailure) {
             return _ErrorView(

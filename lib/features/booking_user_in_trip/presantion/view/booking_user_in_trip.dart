@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
@@ -208,7 +207,7 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
               current is BookingUserInTripErorr,
           builder: (context, state) {
             if (state is BookingUserInTripFetching && usersBooking.isEmpty) {
-              return const Center(child: LoadingWidgetSize150());
+              return const Center(child: AppLoader());
             }
 
             if (usersBooking.isEmpty) return const _EmptyBookings();

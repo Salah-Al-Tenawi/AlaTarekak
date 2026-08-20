@@ -11,7 +11,7 @@ import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/functions/show_image.dart';
-import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:alatarekak/features/profiles/domain/entity/car_entity.dart';
 import 'package:alatarekak/features/profiles/presantaion/manger/profile_cubit.dart';
 
@@ -29,7 +29,7 @@ class ProfileMyCarsScreen extends StatelessWidget {
       builder: (context, state) {
         if (state is ProfileLoadingState) {
           return const Scaffold(
-            body: Center(child: LoadingWidgetSize150()),
+            body: Center(child: AppLoader()),
           );
         }
 
@@ -582,12 +582,7 @@ class _CarFormSheetState extends State<_CarFormSheet> {
                     elevation: 0,
                   ),
                   child: _isSaving
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2.5),
-                        )
+                      ? const AppLoader.onButton()
                       : Text(
                           'حفظ المركبة',
                           style: AppTextStyles.bodyMedium.copyWith(

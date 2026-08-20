@@ -12,7 +12,7 @@ import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 import 'package:alatarekak/core/utils/functions/show_image.dart';
 import 'package:alatarekak/features/score/domain/entity/score_entity.dart';
-import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:alatarekak/features/auth/data/repo/auth_repo_im.dart';
 import 'package:alatarekak/features/profiles/data/model/enum/profile_mode.dart';
 import 'package:alatarekak/features/profiles/domain/entity/car_entity.dart';
@@ -33,7 +33,7 @@ class ProfileBody extends StatelessWidget {
       builder: (context, state) {
         if (state is ProfileInitialState || state is ProfileLoadingState) {
           return const Scaffold(
-            body: Center(child: LoadingWidgetSize150()),
+            body: Center(child: AppLoader()),
           );
         }
 

@@ -12,7 +12,7 @@ import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/core/utils/class/format_money.dart';
 import 'package:alatarekak/core/utils/functions/input_valid.dart';
-import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:alatarekak/features/e_pay/data/model/balance_model.dart';
 import 'package:alatarekak/features/e_pay/domain/entity/wallet_transaction.dart';
 import 'package:alatarekak/features/e_pay/presantion/manger/cubit/wallet_cubit.dart';
@@ -45,7 +45,7 @@ class WalletView extends StatelessWidget {
       body: BlocBuilder<WalletCubit, WalletState>(
         builder: (context, state) {
           if (state is WalletInitial || state is WalletLoading) {
-            return const Center(child: LoadingWidgetSize150());
+            return const Center(child: AppLoader());
           }
           if (state is WalletNotActivated ||
               state is WalletActivating ||
@@ -563,14 +563,7 @@ class _ActivateWalletViewState extends State<_ActivateWalletView> {
                   ),
                 ),
                 icon: widget.isSubmitting
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
+                    ? const AppLoader.onButton()
                     : const Icon(
                         Icons.lock_open_rounded,
                         color: Colors.white,
@@ -744,11 +737,7 @@ class _StatementCard extends StatelessWidget {
             Padding(
               padding: EdgeInsets.symmetric(vertical: 14.h),
               child: Center(
-                child: SizedBox(
-                  width: 20, height: 20,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2, color: MyColors.primary),
-                ),
+                child: AppLoader(size: 24, color: MyColors.primary),
               ),
             ),
         ],

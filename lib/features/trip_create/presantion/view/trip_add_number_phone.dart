@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -298,12 +299,7 @@ class _SubmitBar extends StatelessWidget {
                     elevation: 0,
                   ),
                   child: isLoading
-                      ? SizedBox(
-                          width: 24.r,
-                          height: 24.r,
-                          child: const CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2.5),
-                        )
+                      ? const AppLoader.onButton()
                       : Text("حفظ ونشر الرحلة",
                           style: AppTextStyles.buttonLarge),
                 ),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -146,14 +147,7 @@ class _PickLocationState extends State<PickLocation> {
                           prefixIcon: isSearching
                               ? Padding(
                                   padding: EdgeInsets.all(12),
-                                  child: SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: MyColors.primary,
-                                    ),
-                                  ),
+                                  child: AppLoader(size: 18, color: MyColors.primary),
                                 )
                               : Icon(Icons.search_rounded,
                                   color: MyColors.primary),
@@ -286,8 +280,7 @@ class _PickLocationState extends State<PickLocation> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (isLoadingPoint)
-                          CircularProgressIndicator(
-                              color: MyColors.primary)
+                          AppLoader(size: 40, color: MyColors.primary)
                         else if (placeName != null)
                           Row(
                             children: [

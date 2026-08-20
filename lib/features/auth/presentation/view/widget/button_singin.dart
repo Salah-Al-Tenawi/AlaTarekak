@@ -1,5 +1,6 @@
 import 'package:alatarekak/features/auth/presentation/view/verfiy_email_Singin.dart';
 import 'package:flutter/material.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -91,14 +92,7 @@ class ButtonSingin extends StatelessWidget {
             },
 
       icon: state is SinginLoading
-          ? SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 2,
-              ),
-            )
+          ? const AppLoader.onButton()
           : const Icon(
               Icons.arrow_back,
               color: Colors.white,

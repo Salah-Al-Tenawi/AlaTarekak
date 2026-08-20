@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:alatarekak/core/service/chat_socket_service.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -97,9 +98,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         },
         builder: (context, state) {
           if (state is NotificationsLoading || state is NotificationsInitial) {
-            return Center(
-              child: CircularProgressIndicator(color: MyColors.primary),
-            );
+            return const Center(child: AppLoader());
           }
           if (state is NotificationsError) {
             return _ErrorView(
@@ -132,14 +131,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   return Padding(
                     padding: EdgeInsets.symmetric(vertical: 12.h),
                     child: Center(
-                      child: SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: MyColors.primary,
-                        ),
-                      ),
+                      child: AppLoader(size: 26, color: MyColors.primary),
                     ),
                   );
                 }

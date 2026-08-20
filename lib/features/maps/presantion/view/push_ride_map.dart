@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -621,12 +623,9 @@ class _PushRideMapState extends State<PushRideMap> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircularProgressIndicator(
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(MyColors.primary),
-                  strokeWidth: 3,
-                ),
-                SizedBox(height: 12.h),
+                // الرسمة نفسها طريقٌ تقطعه سيّارة — وهذا ما ينتظره
+                const AppLoader(size: 84),
+                SizedBox(height: 4.h),
                 Text("جاري تحديد المسار...",
                     style: AppTextStyles.labelMedium
                         .copyWith(color: MyColors.textSecondary)),

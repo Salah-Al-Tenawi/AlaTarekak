@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -304,10 +305,7 @@ class _SearchRideMapState extends State<SearchRideMap> {
               ),
             ),
             const SizedBox(height: 16),
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[700]!),
-              strokeWidth: 3.0,
-            ),
+            const AppLoader(size: 84),
             const SizedBox(height: 8),
             const Text(
               "يرجى الانتظار...",

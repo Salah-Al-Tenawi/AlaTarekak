@@ -5,7 +5,7 @@ import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/core/utils/class/format_date_time.dart';
-import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:alatarekak/features/score/domain/entity/score_entity.dart';
 import 'package:alatarekak/features/score/presantion/manger/cubit/score_cubit.dart';
 
@@ -46,7 +46,7 @@ class _ProfileScoreScreenState extends State<ProfileScoreScreen> {
       body: BlocBuilder<ScoreCubit, ScoreState>(
         builder: (context, state) {
           if (state is ScoreLoading || state is ScoreInitial) {
-            return const Center(child: LoadingWidgetSize150());
+            return const Center(child: AppLoader());
           }
 
           final score = switch (state) {
@@ -559,14 +559,7 @@ class _HistoryFooter extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 14.h),
       child: Center(
         child: loading
-            ? SizedBox(
-                width: 20.r,
-                height: 20.r,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: MyColors.accent,
-                ),
-              )
+            ? AppLoader(size: 26, color: MyColors.accent)
             : Text(
                 'اسحب للأسفل لعرض المزيد',
                 style: AppTextStyles.labelSmall

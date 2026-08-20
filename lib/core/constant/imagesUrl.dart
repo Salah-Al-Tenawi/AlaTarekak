@@ -13,6 +13,10 @@ class ImagesUrl {
   /// مؤشّر التحميل: طريق تقطعه سيّارة نحو وجهتها، بألوان الهوية.
   /// مصمَّم للأحجام الكبيرة — الطريق والسيّارة يحتاجان مساحة ليُقرآ.
   static const String loadinglottie = "$lottieAssets/loading_route.json";
+
+  /// نسخة مصغّرة للأزرار والمساحات الضيّقة — بيضاء تُلوَّن بمرشّح.
+  static const String loadinglottieMini =
+      "$lottieAssets/loading_route_mini.json";
   static const String searchlottie =
       "$lottieAssets/Animation - 1719048732828(1).json";
   static const String lottie1 = "$lottieAssets/one.json";

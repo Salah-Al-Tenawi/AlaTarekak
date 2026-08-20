@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/route_manager.dart';
@@ -188,14 +189,7 @@ class _VerfiyUserState extends State<VerfiyUser> {
                             elevation: 0,
                           ),
                           child: isLoading
-                              ? SizedBox(
-                                  width: 22.r,
-                                  height: 22.r,
-                                  child: const CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2.5,
-                                  ),
-                                )
+                              ? const AppLoader.onButton()
                               : Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [

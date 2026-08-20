@@ -13,7 +13,7 @@ import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 import 'package:alatarekak/core/utils/widgets/app_error_view.dart';
-import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:alatarekak/core/utils/widgets/status_filter_bar.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:alatarekak/features/trip_me/presantion/manger/cubit/trip_me_cubit.dart';
@@ -85,7 +85,7 @@ class _TripMeListState extends State<TripMeList> {
 
           if (trips == null) {
             if (state is TripMeErorr) return _errorView(state.message);
-            return const Center(child: LoadingWidgetSize150());
+            return const Center(child: AppLoader());
           }
 
           // إلغاء قيد التنفيذ: الكيوبت يمرّ بـ`TripMeLoading` ثم يعيد

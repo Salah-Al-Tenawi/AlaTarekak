@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -264,11 +265,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
                         elevation: 0,
                       ),
                       child: isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                  color: Colors.white, strokeWidth: 2))
+                          ? const AppLoader.onButton()
                           : Text(
                               'إرسال الشكوى',
                               style: AppTextStyles.bodyMedium.copyWith(

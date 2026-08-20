@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:alatarekak/core/service/location_service.dart';
@@ -82,8 +83,7 @@ class _MyLocationButtonState extends State<MyLocationButton> {
                 width: 18.sp,
                 height: 18.sp,
                 child: _busy
-                    ? CircularProgressIndicator(
-                        strokeWidth: 2, color: MyColors.primary)
+                    ? AppLoader(size: 18, color: MyColors.primary)
                     : Icon(Icons.my_location_rounded,
                         size: 18.sp, color: MyColors.primary),
               ),

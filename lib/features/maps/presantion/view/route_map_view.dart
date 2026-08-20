@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -56,7 +57,7 @@ class _RouteMapViewState extends State<RouteMapView> {
           builder: (context, state) {
             if (state is TripDetailsMapLoading ||
                 state is TripDetailsMapInitial) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: AppLoader());
             } else if (state is TripDetailsMapError) {
               return Center(child: Text("خطأ: ${state.message}"));
             } else if (state is TripDetailsMapLoaded) {

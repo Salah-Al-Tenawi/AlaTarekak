@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -562,12 +563,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
               borderRadius: BorderRadius.circular(16.r),
             ),
             child: Center(
-              child: SizedBox(
-                width: 22.w,
-                height: 22.w,
-                child: const CircularProgressIndicator(
-                    color: Colors.white, strokeWidth: 2.5),
-              ),
+              child: const AppLoader.onButton(),
             ),
           );
         }

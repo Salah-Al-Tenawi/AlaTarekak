@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -205,14 +206,7 @@ class VerifyOtpForgetPassword extends StatelessWidget {
                               elevation: 0,
                             ),
                             child: isLoading
-                                ? const SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
+                                ? const AppLoader.onButton()
                                 : Text('تحقق من الرمز',
                                     style: AppTextStyles.buttonLarge),
                           ),

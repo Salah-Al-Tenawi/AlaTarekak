@@ -14,7 +14,7 @@ import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/class/no_show_report.dart';
 import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 import 'package:alatarekak/core/utils/widgets/app_error_view.dart';
-import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:alatarekak/core/utils/widgets/status_filter_bar.dart';
 import 'package:alatarekak/features/trip_booking/data/model/booking_me_model.dart';
 import 'package:alatarekak/features/trip_booking/presantion/manger/cubit/booking_me_cubit.dart';
@@ -73,7 +73,7 @@ class _BookingMeListState extends State<BookingMeList> {
           if (bookings == null) {
             if (state is BookingMeErorr) return _errorView(state.message);
             if (state is! BookingMeListloading) _requestFirstFetch(context);
-            return const Center(child: LoadingWidgetSize150());
+            return const Center(child: AppLoader());
           }
 
           return _loadedBody(

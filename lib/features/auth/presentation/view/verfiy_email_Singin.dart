@@ -2,6 +2,7 @@
 import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:flutter/material.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -223,14 +224,7 @@ class _VerfiyEmailSinginState extends State<VerfiyEmailSingin> {
                               elevation: 0,
                             ),
                             child: isLoading
-                                ? const SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
+                                ? const AppLoader.onButton()
                                 : Text('تحقق من الرمز',
                                     style: AppTextStyles.buttonLarge),
                           ),
@@ -249,14 +243,7 @@ class _VerfiyEmailSinginState extends State<VerfiyEmailSingin> {
                                     .copyWith(color: MyColors.textSecondary),
                               ),
                               if (isResendLoading)
-                                SizedBox(
-                                  width: 14,
-                                  height: 14,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: MyColors.accent,
-                                  ),
-                                )
+                                AppLoader(size: 16, color: MyColors.accent)
                               else
                                 GestureDetector(
                                   onTap: canResend

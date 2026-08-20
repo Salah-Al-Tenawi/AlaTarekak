@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
-import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:alatarekak/features/chat/domain/entity/quick_messages.dart';
 import 'package:alatarekak/features/trip_details/presantaion/manger/cubit/tripdetails_cubit.dart';
 import 'package:alatarekak/features/trip_details/presantaion/view/widget/body_trip_details.dart';
@@ -145,7 +145,7 @@ class _TripDetailsState extends State<TripDetails> {
           },
           builder: (context, state) {
             if (state is TripDetailsLoading) {
-              return const Center(child: LoadingWidgetSize150());
+              return const Center(child: AppLoader());
             } else if (state is TripDetailsError) {
               // الرسالة أصبحت معرّبة في الكيوبت — نطابق الترجمة العربية
               if (state.message.contains("توثيق حسابك كراكب")) {
@@ -174,7 +174,7 @@ class _TripDetailsState extends State<TripDetails> {
 
             // حالة بلا فرع خاص (طلب حجز قيد الإرسال مثلاً) — مؤشّر
             // انتظار أصدق من زرّ إعادة محاولة لشيء لم يفشل.
-            return const Center(child: LoadingWidgetSize150());
+            return const Center(child: AppLoader());
           },
         ),
       ),

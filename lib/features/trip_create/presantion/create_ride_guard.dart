@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:alatarekak/core/route/route_name.dart';
@@ -59,7 +60,7 @@ class CreateRideGuard {
             color: MyColors.surface,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: const CircularProgressIndicator(),
+          child: const AppLoader(size: 72),
         ),
       ),
     );

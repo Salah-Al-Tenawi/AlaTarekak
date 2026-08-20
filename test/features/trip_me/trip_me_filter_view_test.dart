@@ -1,4 +1,4 @@
-import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:alatarekak/core/utils/widgets/status_filter_bar.dart';
 import 'package:alatarekak/features/trip_me/presantion/manger/cubit/trip_me_cubit.dart';
 import 'package:alatarekak/features/trip_me/presantion/view/trip_me_list.dart';
@@ -92,7 +92,7 @@ void main() {
 
       await tester.pumpWidget(buildScreen());
 
-      expect(find.byType(LoadingWidgetSize150), findsOneWidget);
+      expect(find.byType(AppLoader), findsOneWidget);
     });
 
     testWidgets('قائمة فارغة تعرض رسالة "لا توجد رحلات"', (tester) async {

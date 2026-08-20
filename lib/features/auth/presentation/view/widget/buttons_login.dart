@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -70,14 +71,7 @@ class ColumnButtonsLogin extends StatelessWidget {
                       },
                 // ✅ السهم من الواجهة
                 icon: state is LoginLoading
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
+                    ? const AppLoader.onButton()
                     : const Icon(Icons.arrow_back, color: Colors.white),
                 label: const Text("تسجيل الدخول"),
               ),

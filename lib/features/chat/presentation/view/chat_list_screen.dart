@@ -10,7 +10,7 @@ import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/core/utils/class/format_date_time.dart';
-import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:alatarekak/features/chat/domain/entity/conversation_entity.dart';
 import 'package:alatarekak/features/chat/presentation/manager/conversation_cubit/conversation_cubit.dart';
 import 'package:alatarekak/features/support/domain/entity/support_conversation.dart';
@@ -43,11 +43,11 @@ class ChatListScreen extends StatelessWidget {
                 context.read<ConversationCubit>().loadConversations();
               }
             });
-            return const Center(child: LoadingWidgetSize150());
+            return const Center(child: AppLoader());
           }
 
           if (state is ConversationLoading) {
-            return const Center(child: LoadingWidgetSize150());
+            return const Center(child: AppLoader());
           }
 
           // السحب للتحديث يغطّي **كل** الحالات بعد التحميل. كان محصوراً في

@@ -1,3 +1,4 @@
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:alatarekak/features/score/domain/entity/score_entity.dart';
 import 'package:alatarekak/features/score/presantion/manger/cubit/score_cubit.dart';
 import 'package:alatarekak/features/score/presantion/view/profile_score.dart';
@@ -212,7 +213,7 @@ void main() {
       await tester.drag(find.byType(ListView), const Offset(0, -4000));
       await tester.pump();
 
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(AppLoader), findsOneWidget);
     });
 
     testWidgets('نهاية السجل: لا مؤشّر ولا دعوة للمزيد', (tester) async {
