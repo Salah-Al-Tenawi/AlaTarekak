@@ -13,6 +13,7 @@ import 'package:alatarekak/core/utils/class/format_date_time.dart';
 import 'package:alatarekak/core/utils/class/format_money.dart';
 import 'package:alatarekak/core/utils/class/ride_time_rules.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
+import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 import 'package:alatarekak/core/utils/widgets/rate_user_sheet.dart';
 import 'package:alatarekak/core/utils/widgets/trip_card_parts.dart';
 import 'package:alatarekak/features/trip_booking/data/model/booking_me_model.dart';
@@ -618,9 +619,14 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
           label: 'تأكيد الوصول',
           color: MyColors.primary,
           onTap: () async {
-            final confirm = await _showConfirmationDialog(
-              'تأكيدك يعني وصولك إلى وجهتك ونجاح الرحلة، وبه تكتمل '
-              'الرحلة ويُحرَّر المبلغ للسائق.',
+            final confirm = await showAppDialog(
+              context,
+              icon: Icons.check_circle_outline_rounded,
+              title: 'تأكيد الوصول؟',
+              message: 'تأكيدك يعني وصولك إلى وجهتك ونجاح الرحلة، وبه '
+                  'تكتمل الرحلة ويُحرَّر المبلغ للسائق.',
+              confirmLabel: 'تأكيد الوصول',
+              cancelLabel: 'تراجع',
             );
             if (!(confirm ?? false) || !mounted) return;
             _dispatch((cubit) => cubit.finishTrip(b.bookingId));
@@ -673,9 +679,20 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
       outlined: true,
       onTap: canReport
           ? () async {
-              final confirm = await _showConfirmationDialog(
-                'هل أنت متأكد أن السائق لم يحضر؟ سيُسجَّل بلاغ، وللسائق '
-                'ساعتان للاعتراض قبل أن يُحسم تلقائياً.',
+              final driver =
+                  b.driverName.trim().isEmpty ? 'السائق' : b.driverName;
+              // مطابق لحوار السائق عن راكبه: الإجراء واحد، فلا يصحّ أن
+              // يختلف شكله ولا نبرته باختلاف من يقوم به.
+              final confirm = await showAppDialog(
+                context,
+                icon: Icons.report_problem_outlined,
+                title: 'السائق لم يحضر؟',
+                message: 'سيُسجَّل بلاغ بحقّ $driver، وله ساعتان للاعتراض '
+                    'قبل أن يُحسم تلقائياً وتُخصم من نقاط ثقته. '
+                    'لا تُرسله إلا بعد انتظاره فعلاً.',
+                confirmLabel: 'تسجيل البلاغ',
+                cancelLabel: 'تراجع',
+                destructive: true,
               );
               if (!(confirm ?? false) || !mounted) return;
               _dispatch((cubit) => cubit.reportDriverNoShow(b.rideId));
@@ -699,70 +716,6 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
     _dispatch((cubit) => seatsToCancel >= b.seats
         ? cubit.cancelWholeBooking(b.bookingId)
         : cubit.cancelBooking(b.bookingId, seatsToCancel));
-  }
-
-  Future<bool?> _showConfirmationDialog(String message) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          "تأكيد",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(message),
-            const SizedBox(height: 16),
-            GestureDetector(
-              onTap: () => Get.toNamed(RouteName.policy),
-              child: Text(
-                "تعرف على سياسية التطبيق",
-                style: TextStyle(
-                  color: MyColors.accent,
-                  fontWeight: FontWeight.bold,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-            ),
-          ],
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          SizedBox(
-            width: 100,
-            height: 40,
-            child: ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: MyColors.surfaceAlt,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text("لا", style: TextStyle(color: MyColors.textPrimary)),
-            ),
-          ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 100,
-            height: 40,
-            child: ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: MyColors.accent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text("نعم", style: TextStyle(color: MyColors.textOnDark)),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   /// تقييم السائق — ورقة واحدة مشتركة مع جانب السائق.
