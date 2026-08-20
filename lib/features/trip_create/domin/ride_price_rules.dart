@@ -2,6 +2,10 @@ import 'dart:math' as math;
 
 /// تسعير الرحلة — بالليرة السورية الجديدة.
 ///
+/// **العملة الجديدة حُذف منها صفران**: ما كان مئة صار واحداً. فسعر
+/// الكيلومتر يُقاس بالوحدات وكسورها لا بالمئات، ولذلك هذه النسب كسرية
+/// وليست صحيحة — و«خمس ونصف» ليست «خمساً» ولا «ستّاً».
+///
 /// **نقترح ولا نُجبر:** السائق يرى سعراً محسوباً على مسافة رحلته، ثم له
 /// أن يقبله أو يناغشه بالعدّاد أو يكتب سعره بيده. القيد الوحيد الصلب هو
 /// سقف الكيلومتر، فلا يُنشر سعر خارج المعقول على المنصّة.
@@ -11,13 +15,13 @@ class RidePriceRules {
   RidePriceRules._();
 
   /// سعر الكيلومتر المقترح.
-  static const int suggestedRatePerKm = 550;
+  static const double suggestedRatePerKm = 5.5;
 
   /// أعلى سعر كيلومتر يُقبل — حتى بالكتابة اليدوية.
-  static const int maxRatePerKm = 800;
+  static const double maxRatePerKm = 8;
 
   /// أدنى سعر كيلومتر يُقبل.
-  static const int minRatePerKm = 350;
+  static const double minRatePerKm = 3.5;
 
   /// مدى العدّاد حول المقترح — ما بعده يُكتب باليد.
   static const double quickRangeRatio = 0.30;
@@ -32,8 +36,8 @@ class RidePriceRules {
 
   /// خطوة الزيادة والنقصان، تكبر مع السعر.
   ///
-  /// نحو 3% من المقترح مقرَّبةً إلى أقرب رقم مريح **فوقها**: تعطي 100
-  /// لرحلة قصيرة بخمسة كيلومترات، و500 لرحلة بعشرين، و5000 لرحلة بين
+  /// نحو 3% من المقترح مقرَّبةً إلى أقرب رقم مريح **فوقها**: تعطي 1
+  /// لرحلة قصيرة بخمسة كيلومترات، و5 لرحلة بعشرين، و50 لرحلة بين
   /// المدن. فتبقى الخطوة محسوسة مهما طالت الرحلة، وتبقى الأرقام نظيفة.
   static int stepFor(int suggested) {
     if (suggested <= 0) return _niceSteps.first;
@@ -47,8 +51,8 @@ class RidePriceRules {
 
   /// السعر المقترح لمسافة بالكيلومترات، مقرَّباً إلى خطوته.
   ///
-  /// التقريب إلى الخطوة يُبقي العدّاد على أرقام نظيفة: من 270 إلى 280 لا
-  /// من 273 إلى 283.
+  /// التقريب إلى الخطوة يُبقي العدّاد على أرقام نظيفة: من 110 إلى 115 لا
+  /// من 108 إلى 113.
   static int suggestedFor(double km) {
     if (km <= 0) return 0;
 
@@ -101,6 +105,14 @@ class RidePriceRules {
   static double ratePerKm(double km, int price) =>
       km <= 0 ? 0 : price / km;
 
+  /// سعر كيلومتر معروضاً للقراءة.
+  ///
+  /// بالعملة الجديدة صار الفرق بين 5.5 و6 فرقاً حقيقياً — نحو عُشر
+  /// السعر — فلا يُقرَّب إلى صحيح إلا إن كان صحيحاً أصلاً، وإلا فمنزلة
+  /// عشرية واحدة: «5.6» لا «6».
+  static String rateLabel(double rate) =>
+      rate == rate.roundToDouble() ? '${rate.round()}' : rate.toStringAsFixed(1);
+
   /// سبب رفض سعر مكتوب يدوياً، أو `null` إن كان مقبولاً.
   static String? validate(double km, int? price) {
     if (price == null || price <= 0) return 'أدخل سعراً صحيحاً';
@@ -109,13 +121,13 @@ class RidePriceRules {
     final max = maxFor(km);
     if (price > max) {
       return 'أعلى سعر لهذه الرحلة $max ل.س '
-          '($maxRatePerKm ل.س للكيلومتر)';
+          '(${rateLabel(maxRatePerKm)} ل.س للكيلومتر)';
     }
 
     final min = minFor(km);
     if (price < min) {
       return 'أقلّ سعر لهذه الرحلة $min ل.س '
-          '($minRatePerKm ل.س للكيلومتر)';
+          '(${rateLabel(minRatePerKm)} ل.س للكيلومتر)';
     }
 
     return null;

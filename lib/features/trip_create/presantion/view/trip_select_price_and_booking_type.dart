@@ -408,7 +408,8 @@ class _PriceSelectorState extends State<_PriceSelector> {
               SizedBox(height: 4.h),
               Text(
                 widget.km > 0
-                    ? 'ليرة سورية · ${rate.round()} ل.س للكيلومتر'
+                    ? 'ليرة سورية · ${RidePriceRules.rateLabel(rate)} '
+                        'ل.س للكيلومتر'
                     : 'ليرة سورية',
                 style: AppTextStyles.labelSmall
                     .copyWith(color: MyColors.textSecondary),

@@ -21,7 +21,8 @@ final int _suggested = RidePriceRules.suggestedFor(_km);
 final int _step = RidePriceRules.stepFor(_suggested);
 final int _floor = RidePriceRules.minFor(_km);
 final int _ceiling = RidePriceRules.maxFor(_km);
-final int _suggestedRate = RidePriceRules.ratePerKm(_km, _suggested).round();
+final String _suggestedRate =
+    RidePriceRules.rateLabel(RidePriceRules.ratePerKm(_km, _suggested));
 
 TripFrom _tripFrom() => TripFrom(distance: _km);
 
@@ -163,11 +164,12 @@ void main() {
       await tester.enterText(_priceField, '${_ceiling + _step}');
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('أعلى سعر'), findsOneWidget);
-      expect(find.textContaining('$_ceiling'), findsOneWidget);
+      expect(find.textContaining('أعلى سعر لهذه الرحلة $_ceiling'),
+          findsOneWidget);
       expect(
           find.textContaining(
-              '${RidePriceRules.maxRatePerKm} ل.س للكيلومتر'),
+              '${RidePriceRules.rateLabel(RidePriceRules.maxRatePerKm)} '
+              'ل.س للكيلومتر'),
           findsOneWidget);
     });
 
@@ -177,8 +179,8 @@ void main() {
       await tester.enterText(_priceField, '${_floor - _step}');
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('أقلّ سعر'), findsOneWidget);
-      expect(find.textContaining('$_floor'), findsOneWidget);
+      expect(find.textContaining('أقلّ سعر لهذه الرحلة $_floor'),
+          findsOneWidget);
     });
 
     testWidgets('الخطأ يزول بتصحيح الرقم', (tester) async {
@@ -215,7 +217,8 @@ void main() {
 
       expect(
           find.textContaining(
-              '${RidePriceRules.maxRatePerKm} ل.س للكيلومتر'),
+              '${RidePriceRules.rateLabel(RidePriceRules.maxRatePerKm)} '
+              'ل.س للكيلومتر'),
           findsOneWidget);
     });
   });
