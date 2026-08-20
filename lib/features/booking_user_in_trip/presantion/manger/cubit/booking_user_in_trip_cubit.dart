@@ -163,4 +163,32 @@ class BookingUserInTripCubit extends SafeCubit<BookingUserInTripState> {
     }
     return fallback;
   }
+
+  /// تقييم الراكب، ومعه تعليق اختياري.
+  ///
+  /// **مساران لا واحد** — الخادم يفصل `rate` عن `comments`. وفشل التعليق
+  /// لا يُفشل التقييم: النجوم وصلت فعلاً، وإظهار خطأ بعدها يوهم السائق
+  /// أن شيئاً لم يقع فيعيد الكرّة — فيُقيَّم الراكب مرتين.
+  Future<void> ratePassenger(
+    double rating,
+    int userId, {
+    String? comment,
+  }) async {
+    emit(BookingUserInTripLoading(bookingId: userId));
+
+    final response = await repo.rateUser(rating, userId);
+    if (isClosed) return;
+
+    await response.fold((error) async {
+      emit(BookingUserInTripErorr(
+          message: HandelErorrMessage.rateUser(error.message)));
+    }, (rate) async {
+      final text = comment?.trim();
+      if (text != null && text.isNotEmpty) {
+        await repo.addcommit(text, userId);
+        if (isClosed) return;
+      }
+      emit(BookingUserInTripRated(averageRating: rate.averageRating));
+    });
+  }
 }

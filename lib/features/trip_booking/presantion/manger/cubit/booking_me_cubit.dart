@@ -145,13 +145,28 @@ class BookingMeCubit extends SafeCubit<BookingMeState> {
     });
   }
 
-  Future<void> reateUser(double rating, int userId) async {
+  /// تقييم السائق، ومعه تعليق اختياري.
+  ///
+  /// **مساران لا واحد** — الخادم يفصل `POST /profile/{id}/rate` عن
+  /// `POST /profile/{id}/comments`. والترتيب مقصود: التقييم أولاً لأنه
+  /// جوهر الإجراء، ثم التعليق.
+  ///
+  /// وفشل التعليق **لا يُفشل التقييم**: النجوم وصلت الخادم فعلاً، وإظهار
+  /// خطأ أحمر بعدها يوهم المستخدم أن شيئاً لم يقع فيعيد الكرّة — فيُقيَّم
+  /// السائق مرتين. التعليق تفصيل ثانوي يُسقَط بصمت.
+  Future<void> reateUser(double rating, int userId, {String? comment}) async {
     emit(BookingMeButtonloading());
     final response = await _repo.rateUser(rating, userId);
+    if (isClosed) return;
 
-    response.fold((erorr) {
+    await response.fold((erorr) async {
       emit(const BookingMeErorr(message: "فشل التقيم"));
-    }, (rate) {
+    }, (rate) async {
+      final text = comment?.trim();
+      if (text != null && text.isNotEmpty) {
+        await _repo.addcommit(text, userId);
+        if (isClosed) return;
+      }
       emit(BookingMeRated(rate: rate.averageRating));
     });
   }

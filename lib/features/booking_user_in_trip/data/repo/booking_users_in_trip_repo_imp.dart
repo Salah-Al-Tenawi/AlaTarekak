@@ -4,6 +4,8 @@ import 'package:alatarekak/core/errors/filuar.dart';
 import 'package:alatarekak/features/booking_user_in_trip/data/data_source/booking_user_trip_remote_data.dart';
 import 'package:alatarekak/features/booking_user_in_trip/data/model/booking_user_modle.dart';
 import 'package:alatarekak/features/booking_user_in_trip/domain/repo/booking_user_in_trip_repo.dart';
+import 'package:alatarekak/features/profiles/data/model/rating_modle.dart';
+import 'package:alatarekak/features/profiles/domain/entity/comment_entity.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 
 class BookingUsersInTripRepoImp extends BookingUserInTripRepo {
@@ -45,6 +47,26 @@ class BookingUsersInTripRepoImp extends BookingUserInTripRepo {
     try {
       final response = await remoteData.passengerNoShow(bookingId);
       return right(response);
+    } on ServerExpcptions catch (e) {
+      return left(e.error);
+    }
+  }
+
+  @override
+  Future<Either<Filuar, RatingModle>> rateUser(
+      double rating, int userId) async {
+    try {
+      return right(await remoteData.rateUser(rating, userId));
+    } on ServerExpcptions catch (e) {
+      return left(e.error);
+    }
+  }
+
+  @override
+  Future<Either<Filuar, CommentEntity>> addcommit(
+      String comment, int userId) async {
+    try {
+      return right(await remoteData.addcommit(comment, userId));
     } on ServerExpcptions catch (e) {
       return left(e.error);
     }

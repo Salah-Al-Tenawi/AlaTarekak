@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -14,10 +13,12 @@ import 'package:alatarekak/core/utils/class/format_date_time.dart';
 import 'package:alatarekak/core/utils/class/format_money.dart';
 import 'package:alatarekak/core/utils/class/ride_time_rules.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
+import 'package:alatarekak/core/utils/widgets/rate_user_sheet.dart';
 import 'package:alatarekak/core/utils/widgets/trip_card_parts.dart';
 import 'package:alatarekak/features/trip_booking/data/model/booking_me_model.dart';
 import 'package:alatarekak/features/trip_booking/presantion/manger/cubit/booking_me_cubit.dart';
 import 'package:alatarekak/features/trip_booking/presantion/view/widget/booking_time_text.dart';
+import 'package:alatarekak/features/trip_booking/presantion/view/widget/cancel_seats_sheet.dart';
 import 'package:alatarekak/features/trip_details/presantaion/view/widget/status_trip.dart';
 
 /// ورقة تفاصيل الحجز الكاملة — ما كانت بطاقة «حجوزاتي» تعرضه كلّه دفعة
@@ -683,173 +684,21 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
     );
   }
 
+  /// **خطوة واحدة**: كان حواراً يختار العدد ثم حواراً يسأل «هل أنت
+  /// متأكد؟» بنصّ يكرّر ما قيل للتوّ. الورقة تعرض أثر الاختيار — كم
+  /// مقعداً يبقى، ومتى يصير الإلغاء كاملاً — فيُغني عن السؤال الثاني.
   Future<void> _askCancelSeats() async {
-    final seatsToCancel = await _showCancelSeatsDialog();
+    final seatsToCancel = await CancelSeatsSheet.show(
+      context,
+      bookedSeats: b.seats,
+      pricePerSeat: b.pricePerSeat,
+    );
     if (seatsToCancel == null || !mounted) return;
 
-    final whole = seatsToCancel >= b.seats;
-    final confirm = await _showConfirmationDialog(
-      whole
-          ? 'هل أنت متأكد من إلغاء الحجز بالكامل؟ قد يُخصم جزء من المبلغ '
-              'حسب قربك من موعد الانطلاق.'
-          : 'هل أنت متأكد من إلغاء $seatsToCancel مقعد؟ قد يُخصم جزء من '
-              'المبلغ حسب قربك من موعد الانطلاق.',
-    );
-    if (!(confirm ?? false) || !mounted) return;
-
     // إلغاء كل المقاعد يمرّ عبر إلغاء الحجز الكامل، والجزئي عبر cancel-seats
-    _dispatch((cubit) => whole
+    _dispatch((cubit) => seatsToCancel >= b.seats
         ? cubit.cancelWholeBooking(b.bookingId)
         : cubit.cancelBooking(b.bookingId, seatsToCancel));
-  }
-
-  Future<int?> _showCancelSeatsDialog() async {
-    int selectedSeats = 1;
-    final maxSeats = b.seats;
-
-    return showDialog<int>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return Directionality(
-              textDirection: TextDirection.rtl,
-              child: Dialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                elevation: 10,
-                backgroundColor: MyColors.cardBg,
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "إلغاء المقاعد",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: MyColors.primary,
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.close, color: MyColors.textLight),
-                            onPressed: () => Navigator.of(context).pop(),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        "حدد عدد المقاعد التي تريد إلغاء حجزها",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: MyColors.textHint,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: MyColors.surfaceAlt,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              icon: Icon(
-                                Icons.remove_circle_outline,
-                                color: selectedSeats <= 1
-                                    ? MyColors.textHint
-                                    : MyColors.accent,
-                              ),
-                              onPressed: selectedSeats <= 1
-                                  ? null
-                                  : () => setState(() => selectedSeats--),
-                            ),
-                            Text(
-                              "$selectedSeats",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: MyColors.primary,
-                              ),
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                Icons.add_circle_outline,
-                                color: selectedSeats >= maxSeats
-                                    ? MyColors.textHint
-                                    : MyColors.accent,
-                              ),
-                              onPressed: selectedSeats >= maxSeats
-                                  ? null
-                                  : () => setState(() => selectedSeats++),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "الحد الأقصى للإلغاء: $maxSeats مقاعد",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: MyColors.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: MyColors.primary,
-                                side: BorderSide(color: MyColors.primary),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: const Text("تراجع"),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () =>
-                                  Navigator.of(context).pop(selectedSeats),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: MyColors.accent,
-                                foregroundColor: Colors.white,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: const Text("تأكيد الإلغاء"),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
   }
 
   Future<bool?> _showConfirmationDialog(String message) {
@@ -916,77 +765,27 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
     );
   }
 
-  void _showRatingDialog(int userId) {
-    double userRating = 0;
+  /// تقييم السائق — ورقة واحدة مشتركة مع جانب السائق.
+  ///
+  /// كان حواراً مبنيّاً يدوياً بمقاسات ثابتة لا تتبع الشاشة، ونجومه بلا
+  /// تسمية تقول ماذا تعني الثلاث من الخمس، وبلا موضع لتعليق — ومسار
+  /// التعليق موجود في الخادم ولا يناديه أحد.
+  Future<void> _showRatingDialog(int userId) async {
+    final cubit = context.read<BookingMeCubit>();
+    final driver =
+        b.driverName.trim().isEmpty ? 'سائق الرحلة' : b.driverName;
 
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text(
-                'قيم السائق',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'كيف تقيم تجربتك مع السائق',
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 16.h),
-                  RatingBar.builder(
-                    initialRating: 0,
-                    minRating: 1,
-                    direction: Axis.horizontal,
-                    allowHalfRating: true,
-                    itemCount: 5,
-                    itemSize: 28.0,
-                    itemPadding: const EdgeInsets.symmetric(horizontal: 2.0),
-                    itemBuilder: (context, _) =>
-                        const Icon(Icons.star, color: Colors.amber),
-                    onRatingUpdate: (rating) =>
-                        setState(() => userRating = rating),
-                  ),
-                  SizedBox(height: 16.h),
-                  if (userRating > 0)
-                    Text(
-                      'تقييمك: ${userRating.toStringAsFixed(1)}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('إلغاء'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (userRating <= 0) return;
-                    Navigator.of(dialogContext).pop();
-                    _dispatch((cubit) => cubit.reateUser(userRating, userId));
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: MyColors.accent,
-                    foregroundColor: MyColors.textOnDark,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  ),
-                  child: const Text('إرسال التقييم'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+    final result = await RateUserSheet.show(
+      context,
+      name: driver,
+      question: 'كيف كانت رحلتك مع $driver؟',
+      avatar: b.driverAvatar,
     );
+    if (result == null || !mounted) return;
+
+    // الورقة تُغلق ثم يُرسَل، كبقيّة إجراءاتها
+    Navigator.of(context).maybePop();
+    cubit.reateUser(result.rating, userId, comment: result.comment);
   }
 }
 

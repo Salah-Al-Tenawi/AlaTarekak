@@ -64,6 +64,16 @@ final class BookingUserInTripNoShowReported extends BookingUserInTripState {
   List<Object> get props => [bookingId, message, outcome];
 }
 
+/// قيّم السائقُ راكبَه — ومعه تعليق اختياري إن كتبه.
+final class BookingUserInTripRated extends BookingUserInTripState {
+  final double averageRating;
+
+  const BookingUserInTripRated({required this.averageRating});
+
+  @override
+  List<Object> get props => [averageRating];
+}
+
 final class BookingUserInTripSucc extends BookingUserInTripState {}
 
 /// جلب الرحلة وحجوزاتها جارٍ — يخصّ الشاشة كلها لا حجزاً بعينه.

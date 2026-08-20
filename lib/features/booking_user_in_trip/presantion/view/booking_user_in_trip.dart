@@ -19,6 +19,7 @@ import 'package:alatarekak/core/utils/class/arabic_plural.dart';
 import 'package:alatarekak/core/utils/class/no_show_report.dart';
 import 'package:alatarekak/core/utils/class/ride_time_rules.dart';
 import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
+import 'package:alatarekak/core/utils/widgets/rate_user_sheet.dart';
 import 'package:alatarekak/features/booking_user_in_trip/presantion/manger/cubit/booking_user_in_trip_cubit.dart';
 import 'package:alatarekak/features/trip_create/data/model/booking_model.dart';
 
@@ -174,6 +175,8 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
                   .read<BookingUserInTripCubit>()
                   .loadBookings(id, silent: true);
             }
+          } else if (state is BookingUserInTripRated) {
+            showMySnackBar(context, 'شكراً لك على تقييمك');
           } else if (state is BookingUserInTripOpenConversation) {
             Get.toNamed(RouteName.chatScreen, arguments: {
               'conversationId': state.conversationId,
@@ -660,11 +663,42 @@ class _CardActions extends StatelessWidget {
           ],
         );
 
+      // الرحلة تمّت — يُتاح للسائق تقييم راكبه.
+      //
+      // `completed` هي حالة الحجز بعد أن يؤكّد الراكب وصوله، و`finished`
+      // بعد أن يُنهي السائق رحلته. كلتاهما تعني «انتهى اللقاء»، وقبلهما
+      // لا معنى لتقييم لقاء لم يقع بعد.
+      case 'completed':
+      case 'finished':
+        return _FilledAction(
+          label: 'قيّم الراكب',
+          icon: Icons.star_rate_rounded,
+          color: MyColors.accent,
+          onTap: () => _rate(context),
+        );
+
       default:
-        // الحالات المنتهية لا إجراء عليها — الشارة في الرأس تكفي، فلا
-        // نكرّرها رقاقةً ثانية أسفل البطاقة
+        // الملغاة وغير الحاضر لا إجراء عليها — الشارة في الرأس تكفي،
+        // فلا نكرّرها رقاقةً ثانية أسفل البطاقة
         return const SizedBox.shrink();
     }
+  }
+
+  /// تقييم الراكب — الورقة المشتركة نفسها التي يقيّم بها الراكبُ سائقَه.
+  Future<void> _rate(BuildContext context) async {
+    final cubit = context.read<BookingUserInTripCubit>();
+    final name = booking.userName.trim().isEmpty ? 'الراكب' : booking.userName;
+
+    final result = await RateUserSheet.show(
+      context,
+      name: name,
+      question: 'كيف كان $name راكباً؟',
+      avatar: booking.avatar,
+    );
+    if (result == null) return;
+
+    cubit.ratePassenger(result.rating, booking.userId,
+        comment: result.comment);
   }
 
   /// زرّ «لم يحضر» بأحواله الثلاثة — كما في جانب الراكب.
