@@ -9,6 +9,7 @@ import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/animations/app_animations.dart';
+import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 import 'package:alatarekak/core/utils/widgets/app_error_view.dart';
@@ -73,9 +74,9 @@ class _TripMeListState extends State<TripMeList> {
       body: BlocConsumer<TripMeCubit, TripMeState>(
         listener: (context, state) {
           if (state is TripMeErorr) {
-            showMySnackBar(context, state.message);
+            showMySnackBar(context, state.message, type: SnackType.error);
           } else if (state is TripMeCancel) {
-            showMySnackBar(context, state.message);
+            showMySnackBar(context, state.message, type: SnackType.success);
           }
         },
         builder: (context, state) {

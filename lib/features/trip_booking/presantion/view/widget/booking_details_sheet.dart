@@ -12,6 +12,7 @@ import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/class/format_date_time.dart';
 import 'package:alatarekak/core/utils/class/format_money.dart';
 import 'package:alatarekak/core/utils/class/ride_time_rules.dart';
+import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 import 'package:alatarekak/core/utils/widgets/rate_user_sheet.dart';
@@ -491,7 +492,8 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
     final uri = Uri(scheme: 'tel', path: phone.replaceAll(' ', ''));
     if (!await launchUrl(uri)) {
       if (!mounted) return;
-      showMySnackBar(context, 'تعذّر فتح تطبيق الاتصال');
+      showMySnackBar(context, 'تعذّر فتح تطبيق الاتصال',
+          type: SnackType.error);
     }
   }
 

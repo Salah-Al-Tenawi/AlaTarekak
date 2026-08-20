@@ -9,6 +9,7 @@ import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/core/utils/functions/my_dilaog.dart';
+import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/class/no_show_report.dart';
 import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
@@ -98,13 +99,14 @@ class _BookingMeListState extends State<BookingMeList> {
       );
       _refreshData();
     } else if (state is BookingMeWholeCanceled) {
-      showMySnackBar(context, state.message);
+      showMySnackBar(context, state.message, type: SnackType.success);
       _refreshData();
     } else if (state is BookingMeFinish) {
-      showMySnackBar(context, "تم تأكيد وصولك");
+      showMySnackBar(context, "تم تأكيد وصولك", type: SnackType.success);
       _refreshData();
     } else if (state is BookingMeRated) {
-      showMySnackBar(context, "شكراً لك على تقييمك");
+      showMySnackBar(context, "شكراً لك على تقييمك",
+          type: SnackType.success);
       _refreshData();
     } else if (state is BookingMeDriverNoShowReported) {
       _onNoShowReported(context, state);
@@ -117,7 +119,7 @@ class _BookingMeListState extends State<BookingMeList> {
       });
     } else if (state is BookingMeErorr) {
       // الرسالة معرّبة مسبقاً في الكيوبت حسب نوع العملية
-      showMySnackBar(context, state.message);
+      showMySnackBar(context, state.message, type: SnackType.error);
     }
   }
 
@@ -132,7 +134,7 @@ class _BookingMeListState extends State<BookingMeList> {
   void _onNoShowReported(
       BuildContext context, BookingMeDriverNoShowReported state) {
     if (state.outcome != NoShowOutcome.conflict) {
-      showMySnackBar(context, state.message);
+      showMySnackBar(context, state.message, type: SnackType.success);
       return;
     }
 

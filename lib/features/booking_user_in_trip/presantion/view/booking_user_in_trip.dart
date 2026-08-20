@@ -12,6 +12,7 @@ import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/core/utils/class/format_date_time.dart';
 import 'package:alatarekak/core/utils/class/format_money.dart';
+import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/widgets/trip_card_parts.dart';
 import 'package:alatarekak/core/service/no_show_report_store.dart';
@@ -127,7 +128,7 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
   void _onNoShowReported(
       BuildContext context, BookingUserInTripNoShowReported state) {
     if (state.outcome != NoShowOutcome.conflict) {
-      showMySnackBar(context, state.message);
+      showMySnackBar(context, state.message, type: SnackType.success);
       return;
     }
 
@@ -164,7 +165,7 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
       body: BlocListener<BookingUserInTripCubit, BookingUserInTripState>(
         listener: (context, state) {
           if (state is BookingUserInTripErorr) {
-            showMySnackBar(context, state.message);
+            showMySnackBar(context, state.message, type: SnackType.error);
           } else if (state is BookingUserInTripNoShowReported) {
             _onNoShowReported(context, state);
             // الحالة الناتجة `no_show` تصل مع القائمة، والعدّادات في
@@ -176,7 +177,8 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
                   .loadBookings(id, silent: true);
             }
           } else if (state is BookingUserInTripRated) {
-            showMySnackBar(context, 'شكراً لك على تقييمك');
+            showMySnackBar(context, 'شكراً لك على تقييمك',
+                type: SnackType.success);
           } else if (state is BookingUserInTripOpenConversation) {
             Get.toNamed(RouteName.chatScreen, arguments: {
               'conversationId': state.conversationId,
