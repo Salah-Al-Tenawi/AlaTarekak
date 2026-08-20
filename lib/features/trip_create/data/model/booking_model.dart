@@ -29,7 +29,7 @@ class BookingModel {
   /// النوع نفسه، و`user` قد يغيب كاملاً فيُقرأ ككائن فارغ.
   factory BookingModel.fromJson(Map<String, dynamic> json) {
     // الراكب يصل تحت `user` في مسار، وتحت `passenger` في
-    // `GET /rides/{id}/passangers` — وقراءة الأول وحده كانت تُظهر بطاقات
+    // `GET /rides/{id}/passengers` — وقراءة الأول وحده كانت تُظهر بطاقات
     // بلا اسم ولا صورة رغم وصولهما كاملين.
     final user = asMap(pick(json, const ['user', 'passenger'])) ??
         const <String, dynamic>{};

@@ -20,8 +20,10 @@ class TripDetails extends StatefulWidget {
 class _TripDetailsState extends State<TripDetails> {
   late final int tripId;
 
-  /// فُتحت من «رحلاتي» — فتُجلب الرحلة بحجوزاتها.
-  late final bool asDriver;
+  /// صفة من فتح الشاشة، **ثلاثية**: `true` من «رحلاتي»، و`null` حين
+  /// يصل المعرّف وحده — من إشعار مثلاً — فلا يعرف المستدعي من يقرؤه.
+  /// الكيوبت يحسم المجهولة من الردّ.
+  late final bool? asDriver;
 
   @override
   void initState() {
@@ -29,10 +31,10 @@ class _TripDetailsState extends State<TripDetails> {
     final args = Get.arguments;
     if (args is Map) {
       tripId = args['tripId'] as int;
-      asDriver = args['asDriver'] == true;
+      asDriver = args['asDriver'] as bool?;
     } else {
       tripId = args as int;
-      asDriver = false;
+      asDriver = null;
     }
 
     context.read<TripDetailsCubit>().fetchTrip(tripId, asDriver: asDriver);

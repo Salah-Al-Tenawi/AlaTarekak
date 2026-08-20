@@ -192,7 +192,7 @@ void main() {
     // الكيوبت أصدر حالة لا تعني القائمة.
     //
     // (كانت هذه الحالة تُختبَر بـ`TripMeOneLoaded` من `showOneTrip`،
-    // وقد حُذفا: المسار `/rides/{id}/passangers` صار يُستدعى من شاشة
+    // وقد حُذفا: المسار `/rides/{id}/passengers` صار يُستدعى من شاشة
     // التفاصيل نفسها.)
     testWidgets('لا تُطلق طلب شبكة من داخل البناء', (tester) async {
       when(() => repo.showAllTrip())

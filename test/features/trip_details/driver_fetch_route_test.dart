@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:alatarekak/core/errors/filuar.dart';
 import 'package:alatarekak/core/service/hive_services.dart';
 import 'package:alatarekak/features/auth/data/model/user_model.dart';
+import 'package:alatarekak/features/trip_details/data/model/trip_details_mode.dart';
 import 'package:alatarekak/features/trip_details/data/repo/trip_details_repo.dart';
 import 'package:alatarekak/features/trip_details/presantaion/manger/cubit/tripdetails_cubit.dart';
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
@@ -18,7 +19,7 @@ class MockTripDetailsRepo extends Mock implements TripDetailsRepoIM {}
 /// أي مسار تُجلب منه الرحلة.
 ///
 /// `GET /rides/{id}` لا يرسل الحجوزات **عمداً**: لا يصحّ أن يطّلع أي
-/// مستخدم على حجوزات رحلة ليست له. و`GET /rides/{id}/passangers` يرسلها
+/// مستخدم على حجوزات رحلة ليست له. و`GET /rides/{id}/passengers` يرسلها
 /// لسائقها.
 ///
 /// وكانت شاشة التفاصيل تجلب الأول دائماً، فيفتح السائق رحلته من
@@ -104,6 +105,79 @@ void main() {
       await cubit.fetchTrip(_tripId, asDriver: false);
 
       verifyNever(() => repo.featchTripWithBookings(any()));
+    });
+  });
+
+  group('من إشعار — الصفة مجهولة', () {
+    // الموجِّه يمرّر المعرّف مجرّداً: الإشعار لا يعرف من يقرؤه، ونوعه لا
+    // يكفي — `confirm_completion_needed` و`ride_completed` يصلان للطرفين
+    // بالاسم نفسه.
+
+    test('رحلة غيري: المسار العام وحده، بلا طلب ثانٍ', () async {
+      // fakeTrip الافتراضية سائقها 3، والمستخدم 7
+      final cubit = build();
+      addTearDown(cubit.close);
+
+      await cubit.fetchTrip(_tripId);
+
+      verify(() => repo.featchTrip(_tripId)).called(1);
+      verifyNever(() => repo.featchTripWithBookings(any()));
+    });
+
+    test('رحلتي أنا: يُعاد الجلب من مسار السائق لتصل الحجوزات', () async {
+      when(() => repo.featchTrip(any()))
+          .thenAnswer((_) async => right(fakeTrip(id: _tripId, driverId: 7)));
+      when(() => repo.featchTripWithBookings(any()))
+          .thenAnswer((_) async => right(fakeTrip(id: _tripId, driverId: 7)));
+
+      final cubit = build();
+      addTearDown(cubit.close);
+
+      await cubit.fetchTrip(_tripId);
+
+      verify(() => repo.featchTrip(_tripId)).called(1);
+      verify(() => repo.featchTripWithBookings(_tripId)).called(1);
+      expect((cubit.state as TripDetailsLoaded).mode, TripDetailsMode.myView);
+    });
+
+    test('فشل مسار السائق لا يُضيّع الرحلة — يُعرض ما وصل أولاً', () async {
+      when(() => repo.featchTrip(any()))
+          .thenAnswer((_) async => right(fakeTrip(id: _tripId, driverId: 7)));
+      when(() => repo.featchTripWithBookings(any())).thenAnswer(
+          (_) async => left(const Filuar(message: 'Ride not found')));
+
+      final cubit = build();
+      addTearDown(cubit.close);
+
+      await cubit.fetchTrip(_tripId);
+
+      expect(cubit.state, isA<TripDetailsLoaded>());
+      expect((cubit.state as TripDetailsLoaded).trip.id, _tripId);
+    });
+
+    test('«ليست لي» صراحةً تُصدَّق فلا يقع طلب ثانٍ ولو كانت لي', () async {
+      when(() => repo.featchTrip(any()))
+          .thenAnswer((_) async => right(fakeTrip(id: _tripId, driverId: 7)));
+
+      final cubit = build();
+      addTearDown(cubit.close);
+
+      await cubit.fetchTrip(_tripId, asDriver: false);
+
+      verifyNever(() => repo.featchTripWithBookings(any()));
+    });
+
+    test('فشل المسار العام لا يُتبع بمحاولة على مسار السائق', () async {
+      when(() => repo.featchTrip(any())).thenAnswer(
+          (_) async => left(const Filuar(message: 'Ride not found')));
+
+      final cubit = build();
+      addTearDown(cubit.close);
+
+      await cubit.fetchTrip(_tripId);
+
+      verifyNever(() => repo.featchTripWithBookings(any()));
+      expect(cubit.state, isA<TripDetailsError>());
     });
   });
 

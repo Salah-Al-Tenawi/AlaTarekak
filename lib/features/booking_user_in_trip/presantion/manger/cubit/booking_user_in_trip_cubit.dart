@@ -58,8 +58,10 @@ class BookingUserInTripCubit extends SafeCubit<BookingUserInTripState> {
       (error) {
         // فشل التحديث الصامت لا يمحو قائمة معروضة
         if (silent) return;
+        // مُطابِق الرحلة لا الملف الشخصي: كان `showProfile` هنا، فلا
+        // يُطابَق شيء ويسقط كل خطأ إلى «حدث خطأ غير متوقع» العامّة.
         emit(BookingUserInTripErorr(
-            message: HandelErorrMessage.showProfile(error.message)));
+            message: HandelErorrMessage.showOneRide(error.message)));
       },
       (trip) => emit(BookingUserInTripListLoaded(
         bookings: trip.booking,

@@ -8,14 +8,18 @@ class BookingUserTripRemoteData {
   final ApiConSumer api;
 
   BookingUserTripRemoteData({required this.api});
-  /// `GET /rides/{id}/passangers` — الرحلة وحجوزاتها.
+  /// `GET /rides/{id}/passengers` — الرحلة وحجوزاتها.
   ///
   /// الشاشة كانت تعرض ما مرّرته إليها شاشة التفاصيل من `GET /rides/{id}`
   /// وحده، فتظهر فارغة إن لم يُرسل ذلك المسار الحجوزات. وهذا المسار
   /// موضوع لهذا الغرض بعينه، ويردّ بيانات طازجة بعد كل قبول أو رفض.
+  ///
+  /// **الاسم `passengers` لا `passengers`.** بقي هنا بالإملاء الخاطئ بعد
+  /// تصحيحه في شاشة التفاصيل، فصار الطلب يفشل بينما تُعرض القائمة التي
+  /// مرّرتها التفاصيل — حجوزات ظاهرة ورسالة خطأ فوقها في آن.
   Future<TripModel> tripPassengers(int rideId) async {
     final response = await api.get(
-      "${ApiEndPoint.rides}/$rideId/passangers",
+      "${ApiEndPoint.rides}/$rideId/passengers",
       header: {ApiKey.authorization: "Bearer ${mytoken()}"},
     );
 

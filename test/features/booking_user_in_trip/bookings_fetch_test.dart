@@ -11,7 +11,7 @@ class MockRepo extends Mock implements BookingUsersInTripRepoImp {}
 /// شاشة «حجوزات الرحلة» تجلب بنفسها.
 ///
 /// كانت تعرض ما مرّرته إليها شاشة التفاصيل وحده — وذلك يأتي من
-/// `GET /rides/{id}` لا من `GET /rides/{id}/passangers`. فإن لم يُرسل
+/// `GET /rides/{id}` لا من `GET /rides/{id}/passengers`. فإن لم يُرسل
 /// الأول الحجوزات ظهرت الشاشة فارغة مهما بلغ عددها، ولم تتحدّث بعد
 /// قبول أو رفض.
 

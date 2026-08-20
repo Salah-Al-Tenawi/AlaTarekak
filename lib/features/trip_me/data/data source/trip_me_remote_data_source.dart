@@ -18,7 +18,7 @@ class TripMeRemoteDataSource {
     return trips;
   }
 
-  // showOneTrip حُذف: كان يستدعي `/rides/{id}/passangers` ولا يناديه
+  // showOneTrip حُذف: كان يستدعي `/rides/{id}/passengers` ولا يناديه
   // أحد، بينما تجلب شاشة التفاصيل من `/rides/{id}` فتأتي بلا حجوزات.
   // صار المسار يُستدعى من `TripDetailsRepoIM.featchTripWithBookings`.
 

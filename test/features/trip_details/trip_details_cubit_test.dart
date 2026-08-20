@@ -82,6 +82,12 @@ void main() {
 
   setUp(() {
     repo = MockTripDetailsRepo();
+
+    // فتحُ رحلةٍ بصفة مجهولة (من إشعار) يُتبعه جلبٌ من مسار السائق متى
+    // تبيّن أنها رحلة المستخدم نفسه — فيلزم الوسيطَ ردٌّ افتراضي، وإلا
+    // أعاد `null` وسقط الاختبار على نوعٍ لا علاقة له بما يفحصه.
+    when(() => repo.featchTripWithBookings(any()))
+        .thenAnswer((_) async => right(fakeTrip(driverId: _myUserId)));
   });
 
   TripDetailsCubit buildCubit() => TripDetailsCubit(tripDetailsRepoIM: repo);

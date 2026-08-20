@@ -1,4 +1,6 @@
+import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
+import 'package:alatarekak/core/errors/filuar.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/utils/functions/get_userid.dart';
 import 'package:alatarekak/core/utils/functions/uuid_v4.dart';
@@ -80,37 +82,64 @@ class TripDetailsCubit extends SafeCubit<TripDetailsState> {
     return conversationId;
   }
 
-  /// [asDriver] يُمرَّر من «رحلاتي» حيث كل رحلة للمستخدم بالتعريف.
+  /// [asDriver] صفة من فتح الشاشة، وهي **ثلاثية**:
+  ///
+  ///   `true`   من «رحلاتي» — كل رحلة فيها للمستخدم بالتعريف
+  ///   `false`  من شاشة تعرف أن الرحلة ليست له
+  ///   `null`   **مجهولة** — من إشعار لا يعرف من يقرؤه
   ///
   /// **مسار مختلف لا وسيط إضافي:** `GET /rides/{id}` لا يرسل الحجوزات
   /// عمداً — لا يصحّ أن يطّلع أحد على حجوزات رحلة ليست له — بينما
-  /// `GET /rides/{id}/passangers` يرسلها لسائقها. وكانت الشاشة تجلب
+  /// `GET /rides/{id}/passengers` يرسلها لسائقها. وكانت الشاشة تجلب
   /// الأول دائماً، فيفتح السائق رحلته فيجدها بلا حجوزات.
   ///
-  /// والقرار عند المستدعي لا بعد الجلب: معرفة أن الرحلة لي تأتي من
-  /// الشاشة التي فتحتها، ولا يمكن استنتاجها قبل أن يصل الرد.
-  Future<void> fetchTrip(int tripId, {bool asDriver = false}) async {
+  /// والحالة المجهولة هي مدخل الإشعار: كان يمرّر المعرّف مجرّداً فتُقرأ
+  /// الصفة `false`، فيصل السائق إلى «طلب حجز جديد» على رحلته ولا حجوزات
+  /// معها. ولا يصلح تخمينها من نوع الإشعار: `confirm_completion_needed`
+  /// و`ride_completed` يصلان **للطرفين** بالاسم نفسه، وجدولٌ بالأنواع
+  /// يتعفّن مع كل نوع يضيفه الخادم. فتُحسم من الردّ نفسه: إن تبيّن أن
+  /// الرحلة لي أُعيد الجلب من مسار السائق — طلب إضافي واحد، لسائق يفتح
+  /// رحلته من إشعار وحده.
+  Future<void> fetchTrip(int tripId, {bool? asDriver}) async {
     emit(TripDetailsLoading());
-    final response = asDriver
-        ? await tripDetailsRepoIM.featchTripWithBookings(tripId)
-        : await tripDetailsRepoIM.featchTrip(tripId);
 
-    // شاشة التفاصيل تُغلَق بمغادرتها — والخروج السريع من نتائج البحث
-    // شائع — بينما الطلب ما زال في الطريق، فيعود الردّ إلى كيوبت
-    // مُغلَق. بلا هذا الفحص يُرفع StateError من مسار غير متزامن لا
-    // يلتقطه أحد: «Cannot emit new states after calling close».
+    if (asDriver == true) {
+      final response = await tripDetailsRepoIM.featchTripWithBookings(tripId);
+      // شاشة التفاصيل تُغلَق بمغادرتها — والخروج السريع من نتائج البحث
+      // شائع — بينما الطلب ما زال في الطريق، فيعود الردّ إلى كيوبت
+      // مُغلَق. بلا هذا الفحص يُرفع StateError من مسار غير متزامن لا
+      // يلتقطه أحد: «Cannot emit new states after calling close».
+      if (isClosed) return;
+      _emitTrip(response);
+      return;
+    }
+
+    final response = await tripDetailsRepoIM.featchTrip(tripId);
     if (isClosed) return;
 
-    response.fold((error) {
-      emit(TripDetailsError(
-          message: HandelErorrMessage.showOneRide(error.message)));
-    }, (trip) {
-      if (trip.driver.id == myid()) {
-        emit(TripDetailsLoaded(trip: trip, mode: TripDetailsMode.myView));
-      } else {
-        emit(TripDetailsLoaded(trip: trip, mode: TripDetailsMode.otherView));
-      }
-    });
+    final mine = response.fold((_) => false, (trip) => trip.driver.id == myid());
+    if (asDriver == null && mine) {
+      final withBookings = await tripDetailsRepoIM.featchTripWithBookings(tripId);
+      if (isClosed) return;
+      // فشل مسار السائق لا يُضيّع الرحلة: يُعرض ما وصل أولاً بلا حجوزات
+      _emitTrip(withBookings.fold((_) => response, (_) => withBookings));
+      return;
+    }
+
+    _emitTrip(response);
+  }
+
+  void _emitTrip(Either<Filuar, TripModel> response) {
+    response.fold(
+      (error) => emit(TripDetailsError(
+          message: HandelErorrMessage.showOneRide(error.message))),
+      (trip) => emit(TripDetailsLoaded(
+        trip: trip,
+        mode: trip.driver.id == myid()
+            ? TripDetailsMode.myView
+            : TripDetailsMode.otherView,
+      )),
+    );
   }
 
   Future<void> fetchProfile(int userId) async {

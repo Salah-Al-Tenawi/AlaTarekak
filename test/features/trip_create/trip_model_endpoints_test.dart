@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 ///   POST /rides/create-with-route   → fromJson(...).first   إنشاء رحلة
 ///   GET  /rides                     → fromJson (قائمة)      رحلاتي
 ///   GET  /rides/{id}                → fromMap               التفاصيل/البحث
-///   GET  /rides/{id}/passangers     → fromMap               رحلة واحدة
+///   GET  /rides/{id}/passengers     → fromMap               رحلة واحدة
 ///   POST /search                    → fromJson (قائمة)      البحث
 ///
 /// الملاحظة 18: الرحلة تصل بشكلين — «محوَّل» بكائن `driver` و`departure`

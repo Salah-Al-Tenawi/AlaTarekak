@@ -98,7 +98,7 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
     }
 
     // **الشاشة تجلب بنفسها.** ما يصلها من شاشة التفاصيل يُعرض فوراً، ثم
-    // يستبدله `GET /rides/{id}/passangers` — المسار الموضوع لهذا الغرض.
+    // يستبدله `GET /rides/{id}/passengers` — المسار الموضوع لهذا الغرض.
     // كانت تعتمد كلياً على ما مرّرته الشاشة السابقة، فتظهر فارغة إن لم
     // يُرسل `GET /rides/{id}` الحجوزات، ولا تتحدّث بعد قبول أو رفض.
     final id = rideId;

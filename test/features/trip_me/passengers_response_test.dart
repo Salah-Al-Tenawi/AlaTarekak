@@ -1,7 +1,7 @@
 import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// `GET /rides/{id}/passangers` — الرد الحقيقي كما أرسله الباك إند.
+/// `GET /rides/{id}/passengers` — الرد الحقيقي كما أرسله الباك إند.
 ///
 /// كانت شاشة «حجوزات الرحلة» تظهر فارغة مهما بلغ عدد الحجوزات، لثلاثة
 /// اختلافات في هذا الرد وحده:

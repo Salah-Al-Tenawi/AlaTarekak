@@ -129,7 +129,7 @@ class TripModel {
   ///   • كائن شقيق لـ`data`:      `{data: {...}, bookings: {list: [...]}}`
   ///   • كائن داخل الرحلة:        `{..., bookings: {list: [...]}}`
   ///
-  /// الشكل الثاني هو ما يرسله `GET /rides/{id}/passangers`، وكان يضيع
+  /// الشكل الثاني هو ما يرسله `GET /rides/{id}/passengers`، وكان يضيع
   /// كاملاً: `_unwrap` ينزل إلى `data` فتبقى `bookings` خارجها فلا
   /// تُقرأ — وتظهر شاشة «حجوزات الرحلة» فارغة مهما بلغ عدد الحجوزات.
   static List<dynamic> _bookingsFrom(
