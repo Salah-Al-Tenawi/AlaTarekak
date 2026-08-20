@@ -7,6 +7,7 @@ import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/class/format_money.dart';
+import 'package:alatarekak/core/utils/class/ride_booking_rules.dart';
 import 'package:alatarekak/core/utils/class/syrian_phone.dart';
 import 'package:alatarekak/core/utils/widgets/syrian_phone_field.dart';
 import 'package:alatarekak/core/utils/functions/get_userid.dart';
@@ -576,22 +577,28 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
               MyColors.success, 'تم إرسال الحجز', Icons.check_circle_rounded);
         }
 
-        // الامتلاء يُقرأ من حالة الرحلة التي يضبطها الخادم، لا من عدّاد
-        // المقاعد: العدّاد قد يصل صفراً لأن المسار سمّى الحقل باسم لا
-        // نقرؤه، فيُمنع الراكب من حجز رحلة فيها مقاعد فعلاً. وإن كانت
-        // ممتلئة حقاً فالخادم يرفض برسالة معرّبة — وهو المرجع.
-        final soldOut = trip.status.toLowerCase() == 'full';
+        // **الخادم لا يمنع حجز رحلة انطلقت ولا رحلة ألغيت** — أخطاء
+        // `POST /rides/{id}/book` في المواصفة لا ذكر فيها للموعد ولا
+        // للحالة. جُرّب فعلاً: رحلة مضى موعدها قَبِلت الحجز.
+        final block = bookingBlockFor(
+          status: trip.status,
+          departure: trip.departure,
+        );
+
+        if (block != null) {
+          return _ActionButton(
+            icon: _blockIcon(block),
+            label: block.label,
+            color: MyColors.textHint,
+            onTap: () => _showBlockedDialog(context, block),
+          );
+        }
+
         return _ActionButton(
-          icon: soldOut
-              ? Icons.event_busy_rounded
-              : Icons.event_seat_rounded,
-          label: soldOut
-              ? 'الرحلة ممتلئة'
-              : 'احجز الآن — ${Money.withCurrency(trip.pricePerSeat)}',
-          color: soldOut ? MyColors.textHint : MyColors.primary,
-          onTap: () => soldOut
-              ? _showNoSeatsDialog(context)
-              : _showBookingDialog(context),
+          icon: Icons.event_seat_rounded,
+          label: 'احجز الآن — ${Money.withCurrency(trip.pricePerSeat)}',
+          color: MyColors.primary,
+          onTap: () => _showBookingDialog(context),
         );
       },
     );
@@ -599,13 +606,23 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
 
   // ━━━━━━━━━━━━━━━━━━━ الحوارات ━━━━━━━━━━━━━━━━━━━
 
-  void _showNoSeatsDialog(BuildContext context) {
+  IconData _blockIcon(BookingBlock block) => switch (block) {
+        BookingBlock.cancelled => Icons.cancel_rounded,
+        BookingBlock.finished => Icons.flag_rounded,
+        BookingBlock.departed => Icons.schedule_rounded,
+        BookingBlock.full => Icons.event_busy_rounded,
+      };
+
+  /// **الزرّ يبقى ويشرح بدل أن يُخفى.** من فتح رحلة بحثاً عن الحجز يبحث
+  /// عن هذا الزرّ، وغيابُه يجعله يظنّ التطبيق معطّلاً — والشرح يقول له
+  /// ما يفعله بعده.
+  void _showBlockedDialog(BuildContext context, BookingBlock block) {
     showAppDialog(
       context,
-      icon: Icons.event_busy_rounded,
+      icon: _blockIcon(block),
       accentColor: MyColors.error,
-      title: 'لا مقاعد متاحة',
-      message: 'حُجزت كل مقاعد هذه الرحلة. جرّب رحلة أخرى على المسار نفسه.',
+      title: block.title,
+      message: block.message,
     );
   }
 

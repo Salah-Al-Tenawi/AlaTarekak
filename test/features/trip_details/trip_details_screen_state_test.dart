@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:alatarekak/core/errors/filuar.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/service/hive_services.dart';
+import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
+import 'package:alatarekak/core/utils/widgets/seats_stepper.dart';
 import 'package:alatarekak/core/them/them_app.dart';
 import 'package:alatarekak/features/auth/data/model/user_model.dart';
 import 'package:alatarekak/features/trip_details/data/repo/trip_details_repo.dart';
@@ -77,7 +79,12 @@ void main() {
   tearDown(Get.reset);
 
   /// يفتح الشاشة عبر `Get.to` لأن `initState` يقرأ `Get.arguments`.
-  Future<TripDetailsCubit> openScreen(WidgetTester tester) async {
+  Future<TripDetailsCubit> openScreen(WidgetTester tester,
+      {TripModel? trip}) async {
+    if (trip != null) {
+      when(() => repo.featchTrip(_tripId)).thenAnswer((_) async => right(trip));
+    }
+
     final cubit = TripDetailsCubit(tripDetailsRepoIM: repo);
     addTearDown(cubit.close);
 
@@ -184,6 +191,64 @@ void main() {
 
       expect(loneRetry, findsOneWidget, reason: 'هنا الزرّ في محلّه');
       expect(tripContent, findsNothing);
+    });
+  });
+
+  group('حجز رحلة انطلقت — الخادم لا يمنعه', () {
+    // جُرّب فعلاً: رحلة مضى موعدها قَبِلت الحجز. وأخطاء
+    // `POST /rides/{id}/book` في المواصفة لا ذكر فيها للموعد ولا للحالة.
+
+    TripModel upcoming({String status = 'active'}) => fakeTrip(
+          id: _tripId,
+          driverId: _driverId,
+          status: status,
+          departure: DateTime.now().add(const Duration(hours: 5)),
+        );
+
+    TripModel departed({String status = 'active'}) => fakeTrip(
+          id: _tripId,
+          driverId: _driverId,
+          status: status,
+          departure: DateTime.now().subtract(const Duration(hours: 5)),
+        );
+
+    testWidgets('رحلة قادمة: زرّ الحجز يعمل', (tester) async {
+      await openScreen(tester, trip: upcoming());
+
+      expect(find.textContaining('احجز الآن'), findsOneWidget);
+      expect(find.text('انطلقت الرحلة'), findsNothing);
+    });
+
+    testWidgets('رحلة انطلقت: لا زرّ حجز بل سببُ المنع', (tester) async {
+      await openScreen(tester, trip: departed());
+
+      expect(find.textContaining('احجز الآن'), findsNothing,
+          reason: 'كان الزرّ يعمل فيُحجز مقعد في رحلة مضت');
+      expect(find.text('انطلقت الرحلة'), findsWidgets);
+    });
+
+    testWidgets('والضغط يشرح ولا يفتح حوار الحجز', (tester) async {
+      await openScreen(tester, trip: departed());
+
+      // «انطلقت الرحلة» ترد أيضاً في عدّاد الموعد أعلى الشاشة — فالهدف
+      // هو الزرّ تحديداً
+      final button = find.widgetWithText(ElevatedButton, 'انطلقت الرحلة');
+      // الزرّ أسفل شاشة طويلة — بلا تمرير إليه تقع الضغطة على فراغ
+      await tester.ensureVisible(button);
+      await tester.pumpAndSettle();
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('مضى موعد انطلاق هذه الرحلة'), findsOneWidget);
+      // حوار الحجز يعرض عدّاد المقاعد — غيابه يعني أنه لم يُفتح
+      expect(find.byType(SeatsStepper), findsNothing);
+    });
+
+    testWidgets('رحلة ملغاة موعدها غداً: تُمنع كذلك', (tester) async {
+      await openScreen(tester, trip: upcoming(status: 'cancelled'));
+
+      expect(find.textContaining('احجز الآن'), findsNothing);
+      expect(find.text('أُلغيت الرحلة'), findsWidgets);
     });
   });
 }

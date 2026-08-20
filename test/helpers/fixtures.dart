@@ -9,6 +9,10 @@ TripModel fakeTrip({
   String pickup = 'دمشق',
   String destination = 'حمص',
   int seatsAvailable = 3,
+
+  /// موعد الانطلاق. الافتراضي **ماضٍ** — انتبه في كل ما يخصّ الحجز، فرحلة
+  /// انطلقت لا تُحجز.
+  DateTime? departure,
 }) {
   return TripModel.fromMap({
     'id': id,
@@ -21,7 +25,7 @@ TripModel fakeTrip({
       'address': destination,
       'coordinates': {'lat': 34.73, 'lng': 36.71},
     },
-    'departure': '2026-07-15T08:00:00Z',
+    'departure': (departure ?? DateTime.utc(2026, 7, 15, 8)).toIso8601String(),
     'seats_available': seatsAvailable,
     'seats_booked': 1,
     'price_per_seat': '25000',
