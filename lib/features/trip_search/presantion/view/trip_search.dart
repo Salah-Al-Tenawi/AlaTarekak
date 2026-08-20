@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/service/notifications_badge_service.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/widgets/custom_date_picker.dart';
 import 'package:alatarekak/features/trip_search/presantion/manger/cubit/search_cubit.dart';
@@ -428,14 +429,7 @@ class _SearchCard extends StatelessWidget {
                       elevation: 0,
                     ),
                     child: isLoading
-                        ? SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              color: MyColors.textOnDark,
-                              strokeWidth: 2,
-                            ),
-                          )
+                        ? const AppLoader.onButton()
                         : Text('بحث عن رحلة',
                             style: AppTextStyles.buttonLarge),
                   ),

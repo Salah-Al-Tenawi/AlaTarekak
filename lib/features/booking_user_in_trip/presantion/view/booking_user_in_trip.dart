@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:lottie/lottie.dart';
 import 'package:alatarekak/core/utils/widgets/loading_widget_size_150.dart';
-import 'package:alatarekak/core/constant/imagesUrl.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
@@ -19,6 +17,7 @@ import 'package:alatarekak/core/service/no_show_report_store.dart';
 import 'package:alatarekak/core/utils/class/no_show_report.dart';
 import 'package:alatarekak/core/utils/class/ride_time_rules.dart';
 import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
+import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:alatarekak/core/utils/widgets/no_show_gate.dart';
 import 'package:alatarekak/core/utils/widgets/rate_user_sheet.dart';
 import 'package:alatarekak/features/booking_user_in_trip/presantion/manger/cubit/booking_user_in_trip_cubit.dart';
@@ -600,10 +599,8 @@ class _CardActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isBusy) {
-      return Center(
-        child: LottieBuilder.asset(ImagesUrl.loadinglottie,
-            width: 32.r, height: 32.r),
-      );
+      // اثنتان وثلاثون نقطة: دون حدّ قراءة الطريق، فيُرسم الدوّار
+      return const Center(child: AppLoader(size: 32));
     }
 
     switch (status.trim().toLowerCase()) {

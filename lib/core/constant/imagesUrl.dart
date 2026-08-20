@@ -10,8 +10,9 @@ class ImagesUrl {
   static const String defualtCar = "$imageRuotassets/defualtCar.jpeg";
 
 // lottie image
-  /// Brand loader: accent/navy/cyan comet, matches MyColors.
-  static const String loadinglottie = "$lottieAssets/loading_comet.json";
+  /// مؤشّر التحميل: طريق تقطعه سيّارة نحو وجهتها، بألوان الهوية.
+  /// مصمَّم للأحجام الكبيرة — الطريق والسيّارة يحتاجان مساحة ليُقرآ.
+  static const String loadinglottie = "$lottieAssets/loading_route.json";
   static const String searchlottie =
       "$lottieAssets/Animation - 1719048732828(1).json";
   static const String lottie1 = "$lottieAssets/one.json";
