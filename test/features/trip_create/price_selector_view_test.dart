@@ -13,7 +13,15 @@ import 'package:flutter_test/flutter_test.dart';
 /// إليه سبيلاً. والآن: مقترح ظاهر، وعدّاد، وحقل يُكتب فيه — بشرط سقف
 /// الكيلومتر.
 
-const double _km = 4.5; // مقترح 270، خطوة 10، سقف 450، أرضية 135
+/// المسافة ثابتة، والأرقام مشتقّة منها: تُغيَّر تسعيرة الكيلومتر في
+/// [RidePriceRules] فتتبعها هذه التأكيدات بلا تحرير.
+const double _km = 4.5;
+
+final int _suggested = RidePriceRules.suggestedFor(_km);
+final int _step = RidePriceRules.stepFor(_suggested);
+final int _floor = RidePriceRules.minFor(_km);
+final int _ceiling = RidePriceRules.maxFor(_km);
+final int _suggestedRate = RidePriceRules.ratePerKm(_km, _suggested).round();
 
 TripFrom _tripFrom() => TripFrom(distance: _km);
 
@@ -54,11 +62,12 @@ String _shownPrice(WidgetTester tester) =>
 
 void main() {
   group('السعر المقترح', () {
-    testWidgets('يظهر محسوباً على ستّين للكيلومتر', (tester) async {
+    testWidgets('يظهر محسوباً على سعر الكيلومتر المقترح', (tester) async {
       await _pump(tester);
 
-      expect(_shownPrice(tester), '270');
-      expect(find.textContaining('60 ل.س للكيلومتر'), findsOneWidget);
+      expect(_shownPrice(tester), '$_suggested');
+      expect(find.textContaining('$_suggestedRate ل.س للكيلومتر'),
+          findsOneWidget);
     });
 
     testWidgets('يُقال للسائق إنه المقترح', (tester) async {
@@ -68,31 +77,32 @@ void main() {
     });
 
     testWidgets('سعر السائق المحفوظ لا يُكتب فوقه', (tester) async {
-      final trip = _tripFrom()..price = 310;
+      final saved = _suggested - _step;
+      final trip = _tripFrom()..price = saved;
       await _pump(tester, from: trip);
 
-      expect(_shownPrice(tester), '310');
-      expect(find.textContaining('السعر المقترح 270'), findsOneWidget);
+      expect(_shownPrice(tester), '$saved');
+      expect(find.textContaining('السعر المقترح $_suggested'), findsOneWidget);
     });
   });
 
   group('العدّاد', () {
-    testWidgets('الزيادة بخطوة عشرة', (tester) async {
+    testWidgets('الزيادة بخطوة واحدة', (tester) async {
       await _pump(tester);
 
       await tester.tap(find.byIcon(Icons.add_rounded));
       await tester.pumpAndSettle();
 
-      expect(_shownPrice(tester), '280');
+      expect(_shownPrice(tester), '${_suggested + _step}');
     });
 
-    testWidgets('النقصان بخطوة عشرة', (tester) async {
+    testWidgets('النقصان بخطوة واحدة', (tester) async {
       await _pump(tester);
 
       await tester.tap(find.byIcon(Icons.remove_rounded));
       await tester.pumpAndSettle();
 
-      expect(_shownPrice(tester), '260');
+      expect(_shownPrice(tester), '${_suggested - _step}');
     });
 
     testWidgets('لا يتجاوز ±30٪ مهما ضُغط', (tester) async {
@@ -117,7 +127,7 @@ void main() {
       await tester.tap(find.text('استعمله'));
       await tester.pumpAndSettle();
 
-      expect(_shownPrice(tester), '270');
+      expect(_shownPrice(tester), '$_suggested');
       expect(find.text('استعمله'), findsNothing);
     });
   });
@@ -126,10 +136,11 @@ void main() {
     testWidgets('سعر ضمن الحدود يُقبل ويُحفظ', (tester) async {
       final trip = await _pump(tester);
 
-      await tester.enterText(_priceField, '333');
+      final within = _floor + _step;
+      await tester.enterText(_priceField, '$within');
       await tester.pumpAndSettle();
 
-      expect(trip.price, 333);
+      expect(trip.price, within);
       expect(find.textContaining('أعلى سعر'), findsNothing);
     });
 
@@ -137,10 +148,11 @@ void main() {
         (tester) async {
       final trip = await _pump(tester);
 
-      await tester.enterText(_priceField, '440'); // السقف 450
+      final justUnder = _ceiling - _step;
+      await tester.enterText(_priceField, '$justUnder');
       await tester.pumpAndSettle();
 
-      expect(trip.price, 440,
+      expect(trip.price, justUnder,
           reason: 'نقترح ولا نُجبر — ما دون السقف مقبول');
       expect(find.textContaining('أعلى سعر'), findsNothing);
     });
@@ -148,32 +160,35 @@ void main() {
     testWidgets('تجاوز سقف الكيلومتر يُرفض بسببه', (tester) async {
       await _pump(tester);
 
-      await tester.enterText(_priceField, '600');
+      await tester.enterText(_priceField, '${_ceiling + _step}');
       await tester.pumpAndSettle();
 
       expect(find.textContaining('أعلى سعر'), findsOneWidget);
-      expect(find.textContaining('450'), findsOneWidget);
-      expect(find.textContaining('100 ل.س للكيلومتر'), findsOneWidget);
+      expect(find.textContaining('$_ceiling'), findsOneWidget);
+      expect(
+          find.textContaining(
+              '${RidePriceRules.maxRatePerKm} ل.س للكيلومتر'),
+          findsOneWidget);
     });
 
     testWidgets('النزول تحت الأرضية يُرفض بسببه', (tester) async {
       await _pump(tester);
 
-      await tester.enterText(_priceField, '50');
+      await tester.enterText(_priceField, '${_floor - _step}');
       await tester.pumpAndSettle();
 
       expect(find.textContaining('أقلّ سعر'), findsOneWidget);
-      expect(find.textContaining('135'), findsOneWidget);
+      expect(find.textContaining('$_floor'), findsOneWidget);
     });
 
     testWidgets('الخطأ يزول بتصحيح الرقم', (tester) async {
       await _pump(tester);
 
-      await tester.enterText(_priceField, '600');
+      await tester.enterText(_priceField, '${_ceiling + _step}');
       await tester.pumpAndSettle();
       expect(find.textContaining('أعلى سعر'), findsOneWidget);
 
-      await tester.enterText(_priceField, '300');
+      await tester.enterText(_priceField, '$_suggested');
       await tester.pumpAndSettle();
 
       expect(find.textContaining('أعلى سعر'), findsNothing);
@@ -192,12 +207,16 @@ void main() {
   group('سعر الكيلومتر معروض دائماً', () {
     testWidgets('يتغيّر مع تغيّر السعر', (tester) async {
       await _pump(tester);
-      expect(find.textContaining('60 ل.س للكيلومتر'), findsOneWidget);
+      expect(find.textContaining('$_suggestedRate ل.س للكيلومتر'),
+          findsOneWidget);
 
-      await tester.enterText(_priceField, '450');
+      await tester.enterText(_priceField, '$_ceiling');
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('100 ل.س للكيلومتر'), findsOneWidget);
+      expect(
+          find.textContaining(
+              '${RidePriceRules.maxRatePerKm} ل.س للكيلومتر'),
+          findsOneWidget);
     });
   });
 }

@@ -1,27 +1,33 @@
 import 'package:alatarekak/features/trip_create/domin/ride_price_rules.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// تسعير الرحلة بالليرة السورية الجديدة.
+/// تسعير الرحلة بالليرة السورية.
 ///
 /// كان المقترح 500 ل.س/كم حتى 65 كم و700 فوقها — والشريحة الأعلى تُطبَّق
 /// على المسافة كاملة، فتقفز رحلة 66 كم فوق رحلة 65 كم بثلاثة عشر ألفاً
 /// دفعةً واحدة. وكانت الزيادة بلا سقف إطلاقاً.
 ///
-/// الآن: 60 ل.س/كم مقترحاً، وسقف صلب 100، وأرضية 30.
-
+/// **الأسعار تتغيّر — والسلوك لا.** فالتأكيدات هنا مشتقّة من ثوابت
+/// [RidePriceRules] لا مكتوبة بأرقامها: خطّيّة العلاقة، ووقوع المقترح بين
+/// الحدّين، وتماثل الخطوتين، والانحصار في المدى. تُغيَّر النسب في موضعها
+/// فتبقى هذه صحيحة. وما يُثبَّت بالأرقام هو الحساب نفسه لا السياسة.
 void main() {
+  const suggestedRate = RidePriceRules.suggestedRatePerKm;
+  const minRate = RidePriceRules.minRatePerKm;
+  const maxRate = RidePriceRules.maxRatePerKm;
+
   group('السعر المقترح', () {
-    test('ستّون ليرة لكل كيلومتر', () {
-      expect(RidePriceRules.suggestedFor(10), 600);
-      expect(RidePriceRules.suggestedFor(20), 1200);
+    test('يُبنى على سعر الكيلومتر المقترح', () {
+      for (final km in [10.0, 20.0, 45.0]) {
+        final rate = RidePriceRules.suggestedFor(km) / km;
+        expect(rate, closeTo(suggestedRate, suggestedRate * 0.12),
+            reason: 'عند $km كم');
+      }
     });
 
-    test('رحلة 4.5 كم → 270', () {
-      expect(RidePriceRules.suggestedFor(4.5), 270);
-    });
-
-    test('رحلة 13.33 كم → 800', () {
-      expect(RidePriceRules.suggestedFor(13.333), 800);
+    test('عشرة كيلومترات: خمسة آلاف وخمسمئة', () {
+      // تثبيتٌ صريح للحساب — لو تغيّرت السياسة يُحدَّث هذا وحده
+      expect(RidePriceRules.suggestedFor(10), 5500);
     });
 
     test('يُقرَّب إلى خطوته فيبقى العدّاد على أرقام نظيفة', () {
@@ -49,13 +55,19 @@ void main() {
   });
 
   group('الخطوة تكبر مع السعر', () {
-    test('عشرة عند 270، وخمسة وعشرون عند 800 — وهو المتّفق عليه', () {
-      expect(RidePriceRules.stepFor(270), 10);
-      expect(RidePriceRules.stepFor(800), 25);
+    test('نحو ثلاثة في المئة من السعر', () {
+      for (final price in [1000, 5500, 22000, 88000]) {
+        final step = RidePriceRules.stepFor(price);
+
+        expect(step, greaterThanOrEqualTo(price * 0.03),
+            reason: 'عند $price: الخطوة لا تصغر عن النسبة');
+        expect(step, lessThan(price * 0.25),
+            reason: 'عند $price: ولا تكبر حتى تصير قفزة');
+      }
     });
 
     test('أرقام مريحة لا كسور', () {
-      for (final price in [60, 120, 270, 500, 800, 1500, 4000, 12000]) {
+      for (final price in [600, 1200, 2700, 5500, 8000, 15000, 40000]) {
         expect(RidePriceRules.stepFor(price),
             isIn(const [1, 2, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000]),
             reason: 'عند سعر $price');
@@ -64,7 +76,7 @@ void main() {
 
     test('لا تصغر كلما كبر السعر', () {
       var previous = 0;
-      for (final price in [60, 120, 270, 500, 800, 1500, 4000, 12000, 40000]) {
+      for (final price in [600, 1200, 2700, 5500, 8000, 15000, 40000, 120000]) {
         final step = RidePriceRules.stepFor(price);
         expect(step, greaterThanOrEqualTo(previous), reason: 'عند $price');
         previous = step;
@@ -73,14 +85,14 @@ void main() {
   });
 
   group('الحدود المطلقة', () {
-    test('السقف مئة ليرة للكيلومتر', () {
-      expect(RidePriceRules.maxFor(10), 1000);
-      expect(RidePriceRules.maxFor(4.5), 450);
+    test('السقف والأرضية يُضربان في المسافة', () {
+      expect(RidePriceRules.maxFor(10), maxRate * 10);
+      expect(RidePriceRules.minFor(10), minRate * 10);
     });
 
-    test('الأرضية ثلاثون — نصف المقترح', () {
-      expect(RidePriceRules.minFor(10), 300);
-      expect(RidePriceRules.minFor(4.5), 135);
+    test('الأرضية دون المقترح والسقف فوقه — وإلا فالمدى مقلوب', () {
+      expect(minRate, lessThan(suggestedRate));
+      expect(maxRate, greaterThan(suggestedRate));
     });
 
     test('المقترح يقع بينهما دائماً', () {
@@ -96,11 +108,13 @@ void main() {
   });
 
   group('مدى العدّاد — ±30٪ حول المقترح', () {
-    test('رحلة 4.5 كم: من 189 إلى 351', () {
-      final range = RidePriceRules.stepperRange(4.5);
+    test('يحيط بالمقترح من طرفيه', () {
+      const km = 10.0;
+      final range = RidePriceRules.stepperRange(km);
+      final suggested = RidePriceRules.suggestedFor(km);
 
-      expect(range.min, 189);
-      expect(range.max, 351);
+      expect(range.min, lessThan(suggested));
+      expect(range.max, greaterThan(suggested));
     });
 
     test('لا يتجاوز الحدّين المطلقين', () {
@@ -113,38 +127,52 @@ void main() {
     });
 
     test('سعر مكتوب خارج المدى يوسّعه فلا يتجمّد العدّاد', () {
-      // كتب السائق 420 لرحلة 4.5 كم (مقبول: السقف 450)
-      final range = RidePriceRules.stepperRange(4.5, current: 420);
+      const km = 10.0;
+      // سعر مرتفع لكنه دون السقف
+      final high = RidePriceRules.maxFor(km) - 100;
+      final range = RidePriceRules.stepperRange(km, current: high);
 
-      expect(range.max, greaterThanOrEqualTo(420),
+      expect(range.max, greaterThanOrEqualTo(high),
           reason: 'زرّا العدّاد معطَّلان بلا سبب مفهوم لولا هذا');
-      expect(range.max, lessThanOrEqualTo(RidePriceRules.maxFor(4.5)));
+      expect(range.max, lessThanOrEqualTo(RidePriceRules.maxFor(km)));
     });
   });
 
   group('الزيادة والنقصان', () {
-    const km = 4.5; // مقترح 270، خطوة 10، مدى 189–351
+    const km = 10.0;
 
     test('الزيادة بخطوة واحدة', () {
-      expect(RidePriceRules.nextPrice(km, 270, increase: true), 280);
+      final suggested = RidePriceRules.suggestedFor(km);
+      final step = RidePriceRules.stepFor(suggested);
+
+      expect(RidePriceRules.nextPrice(km, suggested, increase: true),
+          suggested + step);
     });
 
     test('النقصان بخطوة واحدة', () {
-      expect(RidePriceRules.nextPrice(km, 270, increase: false), 260);
+      final suggested = RidePriceRules.suggestedFor(km);
+      final step = RidePriceRules.stepFor(suggested);
+
+      expect(RidePriceRules.nextPrice(km, suggested, increase: false),
+          suggested - step);
     });
 
     test('الزيادة تقف عند أعلى المدى', () {
-      expect(RidePriceRules.nextPrice(km, 350, increase: true), 351);
-      expect(RidePriceRules.nextPrice(km, 351, increase: true), 351);
+      final range = RidePriceRules.stepperRange(km);
+
+      expect(RidePriceRules.nextPrice(km, range.max, increase: true),
+          range.max);
     });
 
     test('النقصان يقف عند أدنى المدى', () {
-      expect(RidePriceRules.nextPrice(km, 190, increase: false), 189);
-      expect(RidePriceRules.nextPrice(km, 189, increase: false), 189);
+      final range = RidePriceRules.stepperRange(km);
+
+      expect(RidePriceRules.nextPrice(km, range.min, increase: false),
+          range.min);
     });
 
     test('الزيادة ثم النقصان يعيدان إلى ما كان — خطوتان متماثلتان', () {
-      const start = 270;
+      final start = RidePriceRules.suggestedFor(km);
       final up = RidePriceRules.nextPrice(km, start, increase: true);
       final back = RidePriceRules.nextPrice(km, up, increase: false);
 
@@ -163,29 +191,34 @@ void main() {
   });
 
   group('التحقّق من السعر المكتوب يدوياً', () {
-    const km = 10.0; // مقترح 600، أرضية 300، سقف 1000
+    const km = 10.0;
 
-    test('ضمن المدى يمرّ', () {
-      expect(RidePriceRules.validate(km, 600), isNull);
-      expect(RidePriceRules.validate(km, 300), isNull);
-      expect(RidePriceRules.validate(km, 1000), isNull);
-      expect(RidePriceRules.validate(km, 950), isNull,
-          reason: 'أعلى من المقترح بكثير — لكنه دون السقف، ونحن نقترح لا نُجبر');
+    test('ضمن المدى يمرّ — طرفاه مقبولان', () {
+      expect(RidePriceRules.validate(km, RidePriceRules.suggestedFor(km)),
+          isNull);
+      expect(RidePriceRules.validate(km, RidePriceRules.minFor(km)), isNull);
+      expect(RidePriceRules.validate(km, RidePriceRules.maxFor(km)), isNull);
     });
 
-    test('فوق السقف يُرفض بسببه', () {
-      final error = RidePriceRules.validate(km, 1200);
+    test('فوق المقترح بكثير يمرّ ما دام دون السقف — نقترح ولا نُجبر', () {
+      final justUnderCeiling = RidePriceRules.maxFor(km) - 1;
 
-      expect(error, isNotNull);
-      expect(error, contains('1000'));
-      expect(error, contains('100'));
+      expect(RidePriceRules.validate(km, justUnderCeiling), isNull);
     });
 
-    test('تحت الأرضية يُرفض بسببه', () {
-      final error = RidePriceRules.validate(km, 200);
+    test('فوق السقف يُرفض، والرسالة تقول السقف وسعر الكيلومتر', () {
+      final error = RidePriceRules.validate(km, RidePriceRules.maxFor(km) + 1);
 
       expect(error, isNotNull);
-      expect(error, contains('300'));
+      expect(error, contains('${RidePriceRules.maxFor(km)}'));
+      expect(error, contains('$maxRate'));
+    });
+
+    test('تحت الأرضية يُرفض، والرسالة تقول الأرضية', () {
+      final error = RidePriceRules.validate(km, RidePriceRules.minFor(km) - 1);
+
+      expect(error, isNotNull);
+      expect(error, contains('${RidePriceRules.minFor(km)}'));
     });
 
     test('الصفر والسالب يُرفضان', () {
@@ -201,16 +234,17 @@ void main() {
 
   group('سعر الكيلومتر المعروض', () {
     test('يُحسب من السعر والمسافة', () {
-      expect(RidePriceRules.ratePerKm(10, 600), 60);
-      expect(RidePriceRules.ratePerKm(4.5, 270), 60);
+      expect(RidePriceRules.ratePerKm(10, 5500), 550);
+      expect(RidePriceRules.ratePerKm(4, 2000), 500);
     });
 
-    test('المقترح يعطي ستّين تقريباً مهما كانت المسافة', () {
+    test('المقترح يعطي سعر الكيلومتر المقترح مهما كانت المسافة', () {
       for (final km in [3.0, 7.7, 25.0, 88.0, 210.0]) {
         final rate =
             RidePriceRules.ratePerKm(km, RidePriceRules.suggestedFor(km));
 
-        expect(rate, closeTo(60, 6), reason: 'عند $km كم');
+        expect(rate, closeTo(suggestedRate, suggestedRate * 0.12),
+            reason: 'عند $km كم');
       }
     });
 

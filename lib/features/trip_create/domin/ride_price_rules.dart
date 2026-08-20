@@ -11,13 +11,13 @@ class RidePriceRules {
   RidePriceRules._();
 
   /// سعر الكيلومتر المقترح.
-  static const int suggestedRatePerKm = 60;
+  static const int suggestedRatePerKm = 550;
 
   /// أعلى سعر كيلومتر يُقبل — حتى بالكتابة اليدوية.
-  static const int maxRatePerKm = 100;
+  static const int maxRatePerKm = 800;
 
-  /// أدنى سعر كيلومتر يُقبل: نصف المقترح.
-  static const int minRatePerKm = 30;
+  /// أدنى سعر كيلومتر يُقبل.
+  static const int minRatePerKm = 350;
 
   /// مدى العدّاد حول المقترح — ما بعده يُكتب باليد.
   static const double quickRangeRatio = 0.30;
@@ -32,8 +32,9 @@ class RidePriceRules {
 
   /// خطوة الزيادة والنقصان، تكبر مع السعر.
   ///
-  /// نحو 3% من المقترح مقرَّبةً إلى أقرب رقم مريح **فوقها**: تعطي 10
-  /// لرحلة بـ270، و25 لرحلة بـ800 — وهما ما اتُّفق عليه.
+  /// نحو 3% من المقترح مقرَّبةً إلى أقرب رقم مريح **فوقها**: تعطي 100
+  /// لرحلة قصيرة بخمسة كيلومترات، و500 لرحلة بعشرين، و5000 لرحلة بين
+  /// المدن. فتبقى الخطوة محسوسة مهما طالت الرحلة، وتبقى الأرقام نظيفة.
   static int stepFor(int suggested) {
     if (suggested <= 0) return _niceSteps.first;
 
