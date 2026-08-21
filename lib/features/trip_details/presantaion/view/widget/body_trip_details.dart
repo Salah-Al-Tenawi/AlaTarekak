@@ -12,6 +12,7 @@ import 'package:alatarekak/core/utils/class/ride_booking_rules.dart';
 import 'package:alatarekak/core/utils/class/ride_time_rules.dart';
 import 'package:alatarekak/core/utils/widgets/consequence_card.dart';
 import 'package:alatarekak/core/utils/class/cancel_policy.dart';
+import 'package:alatarekak/core/utils/functions/my_cancel_record.dart';
 import 'package:alatarekak/core/utils/class/syrian_phone.dart';
 import 'package:alatarekak/core/utils/widgets/syrian_phone_field.dart';
 import 'package:alatarekak/core/utils/functions/get_userid.dart';
@@ -510,6 +511,8 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
             departure: trip.departure,
           ),
           passengers: trip.activeBookingsCount,
+          cashRide: trip.paymentMethod.trim().toLowerCase() == 'cash',
+          repeatCanceller: amIRepeatCanceller(asDriver: true),
         ),
       ),
       confirmLabel: 'إلغاء الرحلة',

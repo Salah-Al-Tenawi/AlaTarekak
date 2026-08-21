@@ -178,6 +178,38 @@ void main() {
       expect(texts(elapsed: 10, cash: true).first, contains('نقديّ'));
     });
 
+    // **الحجز المعلَّق لا يكلّف شيئاً** — لم يُقبل بعد، فلا مقاعد حُجزت
+    // ولا مال تحرّك. وكانت البطاقة تحسب له الشرائح كغيره.
+    test('حجز معلَّق: لا خصم ولا استرداد مهما تأخّر', () {
+      final lines = CancelPolicy.passengerCancel(
+              elapsed: 95,
+              amount: 10000,
+              cashRide: true,
+              wasConfirmed: false)
+          .map((c) => c.text)
+          .toList();
+
+      expect(lines, hasLength(1));
+      expect(lines.single, contains('بانتظار موافقة السائق'));
+      expect(lines.single, isNot(contains('تُخصم')));
+      expect(lines.single, isNot(contains('10,000')));
+    });
+
+    test('والتكرار لا يغيّر ذلك — لا شيء ليُشدَّد', () {
+      final lines = CancelPolicy.passengerCancel(
+              elapsed: 95,
+              amount: 10000,
+              cashRide: true,
+              wasConfirmed: false,
+              repeatCanceller: true)
+          .map((c) => c.text)
+          .join();
+
+      expect(lines, contains('لا يُرتّب خصماً'),
+          reason: 'النصّ نفسه بلا تشديد — لا رقم عقوبة فيه');
+      expect(lines, isNot(contains('تُخصم')));
+    });
+
     test('بلا نسبة: جملة عامّة بلا رقم مخترع', () {
       final lines = texts(elapsed: null);
 
@@ -187,9 +219,17 @@ void main() {
   });
 
   group('ما يُقال للسائق', () {
-    List<String> texts({double? elapsed, int passengers = 3}) =>
+    List<String> texts({
+      double? elapsed,
+      int passengers = 3,
+      bool cash = false,
+      bool repeat = false,
+    }) =>
         CancelPolicy.driverCancelRide(
-                elapsed: elapsed, passengers: passengers)
+                elapsed: elapsed,
+                passengers: passengers,
+                cashRide: cash,
+                repeatCanceller: repeat)
             .map((c) => c.text)
             .toList();
 
@@ -216,13 +256,104 @@ void main() {
       expect(texts(elapsed: 90)[1], contains('12 نقطة'));
     });
 
-    // **لا رسوم على السائق**: المال يدفعه الراكب، والتطبيق يأخذ نسبته
-    // من الحجز. فوعدُ «تُعاد إليك رسومك» كان يَعِد بمالٍ لم يدفعه.
-    test('ولا تُذكر رسوم إنشاء لا وجود لها', () {
+    // **الرسوم في النقدي وحده** (5%): في الدفع الإلكتروني المال كلّه من
+    // الراكب، والمنصّة تأخذ نسبتها من الحجز لا من السائق.
+    test('الإلكتروني: لا ذكر لرسوم لا يدفعها', () {
       for (final elapsed in [10.0, 40.0, 90.0]) {
         expect(texts(elapsed: elapsed).join(), isNot(contains('رسوم')),
             reason: 'عند $elapsed%');
       }
+    });
+
+    test('النقدي المبكّر: رسومه تُعاد كاملة', () {
+      expect(texts(elapsed: 10, cash: true).last, contains('تُعاد إليك رسوم'));
+    });
+
+    test('والنقدي المتأخّر وفيه ركّاب: تُحتجز', () {
+      expect(texts(elapsed: 80, cash: true).last, contains('لن تُعاد'));
+    });
+
+    test('ونقديٌّ متأخّر بلا ركّاب: تُعاد — لا أحد تضرّر', () {
+      expect(texts(elapsed: 80, cash: true, passengers: 0).last,
+          contains('تُعاد إليك رسوم'));
+    });
+  });
+
+  group('الإلغاء المتكرّر — تجاوزٌ لا تشديد', () {
+    test('شرطان معاً: العدد والنسبة', () {
+      expect(
+          CancelPolicy.isRepeatCanceller(
+              cancellations: 2, cancelRate: 90, asDriver: false),
+          isFalse,
+          reason: 'إلغاءان لا يكفيان مهما ارتفعت النسبة');
+      expect(
+          CancelPolicy.isRepeatCanceller(
+              cancellations: 9, cancelRate: 20, asDriver: false),
+          isFalse,
+          reason: 'ونسبةٌ منخفضة لا يكفيها العدد');
+    });
+
+    test('عتبة النصف تختلف بين الطرفين', () {
+      expect(
+          CancelPolicy.isRepeatCanceller(
+              cancellations: 3, cancelRate: 50, asDriver: true),
+          isTrue,
+          reason: 'السائق: تساوي النصف تكفي');
+      expect(
+          CancelPolicy.isRepeatCanceller(
+              cancellations: 3, cancelRate: 50, asDriver: false),
+          isFalse,
+          reason: 'والراكب: يجب أن تتجاوزه');
+      expect(
+          CancelPolicy.isRepeatCanceller(
+              cancellations: 3, cancelRate: 50.1, asDriver: false),
+          isTrue);
+    });
+
+    test('الراكب النقدي: عشر نقاط حتى في الإلغاء المبكّر المجّاني', () {
+      expect(
+          CancelPolicy.passengerCancelPoints(
+              elapsed: 5, cashRide: true, repeatCanceller: true),
+          10,
+          reason: 'التجاوز يُسقط تدرّج الشرائح كلّه');
+    });
+
+    test('والراكب الإلكتروني لا يتأثّر — لا نقاط أصلاً', () {
+      expect(
+          CancelPolicy.passengerCancelPoints(
+              elapsed: 90, cashRide: false, repeatCanceller: true),
+          0);
+    });
+
+    test('السائق: خمس عشرة في كل المراحل', () {
+      for (final elapsed in [5.0, 40.0, 90.0]) {
+        expect(
+            CancelPolicy.driverCancelRidePoints(elapsed,
+                repeatCanceller: true),
+            15,
+            reason: 'عند $elapsed%');
+      }
+    });
+
+    test('والنصّ يقول للمستخدم لماذا سقط التدرّج', () {
+      final driver = CancelPolicy.driverCancelRide(
+              elapsed: 5, passengers: 1, cashRide: false, repeatCanceller: true)
+          .map((c) => c.text)
+          .join();
+
+      expect(driver, contains('15 نقطة'));
+      expect(driver, contains('إلغاءاتك المتكرّرة'));
+
+      final passenger = CancelPolicy.passengerCancel(
+              elapsed: 5,
+              amount: 10000,
+              cashRide: true,
+              repeatCanceller: true)
+          .map((c) => c.text)
+          .join();
+
+      expect(passenger, contains('10 نقاط'));
+      expect(passenger, contains('إلغاءاتك المتكرّرة'));
     });
   });
 

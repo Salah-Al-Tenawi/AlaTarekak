@@ -36,6 +36,8 @@ class ProfileModel extends ProfileEntity {
           tier: data.tier,
           canCreateRides: data.canCreateRides,
           canBookRides: data.canBookRides,
+          totalCancellations: data.totalCancellations,
+          cancelRate: data.cancelRate,
         );
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
@@ -86,6 +88,11 @@ class ProfileData {
   final bool canCreateRides;
   final bool canBookRides;
 
+  /// عدد الإلغاءات ونسبتها — تصلان في كتلة `score` ولم تكونا تُقرآن،
+  /// ويُبنى عليهما تجاوزُ «الإلغاء المتكرّر» في بطاقات الكلفة.
+  final int totalCancellations;
+  final double cancelRate;
+
   ProfileData({
     required this.averageRating,
     required this.totalRating,
@@ -112,7 +119,16 @@ class ProfileData {
     this.tier = 'Restricted',
     this.canCreateRides = false,
     this.canBookRides = false,
+    this.totalCancellations = 0,
+    this.cancelRate = 0,
   });
+
+  /// رقمٌ عشريّ متسامح — الخادم يرسل المتوسط رقماً حيناً ونصّاً حيناً.
+  static double _asDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
+  }
 
   factory ProfileData.fromJson(Map<String, dynamic> json) {
     final rating = json[ApiKey.rating] ?? {};
@@ -128,10 +144,15 @@ class ProfileData {
     return ProfileData(
       userId: json[ApiKey.userId] ?? 0,
       fullName: json[ApiKey.fullName] ?? '',
-      totalRating: rating[ApiKey.totalRatings] ?? 0,
-      averageRating: (rating[ApiKey.averageRating] is num)
-          ? (rating[ApiKey.averageRating] as num).toDouble()
-          : 0.0,
+      totalRating:
+          (rating[ApiKey.totalRatings] is num) ? rating[ApiKey.totalRatings].toInt() : 0,
+      // **المتوسط يصل باسم `average`** في كتلة `rating` — لا
+      // `average_rating`. وقراءةُ الاسم الثاني وحده كانت تُرجع صفراً
+      // دائماً: يرى المستخدم «بناءً على 12 تقييماً» ومعها متوسطٌ صفريّ،
+      // والرقمان من الكتلة نفسها. والاسم القديم يبقى مقروءاً لأن الكاش
+      // المحفوظ على الأجهزة كُتب به.
+      averageRating: _asDouble(
+          rating['average'] ?? rating[ApiKey.averageRating]),
       verificationStatus: json[ApiKey.verificationStatus] ?? 'none',
       address: json[ApiKey.address] ?? '',
       gender: json[ApiKey.gender] ?? 'M',
@@ -167,6 +188,10 @@ class ProfileData {
       tier: scoreData['tier'] ?? 'Restricted',
       canCreateRides: scoreData['can_create_rides'] ?? false,
       canBookRides: scoreData['can_book_rides'] ?? false,
+      totalCancellations: (scoreData['total_cancellations'] is num)
+          ? scoreData['total_cancellations'].toInt()
+          : 0,
+      cancelRate: _asDouble(scoreData['cancel_rate']),
     );
   }
 
@@ -181,9 +206,10 @@ class ProfileData {
       ApiKey.description: description,
       if (car != null) ...car!.toJson(),
       ApiKey.numberOfRides: numberOfRides,
+      // بأسماء الخادم نفسها، فما يُكتب في الكاش يُقرأ كما يُقرأ الردّ
       ApiKey.rating: {
         ApiKey.totalRatings: totalRating,
-        ApiKey.averageRating: averageRating,
+        'average': averageRating,
       },
       ApiKey.documents: documents?.toJson(),
       ApiKey.comments: comments?.map((c) => c.toJson()).toList(),
@@ -206,6 +232,8 @@ class ProfileData {
         'tier': tier,
         'can_create_rides': canCreateRides,
         'can_book_rides': canBookRides,
+        'total_cancellations': totalCancellations,
+        'cancel_rate': cancelRate,
       },
     };
   }

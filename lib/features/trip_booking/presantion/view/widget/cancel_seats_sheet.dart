@@ -6,6 +6,7 @@ import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/class/cancel_policy.dart';
+import 'package:alatarekak/core/utils/functions/my_cancel_record.dart';
 import 'package:alatarekak/core/utils/class/format_money.dart';
 import 'package:alatarekak/core/utils/widgets/consequence_card.dart';
 import 'package:alatarekak/core/utils/widgets/seats_stepper.dart';
@@ -33,12 +34,16 @@ class CancelSeatsSheet extends StatefulWidget {
   /// الرحلة نقدية: لا استرداد أصلاً، والنقاط تُخصم.
   final bool cashRide;
 
+  /// الحجز مقبول من السائق — المعلَّق لا يُرتّب خصماً ولا استرداداً.
+  final bool wasConfirmed;
+
   const CancelSeatsSheet({
     super.key,
     required this.bookedSeats,
     required this.pricePerSeat,
     this.elapsedPercent,
     this.cashRide = false,
+    this.wasConfirmed = true,
   });
 
   /// يفتحها ويُعيد عدد المقاعد المطلوب إلغاؤها — `null` إن تراجع.
@@ -48,6 +53,7 @@ class CancelSeatsSheet extends StatefulWidget {
     required double pricePerSeat,
     double? elapsedPercent,
     bool cashRide = false,
+    bool wasConfirmed = true,
   }) {
     return showModalBottomSheet<int>(
       context: context,
@@ -59,6 +65,7 @@ class CancelSeatsSheet extends StatefulWidget {
         pricePerSeat: pricePerSeat,
         elapsedPercent: elapsedPercent,
         cashRide: cashRide,
+        wasConfirmed: wasConfirmed,
       ),
     );
   }
@@ -241,6 +248,8 @@ class _CancelSeatsSheetState extends State<CancelSeatsSheet> {
               elapsed: widget.elapsedPercent,
               amount: value.round(),
               cashRide: widget.cashRide,
+              repeatCanceller: amIRepeatCanceller(asDriver: false),
+              wasConfirmed: widget.wasConfirmed,
             ),
           ),
           SizedBox(height: 8.h),

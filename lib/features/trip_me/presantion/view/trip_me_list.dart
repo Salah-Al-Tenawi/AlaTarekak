@@ -12,6 +12,7 @@ import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/class/cancel_policy.dart';
+import 'package:alatarekak/core/utils/functions/my_cancel_record.dart';
 import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 import 'package:alatarekak/core/utils/widgets/consequence_card.dart';
 import 'package:alatarekak/core/utils/widgets/app_error_view.dart';
@@ -194,7 +195,9 @@ class _TripMeListState extends State<TripMeList> {
             createdAt: trip.createdAt,
             departure: trip.departure,
           ),
-          passengers: trip.seatsBooked,
+          passengers: trip.activeBookingsCount,
+          cashRide: trip.paymentMethod.trim().toLowerCase() == 'cash',
+          repeatCanceller: amIRepeatCanceller(asDriver: true),
         ),
       ),
       confirmLabel: 'إلغاء الرحلة',

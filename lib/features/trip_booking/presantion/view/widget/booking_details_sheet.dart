@@ -748,6 +748,7 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
   /// مقعداً يبقى، ومتى يصير الإلغاء كاملاً — فيُغني عن السؤال الثاني.
   Future<void> _askCancelSeats() async {
     final cashRide = b.paymentMethod.trim().toLowerCase() == 'cash';
+    final wasConfirmed = b.status.trim().toLowerCase() != 'pending';
     final seatsToCancel = await CancelSeatsSheet.show(
       context,
       bookedSeats: b.seats,
@@ -758,17 +759,17 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
         departure: b.departureTime,
       ),
       cashRide: cashRide,
+      wasConfirmed: wasConfirmed,
     );
     if (seatsToCancel == null || !mounted) return;
 
     // **مسار واحد للحالتين**: `cancel-seats` يقبل إلغاء كل المقاعد
     // ويردّ تفاصيل الاسترداد، بينما `/cancel` يُنهي الحجز بلا رقم —
     // فكان من يلغي حجزه كاملاً لا يعرف كم أُعيد إليه.
-    final status = b.status.trim().toLowerCase();
     _dispatch((cubit) => cubit.cancelBooking(
           b.bookingId,
           seatsToCancel,
-          wasConfirmed: status != 'pending',
+          wasConfirmed: wasConfirmed,
           cashRide: cashRide,
         ));
   }

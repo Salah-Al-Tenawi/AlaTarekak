@@ -34,6 +34,11 @@ class ProfileEntity {
   final bool canCreateRides;
   final bool canBookRides;
 
+  /// عدد إلغاءات المستخدم ونسبتها — يُبنى عليهما تجاوزُ «الإلغاء
+  /// المتكرّر»: عقوبةٌ ثابتة تحلّ محلّ شرائح الوقت. انظر [CancelPolicy].
+  final int totalCancellations;
+  final double cancelRate;
+
   ProfileEntity({
     required this.fullname,
     required this.profilePhoto,
@@ -59,6 +64,8 @@ class ProfileEntity {
     this.tier = 'Restricted',
     this.canCreateRides = false,
     this.canBookRides = false,
+    this.totalCancellations = 0,
+    this.cancelRate = 0,
   });
 
   ProfileEntity copyWith({
@@ -86,6 +93,8 @@ class ProfileEntity {
     String? tier,
     bool? canCreateRides,
     bool? canBookRides,
+    int? totalCancellations,
+    double? cancelRate,
   }) {
     return ProfileEntity(
       fullname: fullname ?? this.fullname,
@@ -112,6 +121,8 @@ class ProfileEntity {
       tier: tier ?? this.tier,
       canCreateRides: canCreateRides ?? this.canCreateRides,
       canBookRides: canBookRides ?? this.canBookRides,
+      totalCancellations: totalCancellations ?? this.totalCancellations,
+      cancelRate: cancelRate ?? this.cancelRate,
     );
   }
 }

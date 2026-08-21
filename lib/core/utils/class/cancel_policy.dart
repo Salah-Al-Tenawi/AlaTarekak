@@ -73,26 +73,67 @@ class CancelPolicy {
     return 0;
   }
 
+  /// هل صار المستخدم «مُلغياً متكرّراً»؟
+  ///
+  /// شرطان معاً لا أحدهما، وعتبة النسبة تختلف بين الطرفين: السائق
+  /// **يساوي أو يزيد** على النصف، والراكب **يزيد** عليه وحسب.
+  ///
+  /// وأثره تجاوزٌ لا تشديد: عقوبةٌ ثابتة تحلّ محلّ شرائح الوقت كلّها،
+  /// فيخسر المُلغي المتكرّر نقاطه **حتى في الإلغاء المبكّر المجّاني**.
+  static bool isRepeatCanceller({
+    required int cancellations,
+    required double cancelRate,
+    required bool asDriver,
+  }) {
+    if (cancellations < 3) return false;
+    return asDriver ? cancelRate >= 50 : cancelRate > 50;
+  }
+
+  /// عقوبة المُلغي المتكرّر — ثابتة في كل المراحل.
+  static const int repeatPassengerPoints = 10;
+  static const int repeatDriverPoints = 15;
+
   /// نقاط الثقة التي يخسرها الراكب بإلغائه — عدداً موجباً.
   ///
   /// **الدفع الإلكتروني لا يخصم نقاطاً إطلاقاً**: خسارة المبلغ هي
-  /// العقوبة، فلا تُضاعَف بخصمٍ ثانٍ.
+  /// العقوبة، فلا تُضاعَف بخصمٍ ثانٍ — والتكرار لا يغيّر ذلك، إذ لا
+  /// شيء ليُشدَّد.
   static int passengerCancelPoints({
     required double elapsed,
     required bool cashRide,
+    bool repeatCanceller = false,
   }) {
     if (!cashRide) return 0;
+    if (repeatCanceller) return repeatPassengerPoints;
     if (elapsed <= 30) return 0;
     if (elapsed <= 50) return 5;
     return 10;
   }
 
   /// نقاط السائق بإلغائه رحلته — **في الطريقتين معاً**، خلافاً للراكب.
-  static int driverCancelRidePoints(double elapsed) {
+  static int driverCancelRidePoints(
+    double elapsed, {
+    bool repeatCanceller = false,
+  }) {
+    if (repeatCanceller) return repeatDriverPoints;
     if (elapsed <= 30) return 0;
     if (elapsed <= 50) return 7;
     return 12;
   }
+
+  /// هل تُحتجز رسوم إنشاء الرحلة (5%)؟
+  ///
+  /// **في الرحلات النقدية وحدها.** لا رسوم في الدفع الإلكتروني: المال
+  /// كلّه من الراكب، والمنصّة تأخذ نسبتها من الحجز.
+  ///
+  /// وتُعاد كاملةً إن ألغى مبكّراً، أو إن لم يكن في رحلته راكب — فلا
+  /// أحد تضرّر بإلغائها.
+  static bool creationFeeHeld({
+    required double elapsed,
+    required bool hasPassengers,
+    required bool cashRide,
+  }) =>
+      cashRide && elapsed > 30 && hasPassengers;
 
   // **لا رسوم على السائق أصلاً.** كانت هنا `creationFeeRefunded` مأخوذة
   // عن جدول الباك إند («رسوم إنشاء الرحلة: تُسترد كاملة / تُحتجز»)، ثمّ
@@ -109,7 +150,21 @@ class CancelPolicy {
     required double? elapsed,
     required int amount,
     required bool cashRide,
+    bool repeatCanceller = false,
+    bool wasConfirmed = true,
   }) {
+    // **الحجز المعلَّق لا يكلّف شيئاً**: لم يُقبل بعد، فلا مقاعد حُجزت
+    // ولا مال تحرّك — والعمليات المالية والنقاط كلها عند الخادم داخل
+    // `if (wasConfirmed)`. وكانت البطاقة تحسب له شرائح الوقت كغيره،
+    // فتَعِد باسترداد لم يُدفع أو تُنذر بخصمٍ لن يقع.
+    if (!wasConfirmed) {
+      return const [
+        Consequence(ConsequenceKind.info, ConsequenceTone.good,
+            'حجزك ما زال بانتظار موافقة السائق، فإلغاؤه لا يُرتّب خصماً '
+                'مالياً ولا خصم نقاط.'),
+      ];
+    }
+
     if (elapsed == null) {
       return const [
         Consequence(ConsequenceKind.info, ConsequenceTone.neutral,
@@ -118,7 +173,10 @@ class CancelPolicy {
     }
 
     final refund = refundPercent(elapsed);
-    final points = passengerCancelPoints(elapsed: elapsed, cashRide: cashRide);
+    final points = passengerCancelPoints(
+        elapsed: elapsed,
+        cashRide: cashRide,
+        repeatCanceller: repeatCanceller);
     final back = amount * refund ~/ 100;
 
     return [
@@ -140,6 +198,10 @@ class CancelPolicy {
       if (points == 0)
         const Consequence(ConsequenceKind.points, ConsequenceTone.good,
             'ولن تخسر أي نقاط من رصيد ثقتك.')
+      else if (repeatCanceller)
+        Consequence(ConsequenceKind.points, ConsequenceTone.bad,
+            'وتُخصم ${_points(points)} من رصيد ثقتك — إلغاءاتك '
+                'المتكرّرة تُسقط تدرّج العقوبة.')
       else
         Consequence(ConsequenceKind.points, ConsequenceTone.bad,
             'وتُخصم ${_points(points)} من رصيد ثقتك.'),
@@ -151,11 +213,14 @@ class CancelPolicy {
   /// [passengers] عدد الركّاب أصحاب الحجوزات القائمة — يُستردّ لهم كامل
   /// مبالغهم مهما تأخّر الإلغاء، فالخصم على من ألغى لا على من انتظر.
   ///
-  /// **وكلفة السائق نقاطٌ لا مال**: لا يدفع رسوماً على رحلته، والتطبيق
-  /// يأخذ نسبته من حجز الراكب.
+  /// **ورسوم الإنشاء في النقدي وحده** (5% من قيمة الرحلة): تُعاد كاملةً
+  /// إن ألغى مبكّراً أو لم يكن في رحلته راكب، وتُحتجز فيما عدا ذلك. أما
+  /// في الدفع الإلكتروني فلا رسوم عليه أصلاً — المال كلّه من الراكب.
   static List<Consequence> driverCancelRide({
     required double? elapsed,
     required int passengers,
+    required bool cashRide,
+    bool repeatCanceller = false,
   }) {
     final lines = <Consequence>[
       if (passengers > 0)
@@ -173,12 +238,31 @@ class CancelPolicy {
       return lines;
     }
 
-    final points = driverCancelRidePoints(elapsed);
+    final points =
+        driverCancelRidePoints(elapsed, repeatCanceller: repeatCanceller);
     lines.add(points == 0
         ? const Consequence(ConsequenceKind.points, ConsequenceTone.good,
             'ولن تخسر أي نقاط من رصيد ثقتك.')
-        : Consequence(ConsequenceKind.points, ConsequenceTone.bad,
-            'وتُخصم ${_points(points)} من رصيد ثقتك.'));
+        : Consequence(
+            ConsequenceKind.points,
+            ConsequenceTone.bad,
+            repeatCanceller
+                ? 'وتُخصم ${_points(points)} من رصيد ثقتك — إلغاءاتك '
+                    'المتكرّرة تُسقط تدرّج العقوبة.'
+                : 'وتُخصم ${_points(points)} من رصيد ثقتك.'));
+
+    // الرسوم في النقدي وحده: الدفع الإلكتروني كلّه من الراكب، والمنصّة
+    // تأخذ نسبتها من الحجز لا من السائق
+    if (cashRide) {
+      lines.add(creationFeeHeld(
+              elapsed: elapsed,
+              hasPassengers: passengers > 0,
+              cashRide: true)
+          ? const Consequence(ConsequenceKind.money, ConsequenceTone.bad,
+              'ولن تُعاد إليك رسوم إنشاء الرحلة (5% من قيمتها).')
+          : const Consequence(ConsequenceKind.money, ConsequenceTone.good,
+              'وتُعاد إليك رسوم إنشاء الرحلة كاملةً.'));
+    }
 
     return lines;
   }
