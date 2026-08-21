@@ -50,9 +50,27 @@ void main() {
 
   /// يبني زرّاً يستدعي المنطق نفسه الذي يستدعيه زرّ الرئيسية، عبر
   /// [CreateRideGuard] المكشوف للاختبار.
-  Future<void> pumpButton(WidgetTester tester, ProfileState state) async {
+  Future<void> pumpButton(
+    WidgetTester tester,
+    ProfileState state, {
+    /// ما يردّه الجلب — الحارس يسأل الخادم في كل مرة. `null` يعني أن
+    /// الجلب يردّ ملف الحالة نفسه.
+    ProfileEntity? fetched,
+    bool fetchFails = false,
+  }) async {
     whenListen(cubit, const Stream<ProfileState>.empty(),
         initialState: state);
+
+    // لا يُطمَس تهيئةُ من هيّأ بنفسه: مجموعة «الملف غير محمَّل» تُثبّت
+    // ردّ الجلب قبل النداء، وحالتها بلا ملف أصلاً.
+    if (fetchFails) {
+      when(() => cubit.showMyProfile()).thenThrow(Exception('لا شبكة'));
+    } else if (fetched != null) {
+      when(() => cubit.showMyProfile()).thenAnswer((_) async => fetched);
+    } else if (state.profileEntity != null) {
+      when(() => cubit.showMyProfile())
+          .thenAnswer((_) async => state.profileEntity!);
+    }
 
     await tester.pumpWidget(
       // الحوار يقيس بـ ScreenUtil كبقية واجهات التطبيق، وmain يهيّئه دائماً
@@ -104,6 +122,79 @@ void main() {
 
       expect(find.text('معالج إنشاء الرحلة'), findsOneWidget);
       expect(find.byType(AppDialogContent), findsNothing);
+    });
+  });
+
+  group('الملف يُجلب في كل مرة — الخطأ المُصلَح', () {
+    // لكل شاشة نسخةٌ خاصّة من ProfileCubit. فمن أضاف مركبته من «مركباتي»
+    // حدّث نسخةَ تلك الشاشة وحدها، وبقيت نسخة الرئيسية بلا مركبة. وكان
+    // الحارس يكتفي بما في يده ما دام غير null — فيُقال لمن أضاف سيارته
+    // للتوّ «لا توجد مركبة»، ولا ينفعه تحديث ولا خروج من الشاشة.
+
+    testWidgets('مركبةٌ أُضيفت في شاشة أخرى: يفتح المعالج', (tester) async {
+      await pumpButton(
+        tester,
+        // ما تحمله نسخة الرئيسية: ملفٌ قديم بلا مركبة
+        ProfileLoadedState(
+            mode: ProfileMode.myView, profileEntity: _profile(car: null)),
+        // وما عند الخادم فعلاً: المركبة أُضيفت للتوّ
+        fetched: _profile(),
+      );
+      await tap(tester);
+
+      expect(find.text('معالج إنشاء الرحلة'), findsOneWidget,
+          reason: 'كان يقول «لا توجد مركبة» حتى يُغلق التطبيق ويُفتح');
+      expect(find.text('لا توجد مركبة في حسابك'), findsNothing);
+    });
+
+    testWidgets('والجلب يقع ولو كان في اليد ملف', (tester) async {
+      await pumpButton(
+        tester,
+        ProfileLoadedState(
+            mode: ProfileMode.myView, profileEntity: _profile()),
+      );
+      await tap(tester);
+
+      verify(() => cubit.showMyProfile()).called(1);
+    });
+
+    testWidgets('وتوثيقٌ اعتُمد في الخادم يُفتح به الباب', (tester) async {
+      await pumpButton(
+        tester,
+        ProfileLoadedState(
+            mode: ProfileMode.myView,
+            profileEntity: _profile(verification: 'pending')),
+        fetched: _profile(verification: 'approved'),
+      );
+      await tap(tester);
+
+      expect(find.text('معالج إنشاء الرحلة'), findsOneWidget);
+    });
+
+    testWidgets('تعذّر الجلب: لا يُمنع بنسخةٍ قديمة — الخادم يحسم',
+        (tester) async {
+      await pumpButton(
+        tester,
+        ProfileLoadedState(
+            mode: ProfileMode.myView, profileEntity: _profile(car: null)),
+        fetchFails: true,
+      );
+      await tap(tester);
+
+      expect(find.text('معالج إنشاء الرحلة'), findsOneWidget,
+          reason: 'المنع بمعلومة لم نتحقّق منها يحبس مستخدماً مستوفياً');
+    });
+
+    testWidgets('ولا يبقى مؤشّر التحميل معلّقاً بعد الفشل', (tester) async {
+      await pumpButton(
+        tester,
+        ProfileLoadedState(
+            mode: ProfileMode.myView, profileEntity: _profile()),
+        fetchFails: true,
+      );
+      await tap(tester);
+
+      expect(find.byType(CircularProgressIndicator), findsNothing);
     });
   });
 

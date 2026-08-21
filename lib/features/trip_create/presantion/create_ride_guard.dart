@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
+import 'package:alatarekak/features/profiles/domain/entity/profile_entity.dart';
 import 'package:alatarekak/features/profiles/presantaion/manger/profile_cubit.dart';
 import 'package:alatarekak/features/trip_create/domain/create_ride_gate.dart';
 
@@ -20,24 +21,39 @@ class CreateRideGuard {
 
   /// [onAllowed] يُنفَّذ فقط عند استيفاء الشرط — أو عند تعذّر قراءة الملف،
   /// فمنع مستخدم مستوفٍ للشرط أسوأ من تركه يصل إلى الخادم فيحسم هو.
+  ///
+  /// **الملف يُجلب في كل مرة، ولا يُكتفى بما في اليد.**
+  ///
+  /// كان يُجلب حين يكون `null` وحده. ولكلّ شاشة في التطبيق نسخةٌ خاصّة من
+  /// [ProfileCubit]، فمن أضاف مركبته من «مركباتي» حدّث نسخةَ تلك الشاشة
+  /// وحدها — ثم أُتلفت بخروجه منها. أما نسخة الرئيسية فبقيت تحمل ملفاً
+  /// بلا مركبة، وما دام غير `null` لم يُسأل الخادم أبداً: فيُقال لمن
+  /// أضاف سيارته للتوّ «لا توجد مركبة»، ولا ينفعه تحديث ولا خروج من
+  /// الشاشة — حتى يُغلق التطبيق ويُفتح فتُولد النسخة فارغة.
+  ///
+  /// نداءٌ واحد قبل فتح المعالج أرخص من رحلةٍ يُدخلها المستخدم كاملةً ثم
+  /// تُرفض، وأرخص من بابٍ مقفل في وجه من استوفى شرطه.
   static Future<void> run(
     BuildContext context, {
     required VoidCallback onAllowed,
   }) async {
     final cubit = context.read<ProfileCubit>();
-    var profile = cubit.state.profileEntity;
+    final navigator = Navigator.of(context);
 
-    // الملف لم يُحمَّل بعد (المستخدم لم يزر تبويب «حسابي») — نجلبه
-    if (profile == null) {
-      _showProgress(context);
-      try {
-        profile = await cubit.showMyProfile();
-      } catch (_) {
-        profile = null;
-      }
-      if (!context.mounted) return;
-      Navigator.of(context).pop();
+    _showProgress(context);
+
+    ProfileEntity? profile;
+    try {
+      profile = await cubit.showMyProfile();
+    } catch (_) {
+      // تعذّر الجلب — **ولا نمنع بناءً على نسخةٍ قديمة**: المنع بمعلومةٍ
+      // لم نتحقّق منها يحبس مستخدماً مستوفياً لشرطه، والخادم يردّ
+      // برسالةٍ مفهومة إن لم يكن مستوفياً.
+      profile = null;
     }
+
+    if (navigator.mounted) navigator.pop();
+    if (!context.mounted) return;
 
     final block = CreateRideGate.check(profile);
     if (block == CreateRideBlock.none) {
