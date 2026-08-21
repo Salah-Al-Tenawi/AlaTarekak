@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/route/route_name.dart';
+import 'package:alatarekak/features/trip_create/presantion/trip_created_nav.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/functions/my_dilaog.dart';
@@ -59,7 +60,7 @@ class TripReviewAndConfirm extends StatelessWidget {
 
   void _onState(BuildContext context, PushRideState state) {
     if (state is PushRideSuccsess) {
-      Get.offAllNamed(RouteName.tripDidYouBack, arguments: tripFrom);
+      goToReturnTripPrompt(tripFrom);
     } else if (state is PushRideErorr) {
       final message = HandelErorrMessage.withStatus(
           HandelErorrMessage.createWithRoute(state.message), state.statusCode);

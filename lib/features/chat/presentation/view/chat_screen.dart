@@ -12,6 +12,7 @@ import 'package:alatarekak/core/utils/functions/get_userid.dart';
 import 'package:alatarekak/features/chat/domain/entity/message_entity.dart';
 import 'package:alatarekak/features/chat/domain/entity/quick_messages.dart';
 import 'package:alatarekak/features/chat/presentation/manager/message_cubit/message_cubit.dart';
+import 'package:alatarekak/features/chat/presentation/view/widget/chat_image_bubble.dart';
 import 'package:alatarekak/features/support/domain/entity/support_conversation.dart';
 import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 
@@ -298,7 +299,7 @@ class _MessageBubble extends StatelessWidget {
                   ],
                 ),
                 child: message.isImage
-                    ? _ImageBubble(
+                    ? ChatImageBubble(
                         imageUrl: message.image ?? '',
                         caption: message.caption,
                         isMe: isMe,
@@ -358,57 +359,6 @@ class _MessageBubble extends StatelessWidget {
     } catch (_) {
       return '';
     }
-  }
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━
-// Image Bubble
-// ━━━━━━━━━━━━━━━━━━━━━━━━
-class _ImageBubble extends StatelessWidget {
-  final String imageUrl;
-  final String? caption;
-  final bool isMe;
-
-  const _ImageBubble({
-    required this.imageUrl,
-    this.caption,
-    required this.isMe,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(14.r),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Image.network(
-            imageUrl,
-            width: 0.6.sw,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(
-              width: 0.6.sw,
-              height: 120.h,
-              color: MyColors.surfaceAlt,
-              child: Icon(
-                Icons.broken_image_outlined,
-                color: MyColors.textHint,
-              ),
-            ),
-          ),
-          if (caption != null && caption!.isNotEmpty)
-            Padding(
-              padding: EdgeInsets.fromLTRB(10.w, 6.h, 10.w, 8.h),
-              child: Text(
-                caption!,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: isMe ? Colors.white : MyColors.textPrimary,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
   }
 }
 

@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/route/route_name.dart';
+import 'package:alatarekak/features/trip_create/presantion/trip_created_nav.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/widgets/syrian_phone_field.dart';
@@ -117,7 +118,7 @@ class _TripAddNumberPhoneState extends State<TripAddNumberPhone> {
 
   void _onState(BuildContext context, PushRideState state) {
     if (state is PushRideSuccsess) {
-      Get.offAllNamed(RouteName.tripDidYouBack, arguments: _tripFrom);
+      goToReturnTripPrompt(_tripFrom);
     } else if (state is PushRideErorr) {
       final message = HandelErorrMessage.withStatus(
           HandelErorrMessage.createWithRoute(state.message), state.statusCode);
