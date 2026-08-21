@@ -14,7 +14,7 @@ class TripMeCubit extends SafeCubit<TripMeState> {
     emit(TripMeLoading());
     final response = await _tripMeRepoIm.showAllTrip();
     response.fold((erorr) {
-      emit(TripMeErorr(message: HandelErorrMessage.showAllride(erorr.message)));
+      emit(TripMeErorr(message: erorr.arabic(HandelErorrMessage.showAllride)));
     }, (trips) {
       emit(TripMeListLoaded(trips: trips));
     });
@@ -24,7 +24,7 @@ class TripMeCubit extends SafeCubit<TripMeState> {
     emit(TripMeLoading());
     final response = await _tripMeRepoIm.cancelTrip(tripId);
     response.fold((erorr) {
-      emit(TripMeErorr(message: HandelErorrMessage.cancelRide(erorr.message)));
+      emit(TripMeErorr(message: erorr.arabic(HandelErorrMessage.cancelRide)));
     }, (response) {
       emit(const TripMeCancel(message: "تم الغاء الرحلة بنجاح"));
       getMeTrips();

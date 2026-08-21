@@ -42,7 +42,8 @@ class ColumnButtonsLogin extends StatelessWidget {
             duration: const Duration(seconds: 4),
           );
         } else if (state is LoginError) {
-          final message = HandelErorrMessage.login(state.message);
+          final message = HandelErorrMessage.withStatus(
+              HandelErorrMessage.login(state.message), state.statusCode);
           showMySnackBar(context, message,
               duration: const Duration(seconds: 3));
         }

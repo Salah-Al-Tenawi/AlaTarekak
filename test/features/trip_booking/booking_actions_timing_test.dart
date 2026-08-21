@@ -19,13 +19,14 @@ class MockChatRepo extends Mock implements ChatRepo {}
 /// أزرار حجز «حجوزاتي» عبر الزمن.
 ///
 /// انتقلت من البطاقة إلى ورقة التفاصيل حين صارت البطاقة ملخّصاً، والقواعد
-/// الزمنية كما هي — ثلاث مراحل بحسب المتطلبات المحدَّثة (2026-08-18):
-///   قبل الانطلاق          → إلغاء الحجز
-///   مع الانطلاق           → تأكيد الوصول
-///   بعد ساعة من الانطلاق  → يُضاف بلاغ «السائق لم يحضر»
+/// الزمنية ثلاث مراحل:
+///   قبل الانطلاق           → إلغاء الحجز
+///   مع الانطلاق            → تأكيد الوصول
+///   بعد دقيقة من الانطلاق  → يُضاف بلاغ «السائق لم يحضر»
 ///
-/// كان البلاغ يظهر مع الانطلاق مباشرة — وسائق تأخّر عشر دقائق ليس
-/// سائقاً غائباً، والبلاغ يخصم من نقاط ثقته.
+/// كان البلاغ يظهر مع الانطلاق مباشرة، ثم أُخّر ساعة، ثم قُصّرت المهلة
+/// إلى دقيقة (2026-08-20). وهو **مخفيّ** قبل أوانه لا معطّلاً بعدّاده:
+/// بلاغ غياب على حجز مؤكَّد لم تنطلق رحلته إنذارٌ في غير موضعه.
 void main() {
   late MockBookingMeRepo repo;
   late MockChatRepo chatRepo;
@@ -78,23 +79,25 @@ void main() {
 
   group('مع الانطلاق', () {
     testWidgets('تأكيد الوصول يظهر، والبلاغ لا', (tester) async {
-      await pump(tester, fakeBooking(departsIn: const Duration(minutes: -5)));
+      await pump(tester, fakeBooking(departsIn: const Duration(seconds: -30)));
 
       expect(find.text('تأكيد الوصول'), findsOneWidget);
       expect(find.text('لم يحضر'), findsNothing,
-          reason: 'من انطلق قبل خمس دقائق ليس غائباً');
-    });
-
-    testWidgets('بعد خمسين دقيقة: ما زال البلاغ مغلقاً', (tester) async {
-      await pump(tester, fakeBooking(departsIn: const Duration(minutes: -50)));
-
-      expect(find.text('تأكيد الوصول'), findsOneWidget);
-      expect(find.text('لم يحضر'), findsNothing);
+          reason: 'من انطلق قبل نصف دقيقة ليس غائباً');
+      expect(find.textContaining('بعد '), findsNothing,
+          reason: 'ولا عدّاد ينتظره: الزرّ مخفيّ حتى تُفتح بوابته');
     });
   });
 
-  group('بعد ساعة من الانطلاق', () {
+  group('بعد دقيقة من الانطلاق', () {
     testWidgets('التأكيد والبلاغ معاً', (tester) async {
+      await pump(tester, fakeBooking(departsIn: const Duration(minutes: -2)));
+
+      expect(find.text('تأكيد الوصول'), findsOneWidget);
+      expect(find.text('لم يحضر'), findsOneWidget);
+    });
+
+    testWidgets('وبعد ساعة كذلك', (tester) async {
       await pump(
           tester,
           fakeBooking(

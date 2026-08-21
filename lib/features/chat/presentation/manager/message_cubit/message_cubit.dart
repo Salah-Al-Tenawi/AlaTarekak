@@ -38,7 +38,7 @@ class MessageCubit extends SafeCubit<MessageState> {
     );
     if (isClosed) return;
     result.fold(
-      (error) => emit(MessageError(HandelErorrMessage.chat(error.message))),
+      (error) => emit(MessageError(error.arabic(HandelErorrMessage.chat))),
       (msgs) {
         _messages.addAll(msgs);
         _hasMore = msgs.length >= _pageSize;

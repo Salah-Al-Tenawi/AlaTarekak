@@ -11,10 +11,14 @@ final class PushRideInitial extends PushRideState {}
 
 final class PushRideLoading extends PushRideState {}
 
+/// **الرسالة خام إنجليزية** — الواجهة تفحصها لتُميّز نقص التوثيق فتنقل
+/// السائق إلى شاشته، فالتعريب يقع هناك. و[statusCode] يرافقها ليُذيَّل به
+/// النصّ المعروض — انظر [HandelErorrMessage.withStatus].
 final class PushRideErorr extends PushRideState {
   final String message;
+  final int? statusCode;
 
-  const PushRideErorr({required this.message});
+  const PushRideErorr({required this.message, this.statusCode});
 }
 
 class PushRideValidatePhoneState extends PushRideState {

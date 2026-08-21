@@ -108,6 +108,9 @@ class _BookingMeListState extends State<BookingMeList> {
       showMySnackBar(context, "شكراً لك على تقييمك",
           type: SnackType.success);
       _refreshData();
+    } else if (state is BookingMeAlreadyRated) {
+      // ليس أحمر: تقييمه الأول قائم، وإنما تُردّ محاولة ثانية
+      showMySnackBar(context, state.message, type: SnackType.info);
     } else if (state is BookingMeDriverNoShowReported) {
       _onNoShowReported(context, state);
       _refreshData();

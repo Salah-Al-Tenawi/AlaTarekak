@@ -30,6 +30,28 @@ enum BookingBlock {
 const _cancelledStatuses = {'cancelled', 'canceled', 'no_show'};
 const _finishedStatuses = {'finished', 'completed'};
 
+/// انطلقت فعلاً — بإعلان السائق لا بمرور الموعد.
+///
+/// `launched` اسمها عند الخادم، و`awaiting_confirmation` اسمها القديم.
+/// وهي تُحسم قبل الموعد: سائق أعلن انطلاقه مبكّراً ترفض رحلتُه الحجز
+/// بينما ساعةُ التطبيق ترى الموعد لم يحن بعد، فيُعرض زرّ «احجز» على
+/// رحلة يردّها الخادم.
+const _launchedStatuses = {'launched', 'awaiting_confirmation'};
+
+/// انتهت الرحلة أو أُلغيت — لم يعد يُنتظَر منها شيء.
+///
+/// **ليست `!active`**: الرحلة الممتلئة (`full`) رحلة قائمة لم تنطلق بعد،
+/// وحشرُها هنا يُخفي عن سائقها إجراءات هو بحاجة إليها.
+///
+/// يُبنى عليها إخفاء بلاغ الغياب: الخادم نفسه يردّه على رحلة انتهت
+/// («cannot report no-show for a ride with status»)، فعرضُ زرٍّ يقود إلى
+/// رفضٍ مؤكَّد وعدٌ كاذب.
+bool isRideOver(String status) {
+  final normalized = status.trim().toLowerCase();
+  return _cancelledStatuses.contains(normalized) ||
+      _finishedStatuses.contains(normalized);
+}
+
 /// لماذا لا تُحجز هذه الرحلة — `null` إن كانت تقبل الحجز.
 ///
 /// الأسبقية مقصودة: «ألغيت» أنفع للمستخدم من «انطلقت» على رحلة ألغيت قبل
@@ -43,7 +65,8 @@ BookingBlock? bookingBlockFor({
 
   if (_cancelledStatuses.contains(normalized)) return BookingBlock.cancelled;
   if (_finishedStatuses.contains(normalized)) return BookingBlock.finished;
-  if (RideTimeRules.hasDeparted(departure, now: now)) {
+  if (_launchedStatuses.contains(normalized) ||
+      RideTimeRules.hasDeparted(departure, now: now)) {
     return BookingBlock.departed;
   }
 

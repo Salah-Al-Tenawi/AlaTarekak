@@ -31,7 +31,7 @@ class ProfileCubit extends SafeCubit<ProfileState> {
     return response.fold(
       (error) {
         emit(ProfileErrorState(
-            message: HandelErorrMessage.showProfile(error.message)));
+            message: error.arabic(HandelErorrMessage.showProfile)));
         // نصّ الاستثناء تشخيصي لا يُعرض — يبقى كما أرسله الخادم
         throw Exception(error.message);
       },
@@ -63,7 +63,7 @@ class ProfileCubit extends SafeCubit<ProfileState> {
     return response.fold(
       (error) {
         emit(ProfileErrorState(
-            message: HandelErorrMessage.showProfile(error.message)));
+            message: error.arabic(HandelErorrMessage.showProfile)));
         throw Exception(error.message);
       },
       (myProfile) {
@@ -165,7 +165,7 @@ class ProfileCubit extends SafeCubit<ProfileState> {
       (error) => emit(ProfileErrorState(
         // حفظ المركبة يمرّ على PUT /profile نفسه، فرسالة «لا يمكن التعديل
         // أثناء مراجعة طلب التوثيق» تصل من هنا أيضاً
-        message: HandelErorrMessage.updateProfile(error.message),
+        message: error.arabic(HandelErorrMessage.updateProfile),
         profileEntity: profile,
       )),
       (updated) {
@@ -237,7 +237,7 @@ class ProfileCubit extends SafeCubit<ProfileState> {
     response.fold(
       (error) {
         emit(ProfileErrorState(
-          message: HandelErorrMessage.updateProfile(error.message),
+          message: error.arabic(HandelErorrMessage.updateProfile),
           profileEntity: current.profileEntity,
         ));
         // العودة إلى حالة التحرير: كل الدوال هنا تشترط ProfileLoadedState

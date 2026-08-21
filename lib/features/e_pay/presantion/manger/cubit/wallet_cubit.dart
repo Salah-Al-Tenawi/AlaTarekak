@@ -23,7 +23,7 @@ class WalletCubit extends SafeCubit<WalletState> {
     await response.fold((erorr) async {
       if (!_isWalletMissing(erorr.message)) {
         emit(WalletErorr(
-            message: HandelErorrMessage.checkbalance(erorr.message)));
+            message: erorr.arabic(HandelErorrMessage.checkbalance)));
         return;
       }
 
@@ -109,7 +109,7 @@ class WalletCubit extends SafeCubit<WalletState> {
       }
       if (isClosed) return;
       emit(WalletActivationFailed(
-          message: HandelErorrMessage.createWalletDirect(erorr.message)));
+          message: erorr.arabic(HandelErorrMessage.createWalletDirect)));
     }, (_) async {
       // لا داعي لإعادة محاولة تلقائية بعد اليوم
       await WalletProvisionService.instance.forgetPhone();

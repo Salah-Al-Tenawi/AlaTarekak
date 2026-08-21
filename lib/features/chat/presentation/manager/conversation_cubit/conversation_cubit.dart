@@ -26,7 +26,7 @@ class ConversationCubit extends SafeCubit<ConversationState> {
     final result = await chatRepo.getConversations();
     if (isClosed) return;
     result.fold(
-      (error) => emit(ConversationError(HandelErorrMessage.chat(error.message))),
+      (error) => emit(ConversationError(error.arabic(HandelErorrMessage.chat))),
       (conversations) {
         emit(ConversationLoaded(conversations));
         _subscribeToConversations(conversations);
@@ -72,7 +72,7 @@ class ConversationCubit extends SafeCubit<ConversationState> {
     final result = await chatRepo.startConversation(userId: userId);
     if (isClosed) return;
     result.fold(
-      (error) => emit(ConversationError(HandelErorrMessage.chat(error.message))),
+      (error) => emit(ConversationError(error.arabic(HandelErorrMessage.chat))),
       (conversationId) => emit(ConversationStarted(conversationId)),
     );
   }

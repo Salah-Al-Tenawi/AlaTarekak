@@ -115,6 +115,23 @@ void main() {
       ],
     );
 
+    // الرسالة تبقى خاماً لتفحصها الواجهة، ورمز الحالة يرافقها ليُذيَّل
+    // به النصّ المعروض: «البريد الإلكتروني أو كلمة المرور غير صحيحة (401)»
+    blocTest<LoginCubit, LoginState>(
+      'رمز الحالة يُنقل مع الفشل إلى الحالة',
+      build: () {
+        when(() => authRepo.signInWithEmail(any(), any())).thenAnswer(
+            (_) async => left(const Filuar(
+                message: 'Invalid credentials', statusCode: 401)));
+        return LoginCubit(authRepo);
+      },
+      act: (cubit) => cubit.login('test@example.com', 'wrong-pass'),
+      expect: () => [
+        isA<LoginLoading>(),
+        isA<LoginError>().having((s) => s.statusCode, 'رمز الحالة', 401),
+      ],
+    );
+
     blocTest<LoginCubit, LoginState>(
       'كلمة مرور خاطئة تبقى خطأً ولا تُخلط بالبريد غير المؤكَّد',
       build: () {

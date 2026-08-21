@@ -16,6 +16,10 @@ void main() {
       'full': TripStatusFilter.full,
       'finished': TripStatusFilter.done,
       'completed': TripStatusFilter.done,
+      // `launched` حلّت محلّ `awaiting_confirmation` عند الخادم، وكانت
+      // ناقصة هنا: رحلة انطلقت لا تُطابق مجموعةً فتغيب عن كل الرقاقات
+      // إلا «الكل»، ويبحث عنها سائقها في «منتهية» فلا يجدها.
+      'launched': TripStatusFilter.done,
       'awaiting_confirmation': TripStatusFilter.done,
       'cancelled': TripStatusFilter.cancelled,
       'canceled': TripStatusFilter.cancelled,

@@ -119,7 +119,7 @@ class ItemTrip extends StatelessWidget {
     // لـ`active` وحدها — فأي حالة جديدة أو مكتوبة بحرف كبير من الخادم
     // تُخفي الزرّ بلا سبب ظاهر. والسماح عند الشكّ أسلم: الخادم يحسم.
     const closed = {'cancelled', 'canceled', 'finished', 'completed',
-        'awaiting_confirmation', 'no_show'};
+        'launched', 'awaiting_confirmation', 'no_show'};
     if (closed.contains(trip.status.trim().toLowerCase())) {
       return const SizedBox.shrink();
     }

@@ -481,14 +481,16 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
       icon: Icons.list_alt_rounded,
       label: 'عرض الحجوزات (${trip.seatsBooked})',
       color: MyColors.primary,
-      // موعد الانطلاق يُمرَّر معها: بلاغ «لم يحضر» لا يظهر إلا بعد
-      // ساعة منه، والحجز وحده لا يحمل الموعد
+      // موعد الانطلاق وحالة الرحلة يُمرَّران معها: بلاغ «لم يحضر» لا
+      // يظهر قبل الموعد بدقيقة ولا على رحلة انتهت، والحجز وحده لا يحمل
+      // واحداً منهما
       onTap: () => Get.toNamed(
         RouteName.bookingUserInTrip,
         arguments: {
           'rideId': trip.id,
           'bookings': trip.booking,
           'departure': trip.departure,
+          'rideStatus': trip.status,
         },
       ),
     );

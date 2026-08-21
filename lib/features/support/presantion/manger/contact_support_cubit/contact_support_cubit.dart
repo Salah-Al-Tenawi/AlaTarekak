@@ -20,7 +20,7 @@ class ContactSupportCubit extends SafeCubit<ContactSupportState> {
 
     await result.fold(
       (failure) async => emit(ContactSupportFailure(
-          HandelErorrMessage.contactSupport(failure.message))),
+          failure.arabic(HandelErorrMessage.contactSupport))),
       (chat) async {
         // نحفظ المعرّف لتمييزها في قائمة المحادثات لاحقاً
         await SupportConversation.remember(chat.conversationId);

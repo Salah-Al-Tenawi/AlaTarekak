@@ -43,7 +43,7 @@ class TripDetailsCubit extends SafeCubit<TripDetailsState> {
     await response.fold((error) async {
       // الرسالة الخام تُترجم هنا — الواجهة تعرضها كما هي
       emit(TripDetailsError(
-          message: HandelErorrMessage.bookAset(error.message)));
+          message: error.arabic(HandelErorrMessage.bookAset)));
     }, (booking) async {
       // وصلت استجابة نهائية — المحاولة انتهت، وأي حجز لاحق على الرحلة
       // نفسها (بعد إلغاء مثلاً) يحتاج مفتاحاً جديداً وإلا أعاد الخادم
@@ -132,7 +132,7 @@ class TripDetailsCubit extends SafeCubit<TripDetailsState> {
   void _emitTrip(Either<Filuar, TripModel> response) {
     response.fold(
       (error) => emit(TripDetailsError(
-          message: HandelErorrMessage.showOneRide(error.message))),
+          message: error.arabic(HandelErorrMessage.showOneRide))),
       (trip) => emit(TripDetailsLoaded(
         trip: trip,
         mode: trip.driver.id == myid()
@@ -170,7 +170,7 @@ class TripDetailsCubit extends SafeCubit<TripDetailsState> {
 
     result.fold(
       (error) => emit(TripDetailsError(
-          message: HandelErorrMessage.chat(error.message))),
+          message: error.arabic(HandelErorrMessage.chat))),
       (conversationId) => emit(TripDetailsOpenConversation(
         conversationId: conversationId,
         title: name,
@@ -198,7 +198,7 @@ class TripDetailsCubit extends SafeCubit<TripDetailsState> {
       }
       if (isClosed) return;
       emit(TripDetailsError(
-          message: HandelErorrMessage.finishRide(erorr.message)));
+          message: erorr.arabic(HandelErorrMessage.finishRide)));
     }, (response) async {
       emit(TripDetailsFinishTrip());
     });

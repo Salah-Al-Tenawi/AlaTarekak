@@ -11,6 +11,9 @@ import 'package:flutter_test/flutter_test.dart';
 ///   2. `bookings` كائن `{total_bookings, seat_summary, list}` لا قائمة.
 ///   3. الراكب تحت `passenger` لا `user`، ورقم التواصل حقل في الحجز
 ///      نفسه لا في الراكب.
+///
+/// ورابعٌ ظهر بعدها: **لا `total_price` في الرد إطلاقاً** — فكانت كل
+/// بطاقة تعرض «0 ل.س». يُحسب الإجمالي من `price_per_seat` في الرحلة.
 
 Map<String, dynamic> get _response => {
       'success': true,
@@ -102,6 +105,41 @@ void main() {
       expect(bookings[1].status, 'pending');
       expect(bookings[1].userName, 'Sara Mansour');
       expect(bookings[1].avatar, isNull);
+    });
+  });
+
+  group('إجمالي الحجز — الرد لا يحمله', () {
+    test('يُحسب من سعر المقعد × المقاعد', () {
+      final bookings = TripModel.fromMap(_response).booking;
+
+      expect(bookings[0].totaPrice, 10000,
+          reason: 'مقعدان × 5000 — وكانت البطاقة تعرض صفراً');
+      expect(bookings[1].totaPrice, 5000, reason: 'مقعد واحد × 5000');
+    });
+
+    test('والمرسَل من الخادم يبقى المرجع حين يصل', () {
+      final withTotal = Map<String, dynamic>.from(_response);
+      final bookings = Map<String, dynamic>.from(
+          withTotal['bookings'] as Map<String, dynamic>);
+      bookings['list'] = [
+        {
+          ...(bookings['list'] as List).first as Map<String, dynamic>,
+          'total_price': 12345,
+        },
+      ];
+      withTotal['bookings'] = bookings;
+
+      expect(TripModel.fromMap(withTotal).booking.first.totaPrice, 12345,
+          reason: 'الحساب احتياطيّ لا بديل عمّا يرسله الخادم');
+    });
+
+    test('بلا سعر مقعد ولا إجمالي: صفر بلا انهيار', () {
+      final noPrice = Map<String, dynamic>.from(_response);
+      noPrice['data'] = Map<String, dynamic>.from(
+          noPrice['data'] as Map<String, dynamic>)
+        ..remove('price_per_seat');
+
+      expect(TripModel.fromMap(noPrice).booking.first.totaPrice, 0);
     });
   });
 

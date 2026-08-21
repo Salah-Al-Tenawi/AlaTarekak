@@ -21,7 +21,7 @@ class HomeNavCubit extends SafeCubit<int> {
       (error) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(HandelErorrMessage.logout(error.message)),
+            content: Text(error.arabic(HandelErorrMessage.logout)),
             backgroundColor: MyColors.error,
           ),
         );

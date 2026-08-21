@@ -555,11 +555,7 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
   }
 
   Widget _buildActionButtons(String bookingState) {
-    final now = DateTime.now();
-    final departed = RideTimeRules.hasDeparted(b.departureTime, now: now);
-    // البلاغ لا يُفتح مع انطلاق الرحلة بل بعد ساعة منه: سائق تأخّر
-    // عشر دقائق ليس سائقاً غائباً، والبلاغ يخصم من نقاط ثقته.
-    final canReport = RideTimeRules.canReportNoShow(b.departureTime, now: now);
+    final departed = RideTimeRules.hasDeparted(b.departureTime);
 
     switch (bookingState.trim().toLowerCase()) {
       case 'completed':
@@ -606,7 +602,7 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
 
       default:
         // ثلاث مراحل: قبل الانطلاق إلغاء الحجز، ومع الانطلاق تأكيد
-        // الوصول، وبعد ساعة منه يُضاف بلاغ غياب السائق.
+        // الوصول، وبعد دقيقة منه يُضاف بلاغ غياب السائق.
         if (!departed) {
           return _Action(
             icon: Icons.close_rounded,
@@ -635,23 +631,33 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
           },
         );
 
-        return Row(
-          children: [
-            Expanded(flex: 3, child: confirmAction),
-            SizedBox(width: 8.w),
-            Expanded(flex: 2, child: _noShowAction(canReport: canReport)),
-          ],
+        // البوابة تحكم الصفّ كلّه لا الزرّ وحده: ما دامت مغلقة فتأكيد
+        // الوصول يأخذ العرض كاملاً، فلا يبقى خُمساه فراغاً مكان زرّ
+        // مخفيّ. وهي تفتح نفسها بعد دقيقة والراكب أمام الورقة.
+        return NoShowGate(
+          departure: b.departureTime,
+          builder: (context, remaining) {
+            if (remaining != null) return confirmAction;
+
+            return Row(
+              children: [
+                Expanded(flex: 3, child: confirmAction),
+                SizedBox(width: 8.w),
+                Expanded(flex: 2, child: _noShowAction()),
+              ],
+            );
+          },
         );
     }
   }
 
-  /// زرّ «لم يحضر» بأحواله الثلاثة.
+  /// زرّ «لم يحضر» بعد أن تُفتح بوابته.
   ///
-  /// **لا يُخفى قبل أوانه بل يُعطَّل ومعه ما بقي**: من انتظر سائقاً ولم
-  /// يأتِ يبحث عن هذا الزرّ، وغيابُه يوهمه أن التطبيق لا يتيح الإبلاغ
-  /// فيقصد الدعم. والمُبلَّغ عنه سابقاً يُعطَّل كذلك — الحالة محفوظة
+  /// **يُخفى قبل أوانه ولا يُعطَّل**: بلاغ الغياب على حجز مؤكَّد لم
+  /// تنطلق رحلته بعد إنذارٌ في غير موضعه، والمهلة صارت دقيقة واحدة فلا
+  /// عدّاد يستحق العرض. والمُبلَّغ عنه سابقاً يُعطَّل — الحالة محفوظة
   /// محلياً لأن الخادم لا يكشف تقارير الغياب في أي مسار.
-  Widget _noShowAction({required bool canReport}) {
+  Widget _noShowAction() {
     if (NoShowReportStore.wasReported(NoShowReportStore.rideKey(b.rideId))) {
       return _Action(
         icon: Icons.flag_rounded,
@@ -662,52 +668,33 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
       );
     }
 
-    // العدّاد حيّ: يُعيد بناء نفسه كل دقيقة، ثم يفتح الزرّ عند انقضاء
-    // المهلة بلا أن يغادر المستخدم الشاشة ويعود.
-    return NoShowGate(
-      departure: b.departureTime,
-      builder: (context, remaining) {
-        if (remaining != null) {
-          return _Action(
-            icon: Icons.schedule_rounded,
-            label: noShowCountdownLabel(remaining),
-            color: MyColors.textSecondary,
-            outlined: true,
-            onTap: null,
-          );
-        }
-        return _reportAction(canReport: true);
-      },
-    );
+    return _reportAction();
   }
 
-  Widget _reportAction({required bool canReport}) {
+  Widget _reportAction() {
     return _Action(
       icon: Icons.report_problem_rounded,
       label: 'لم يحضر',
       color: MyColors.error,
       outlined: true,
-      onTap: canReport
-          ? () async {
-              final driver =
-                  b.driverName.trim().isEmpty ? 'السائق' : b.driverName;
-              // مطابق لحوار السائق عن راكبه: الإجراء واحد، فلا يصحّ أن
-              // يختلف شكله ولا نبرته باختلاف من يقوم به.
-              final confirm = await showAppDialog(
-                context,
-                icon: Icons.report_problem_outlined,
-                title: 'السائق لم يحضر؟',
-                message: 'سيُسجَّل بلاغ بحقّ $driver، وله ساعتان للاعتراض '
-                    'قبل أن يُحسم تلقائياً وتُخصم من نقاط ثقته. '
-                    'لا تُرسله إلا بعد انتظاره فعلاً.',
-                confirmLabel: 'تسجيل البلاغ',
-                cancelLabel: 'تراجع',
-                destructive: true,
-              );
-              if (!(confirm ?? false) || !mounted) return;
-              _dispatch((cubit) => cubit.reportDriverNoShow(b.rideId));
-            }
-          : null,
+      onTap: () async {
+        final driver = b.driverName.trim().isEmpty ? 'السائق' : b.driverName;
+        // مطابق لحوار السائق عن راكبه: الإجراء واحد، فلا يصحّ أن يختلف
+        // شكله ولا نبرته باختلاف من يقوم به.
+        final confirm = await showAppDialog(
+          context,
+          icon: Icons.report_problem_outlined,
+          title: 'السائق لم يحضر؟',
+          message: 'سيُسجَّل بلاغ بحقّ $driver، وله ساعتان للاعتراض '
+              'قبل أن يُحسم تلقائياً وتُخصم من نقاط ثقته. '
+              'لا تُرسله إلا بعد انتظاره فعلاً.',
+          confirmLabel: 'تسجيل البلاغ',
+          cancelLabel: 'تراجع',
+          destructive: true,
+        );
+        if (!(confirm ?? false) || !mounted) return;
+        _dispatch((cubit) => cubit.reportDriverNoShow(b.rideId));
+      },
     );
   }
 

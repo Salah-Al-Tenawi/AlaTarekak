@@ -123,4 +123,58 @@ void main() {
       expect(labels.length, BookingBlock.values.length);
     });
   });
+
+  group('انتهاء الرحلة — isRideOver', () {
+    test('المنتهية والمكتملة والملغاة: انتهت', () {
+      expect(isRideOver('finished'), isTrue);
+      expect(isRideOver('completed'), isTrue);
+      expect(isRideOver('cancelled'), isTrue);
+      expect(isRideOver('canceled'), isTrue);
+    });
+
+    test('القائمة والممتلئة: لم تنتهِ', () {
+      expect(isRideOver('active'), isFalse);
+      expect(isRideOver('full'), isFalse,
+          reason: 'الامتلاء حالة رحلة قائمة لم تنطلق بعد');
+    });
+
+    test('حالة مجهولة أو فارغة لا تُعدّ انتهاءً', () {
+      expect(isRideOver(''), isFalse);
+      expect(isRideOver('something_new'), isFalse,
+          reason: 'الإخفاء بالتخمين يحرم السائق من إجراء يحتاجه');
+    });
+
+    test('المطابقة تُطبّع الأحرف والفراغات', () {
+      expect(isRideOver('  FINISHED '), isTrue);
+    });
+  });
+
+  group('رحلة انطلقت بإعلان السائق — لا بمرور الموعد', () {
+    // `launched` اسمها الجديد، و`awaiting_confirmation` القديم. وسائق
+    // يُعلن انطلاقه قبل موعده يجعل الحالة تسبق الساعة.
+    final soon = DateTime.now().add(const Duration(hours: 2));
+
+    test('launched قبل الموعد: لا تُحجز', () {
+      expect(bookingBlockFor(status: 'launched', departure: soon),
+          BookingBlock.departed,
+          reason: 'كان يُعرض «احجز» على رحلة يردّ الخادم حجزها');
+    });
+
+    test('awaiting_confirmation كذلك — الاسم القديم', () {
+      expect(
+          bookingBlockFor(status: 'awaiting_confirmation', departure: soon),
+          BookingBlock.departed);
+    });
+
+    test('والمتاحة قبل موعدها تبقى تُحجز', () {
+      expect(bookingBlockFor(status: 'active', departure: soon), isNull);
+    });
+
+    test('انطلاقها ليس انتهاءً: البلاغ عن الغياب يبقى متاحاً', () {
+      expect(isRideOver('launched'), isFalse);
+      expect(isRideOver('awaiting_confirmation'), isFalse,
+          reason: 'الغياب يقع في هذه الحالة بعينها — إخفاء البلاغ فيها '
+              'يلغي الميزة');
+    });
+  });
 }

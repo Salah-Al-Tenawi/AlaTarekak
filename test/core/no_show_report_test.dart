@@ -119,6 +119,16 @@ void main() {
       expect(text, isNot(contains('minute')));
     });
 
+    test('الرسالة لا تَعِد بمهلة من عندها', () {
+      final text = HandelErorrMessage.driverNoShow(
+          'No-show reporting unlocks 1 hour after departure. 37 minute(s) '
+          'remaining.');
+
+      expect(text, isNot(contains('بعد ساعة من الانطلاق')),
+          reason: 'المهلة مهلة الخادم وقد تتغيّر — الباقي وحده ما يُقال');
+      expect(text, contains('37 دقيقة'));
+    });
+
     test('دقيقتان تُثنّى ولا تُرقَّم', () {
       final text = HandelErorrMessage.passengerNoShow(
           'No-show reporting unlocks 1 hour after departure. 2 minute(s) '
@@ -167,29 +177,30 @@ void main() {
   group('بوابة الإبلاغ — متى تُفتح', () {
     final departure = DateTime(2026, 8, 20, 10);
 
-    test('قبل الانطلاق: البوابة مقفلة وما بقي أكثر من ساعة', () {
+    test('قبل الانطلاق: البوابة مقفلة وما بقي نصف ساعة ودقيقة', () {
       final now = departure.subtract(const Duration(minutes: 30));
 
       expect(RideTimeRules.canReportNoShow(departure, now: now), isFalse);
       expect(RideTimeRules.untilNoShowGate(departure, now: now),
-          const Duration(minutes: 90));
+          const Duration(minutes: 31));
     });
 
-    test('مع الانطلاق: ساعة كاملة باقية', () {
+    test('مع الانطلاق: دقيقة واحدة باقية', () {
       expect(RideTimeRules.untilNoShowGate(departure, now: departure),
-          const Duration(hours: 1));
+          const Duration(minutes: 1),
+          reason: 'المهلة قُصّرت من ساعة إلى دقيقة (2026-08-20)');
     });
 
-    test('بعد خمسين دقيقة: عشر دقائق باقية', () {
-      final now = departure.add(const Duration(minutes: 50));
+    test('بعد نصف دقيقة: نصفها باقٍ', () {
+      final now = departure.add(const Duration(seconds: 30));
 
       expect(RideTimeRules.canReportNoShow(departure, now: now), isFalse);
       expect(RideTimeRules.untilNoShowGate(departure, now: now),
-          const Duration(minutes: 10));
+          const Duration(seconds: 30));
     });
 
-    test('عند الساعة تماماً: تُفتح ولا عدّاد', () {
-      final now = departure.add(const Duration(hours: 1));
+    test('عند الدقيقة تماماً: تُفتح ولا عدّاد', () {
+      final now = departure.add(const Duration(minutes: 1));
 
       expect(RideTimeRules.canReportNoShow(departure, now: now), isTrue);
       expect(RideTimeRules.untilNoShowGate(departure, now: now), isNull);

@@ -61,7 +61,8 @@ class TripReviewAndConfirm extends StatelessWidget {
     if (state is PushRideSuccsess) {
       Get.offAllNamed(RouteName.tripDidYouBack, arguments: tripFrom);
     } else if (state is PushRideErorr) {
-      final message = HandelErorrMessage.createWithRoute(state.message);
+      final message = HandelErorrMessage.withStatus(
+          HandelErorrMessage.createWithRoute(state.message), state.statusCode);
       final needsVerification =
           state.message.contains("You must be verified as a driver") ||
               state.message.contains("Missing required verification");

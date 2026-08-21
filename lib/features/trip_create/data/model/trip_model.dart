@@ -240,9 +240,12 @@ class TripModel {
       chosenRouteIndex:
           asInt(route['index']) ?? asInt(data['chosen_route_index']) ?? 0,
       communicationNumber: asString(data['communication_number']) ?? '',
+      // سعر المقعد يُمرَّر مع كل حجز: مسار الحجوزات لا يرسل إجمالي الحجز،
+      // وهو وحده الموضع الذي يعرف سعر الرحلة — انظر [BookingModel].
       booking: rawBookings
           .whereType<Map>()
-          .map((e) => BookingModel.fromJson(Map<String, dynamic>.from(e)))
+          .map((e) => BookingModel.fromJson(Map<String, dynamic>.from(e),
+              pricePerSeat: asInt(data['price_per_seat'])))
           .toList(),
       bookingsCount: asInt(pick(data, const [
             'bookings_count',

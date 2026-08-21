@@ -5,7 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 ///
 /// تغيّرت المتطلبات (2026-08-18): السائق لم يعد يُنهي الرحلة — تكتمل
 /// بتأكيد الركّاب. وبقي له الإلغاء وحده — متاحاً حتى لحظة الانطلاق
-/// بلا مهلة مسبقة. وبلاغ عدم الحضور لا يُفتح إلا بعد ساعة من الموعد.
+/// بلا مهلة مسبقة.
+///
+/// ثم (2026-08-20) قُصّرت مهلة بلاغ عدم الحضور من ساعة إلى **دقيقة**
+/// واحدة بعد الموعد.
 
 final DateTime _departure = DateTime(2026, 8, 20, 10, 0);
 
@@ -86,7 +89,11 @@ void main() {
     });
   });
 
-  group('بلاغ عدم الحضور — بعد ساعة من الانطلاق', () {
+  group('بلاغ عدم الحضور — بعد دقيقة من الانطلاق', () {
+    test('المهلة دقيقة واحدة لا ساعة', () {
+      expect(RideTimeRules.noShowDelay, const Duration(minutes: 1));
+    });
+
     test('قبل الانطلاق: ممنوع', () {
       expect(
         RideTimeRules.canReportNoShow(_departure,
@@ -103,27 +110,27 @@ void main() {
       );
     });
 
-    test('بعده بخمس وأربعين دقيقة: ممنوع', () {
+    test('بعده بنصف دقيقة: ممنوع', () {
       expect(
         RideTimeRules.canReportNoShow(_departure,
-            now: _departure.add(const Duration(minutes: 45))),
+            now: _departure.add(const Duration(seconds: 30))),
         isFalse,
-        reason: 'التأخّر أقلّ من ساعة زحمة سير، والبلاغ يخصم نقاط ثقة',
+        reason: 'المهلة دقيقة كاملة، ونصفها لا يكفي',
       );
     });
 
-    test('عند الساعة بالضبط: مسموح', () {
+    test('عند الدقيقة بالضبط: مسموح', () {
       expect(
         RideTimeRules.canReportNoShow(_departure,
-            now: _departure.add(const Duration(hours: 1))),
+            now: _departure.add(const Duration(minutes: 1))),
         isTrue,
       );
     });
 
-    test('بعد ساعتين: مسموح', () {
+    test('بعد ساعة: مسموح', () {
       expect(
         RideTimeRules.canReportNoShow(_departure,
-            now: _departure.add(const Duration(hours: 2))),
+            now: _departure.add(const Duration(hours: 1))),
         isTrue,
       );
     });

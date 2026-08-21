@@ -42,7 +42,7 @@ class ScoreCubit extends SafeCubit<ScoreState> {
 
     result.fold(
       (failure) =>
-          emit(ScoreError(message: HandelErorrMessage.score(failure.message))),
+          emit(ScoreError(message: failure.arabic(HandelErorrMessage.score))),
       (score) {
         _cached = score;
         emit(ScoreLoaded(score: score));
@@ -105,7 +105,7 @@ class ScoreCubit extends SafeCubit<ScoreState> {
           _emitHistory();
         } else {
           emit(ScoreError(
-              message: HandelErorrMessage.score(failure.message)));
+              message: failure.arabic(HandelErorrMessage.score)));
         }
       },
       (page) {

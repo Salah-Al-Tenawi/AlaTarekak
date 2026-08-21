@@ -77,7 +77,7 @@ class VerifyUserCubit extends SafeCubit<VerfiyUserState> {
       mechanicImage,
     );
     response.fold((erorr) {
-      emit(VerfiyError(HandelErorrMessage.verfiyDriver(erorr.message)));
+      emit(VerfiyError(erorr.arabic(HandelErorrMessage.verfiyDriver)));
     }, (succses) {
       emit(VerfiySuccess(data: succses));
     });
@@ -91,7 +91,7 @@ class VerifyUserCubit extends SafeCubit<VerfiyUserState> {
       backIdImage,
     );
     response.fold((erorr) {
-      emit(VerfiyError(HandelErorrMessage.verfiyPassanger(erorr.message)));
+      emit(VerfiyError(erorr.arabic(HandelErorrMessage.verfiyPassanger)));
     }, (success) {
       emit(VerfiySuccess(data: success));
     });

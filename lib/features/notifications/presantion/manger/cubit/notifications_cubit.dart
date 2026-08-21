@@ -50,7 +50,7 @@ class NotificationsCubit extends SafeCubit<NotificationsState> {
 
     result.fold(
       (failure) => emit(NotificationsError(
-          message: HandelErorrMessage.notifications(failure.message))),
+          message: failure.arabic(HandelErorrMessage.notifications))),
       (pageData) {
         _items
           ..clear()
@@ -148,7 +148,7 @@ class NotificationsCubit extends SafeCubit<NotificationsState> {
     if (isClosed) return;
     result.fold(
       (failure) => _emitActionFailed(
-          HandelErorrMessage.notifications(failure.message)),
+          failure.arabic(HandelErorrMessage.notifications)),
       (newUnreadCount) {
         for (var i = 0; i < _items.length; i++) {
           if (!_items[i].isRead) _replaceAt(i, isRead: true);

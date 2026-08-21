@@ -74,6 +74,20 @@ final class BookingUserInTripRated extends BookingUserInTripState {
   List<Object> get props => [averageRating];
 }
 
+/// الرحلة قُيّمت من قبل — ردّ الخادم 409 على تقييم ثانٍ.
+///
+/// منفصلة عن [BookingUserInTripErorr] لأنها ليست عطلاً: تقييم السائق
+/// الأول قائم، وهذه محاولة ثانية تُردّ. فتُعرض بنبرة خبر لا بأحمر
+/// يوهم أن التقييم ضاع.
+final class BookingUserInTripAlreadyRated extends BookingUserInTripState {
+  final String message;
+
+  const BookingUserInTripAlreadyRated({required this.message});
+
+  @override
+  List<Object> get props => [message];
+}
+
 final class BookingUserInTripSucc extends BookingUserInTripState {}
 
 /// جلب الرحلة وحجوزاتها جارٍ — يخصّ الشاشة كلها لا حجزاً بعينه.
@@ -87,13 +101,19 @@ final class BookingUserInTripListLoaded extends BookingUserInTripState {
   final List<BookingModel> bookings;
   final DateTime departure;
 
+  /// حالة الرحلة نفسها لا حالة الحجز — تصل في `data.status` من المسار
+  /// ذاته. يُخفى بها بلاغ الغياب متى انتهت الرحلة أو أُلغيت: الخادم
+  /// يردّ البلاغ حينها بـ«cannot report no-show for a ride with status».
+  final String rideStatus;
+
   const BookingUserInTripListLoaded({
     required this.bookings,
     required this.departure,
+    this.rideStatus = '',
   });
 
   @override
-  List<Object> get props => [bookings, departure];
+  List<Object> get props => [bookings, departure, rideStatus];
 }
 
 /// المحادثة مع الراكب جاهزة — الواجهة تنتقل إلى شاشة المحادثة.

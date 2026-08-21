@@ -22,15 +22,22 @@ class ServerExpcptions implements Exception {
 
 
 void handelDioExcptions(DioException e) {
-  Filuar parseFiluar(dynamic data, String fallbackMessage) {
+  /// [status] رمز HTTP — يُحمل في الفشل ليُذيَّل به النصّ المعروض.
+  Filuar parseFiluar(dynamic data, String fallbackMessage, [int? status]) {
     try {
-      if (data == null) return Filuar(message: fallbackMessage);
-      if (data is Map<String, dynamic>) return Filuar.fromJson(data);
-      if (data is String && data.isNotEmpty) return Filuar(message: data);
-      
-      return Filuar(message: fallbackMessage);
+      if (data == null) {
+        return Filuar(message: fallbackMessage, statusCode: status);
+      }
+      if (data is Map<String, dynamic>) {
+        return Filuar.fromJson(data, statusCode: status);
+      }
+      if (data is String && data.isNotEmpty) {
+        return Filuar(message: data, statusCode: status);
+      }
+
+      return Filuar(message: fallbackMessage, statusCode: status);
     } catch (_) {
-      return Filuar(message: fallbackMessage);
+      return Filuar(message: fallbackMessage, statusCode: status);
     }
   }
 
@@ -93,9 +100,11 @@ void handelDioExcptions(DioException e) {
         case 500:
         case 502:
         case 520:
-          throw ServerExpcptions(error: parseFiluar(e.response?.data, fallback));
+          throw ServerExpcptions(
+              error: parseFiluar(e.response?.data, fallback, status));
         default:
-          throw ServerExpcptions(error: parseFiluar(e.response?.data, fallback));
+          throw ServerExpcptions(
+              error: parseFiluar(e.response?.data, fallback, status));
       }
   }
 }

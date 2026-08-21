@@ -23,7 +23,7 @@ class TripDetailsMapCubit extends SafeCubit<TripDetailsMapState> {
       // خدمات المسار (GraphHopper / OpenRouteService) ترسل أخطاءها
       // بالإنجليزية، وكانت تظهر للمستخدم بنصّها
       (error) => emit(TripDetailsMapError(
-          HandelErorrMessage.routeOptions(error.message))),
+          error.arabic(HandelErorrMessage.routeOptions))),
       (routes) {
         final path = routes.first.path;
         emit(TripDetailsMapLoaded(path));

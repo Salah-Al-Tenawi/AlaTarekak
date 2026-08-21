@@ -91,6 +91,6 @@ class ComplaintCubit extends SafeCubit<ComplaintState> {
       if (field.startsWith('attachments.')) return _attachmentFileError;
       return _fieldErrors[field] ?? HandelErorrMessage.errValidation;
     }
-    return HandelErorrMessage.complaint(failure.message);
+    return failure.arabic(HandelErorrMessage.complaint);
   }
 }

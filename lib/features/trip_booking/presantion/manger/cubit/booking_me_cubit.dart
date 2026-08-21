@@ -43,7 +43,7 @@ class BookingMeCubit extends SafeCubit<BookingMeState> {
 
     result.fold(
       (error) => emit(
-          BookingMeErorr(message: HandelErorrMessage.chat(error.message))),
+          BookingMeErorr(message: error.arabic(HandelErorrMessage.chat))),
       (conversationId) => emit(BookingMeOpenConversation(
         conversationId: conversationId,
         title: name,
@@ -59,7 +59,7 @@ class BookingMeCubit extends SafeCubit<BookingMeState> {
 
     response.fold(
       (error) => emit(
-          BookingMeErorr(message: HandelErorrMessage.bookingMe(error.message))),
+          BookingMeErorr(message: error.arabic(HandelErorrMessage.bookingMe))),
       (listBooking) => emit(BookingMeListLoaded(bookings: listBooking)),
     );
   }
@@ -69,7 +69,7 @@ class BookingMeCubit extends SafeCubit<BookingMeState> {
     final response = await _repo.cancelBooking(bookingId, seats);
     response.fold((erorr) {
       emit(BookingMeErorr(
-          message: HandelErorrMessage.cancelBooking(erorr.message)));
+          message: erorr.arabic(HandelErorrMessage.cancelBooking)));
     }, (cancel) {
       emit(BookingMeCanceled(cancelModel: cancel));
     });
@@ -81,7 +81,7 @@ class BookingMeCubit extends SafeCubit<BookingMeState> {
     final response = await _repo.cancelWholeBooking(bookingId);
     response.fold((erorr) {
       emit(BookingMeErorr(
-          message: HandelErorrMessage.cancelBooking(erorr.message)));
+          message: erorr.arabic(HandelErorrMessage.cancelBooking)));
     }, (_) {
       emit(const BookingMeWholeCanceled(message: "تم إلغاء الحجز بالكامل"));
     });
@@ -111,7 +111,7 @@ class BookingMeCubit extends SafeCubit<BookingMeState> {
         return;
       }
       emit(BookingMeErorr(
-          message: HandelErorrMessage.driverNoShow(erorr.message)));
+          message: erorr.arabic(HandelErorrMessage.driverNoShow)));
     }, (response) async {
       await NoShowReportStore.remember(NoShowReportStore.rideKey(rideId));
       if (isClosed) return;
@@ -139,7 +139,7 @@ class BookingMeCubit extends SafeCubit<BookingMeState> {
         return;
       }
       emit(BookingMeErorr(
-          message: HandelErorrMessage.passangerConfirm(erorr.message)));
+          message: erorr.arabic(HandelErorrMessage.passangerConfirm)));
     }, (sucess) {
       emit(const BookingMeFinish(message: "تم التأكيد"));
     });
@@ -160,7 +160,17 @@ class BookingMeCubit extends SafeCubit<BookingMeState> {
     if (isClosed) return;
 
     await response.fold((erorr) async {
-      emit(const BookingMeErorr(message: "فشل التقيم"));
+      // 409 «سبق أن قيّمت هذه الرحلة» خبرٌ لا عطل — انظر
+      // [BookingMeAlreadyRated]
+      if (HandelErorrMessage.isAlreadyRated(erorr.message)) {
+        emit(const BookingMeAlreadyRated(
+            message: HandelErorrMessage.alreadyRatedRide));
+        return;
+      }
+      // كانت «فشل التقيم» لكل شيء — رسالة الخادم تُعرَّب كما في بقية
+      // المسارات بدل نصّ واحد لا يقول للمستخدم ما العمل
+      emit(BookingMeErorr(
+          message: erorr.arabic(HandelErorrMessage.rateUser)));
     }, (rate) async {
       final text = comment?.trim();
       if (text != null && text.isNotEmpty) {
@@ -175,7 +185,7 @@ class BookingMeCubit extends SafeCubit<BookingMeState> {
     emit(BookingMeButtonloading());
     final response = await _repo.addcommit(comment, userid);
     response.fold((erorr) {
-      emit(const BookingMeErorr(message: "فشل في اضافة تعليق"));
+      emit(BookingMeErorr(message: erorr.arabic(HandelErorrMessage.commet)));
     }, (succ) {
       emit(BookingMeCommented());
     });

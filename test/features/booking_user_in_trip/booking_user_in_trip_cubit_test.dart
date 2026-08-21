@@ -1,4 +1,5 @@
 import 'package:alatarekak/core/errors/filuar.dart';
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/core/utils/class/no_show_report.dart';
 import 'package:alatarekak/features/booking_user_in_trip/data/model/booking_user_modle.dart';
 import 'package:alatarekak/features/booking_user_in_trip/data/repo/booking_users_in_trip_repo_imp.dart';
@@ -50,6 +51,52 @@ void main() {
         isA<BookingUserInTripLoading>(),
         isA<BookingUserInTripErorr>()
             .having((s) => s.message, 'message', 'متاح لسائق الرحلة فقط'),
+      ],
+    );
+  });
+
+  group('BookingUserInTripCubit — تقييم راكب: الرحلة مرّة واحدة', () {
+    // الخادم يردّ 409 على تقييم ثانٍ للرحلة نفسها. وهو ليس عطلاً: تقييم
+    // السائق الأول قائم — فيُقال له ذلك بحالة مستقلّة تُعرض بنبرة خبر،
+    // لا بحمرة توهمه أن تقييمه ضاع فيعيد الكرّة.
+    blocTest<BookingUserInTripCubit, BookingUserInTripState>(
+      'تقييم ثانٍ لنفس الرحلة: خبرٌ لا خطأ',
+      build: () {
+        when(() => repo.rateUser(any(), any())).thenAnswer((_) async =>
+            left(const Filuar(message: 'You have already rated this ride.')));
+        return BookingUserInTripCubit(repo);
+      },
+      act: (cubit) => cubit.ratePassenger(5, 15),
+      expect: () => [
+        isA<BookingUserInTripLoading>(),
+        isA<BookingUserInTripAlreadyRated>().having((s) => s.message, 'الرسالة',
+            HandelErorrMessage.alreadyRatedRide),
+      ],
+    );
+
+    blocTest<BookingUserInTripCubit, BookingUserInTripState>(
+      'ولا يُرسل التعليق بعد تقييم مردود',
+      build: () {
+        when(() => repo.rateUser(any(), any())).thenAnswer((_) async =>
+            left(const Filuar(message: 'You have already rated this ride.')));
+        return BookingUserInTripCubit(repo);
+      },
+      act: (cubit) => cubit.ratePassenger(5, 15, comment: 'راكب مهذّب'),
+      verify: (_) => verifyNever(() => repo.addcommit(any(), any())),
+    );
+
+    blocTest<BookingUserInTripCubit, BookingUserInTripState>(
+      'فشل آخر في التقييم يبقى خطأً معرّباً',
+      build: () {
+        when(() => repo.rateUser(any(), any())).thenAnswer(
+            (_) async => left(const Filuar(message: 'Unauthenticated.')));
+        return BookingUserInTripCubit(repo);
+      },
+      act: (cubit) => cubit.ratePassenger(5, 15),
+      expect: () => [
+        isA<BookingUserInTripLoading>(),
+        isA<BookingUserInTripErorr>().having(
+            (s) => s.message, 'الرسالة', HandelErorrMessage.errSession),
       ],
     );
   });

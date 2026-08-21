@@ -14,6 +14,7 @@ import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/widgets/trip_card_parts.dart';
 import 'package:alatarekak/core/service/no_show_report_store.dart';
 import 'package:alatarekak/core/utils/class/no_show_report.dart';
+import 'package:alatarekak/core/utils/class/ride_booking_rules.dart';
 import 'package:alatarekak/core/utils/class/ride_time_rules.dart';
 import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 import 'package:alatarekak/core/utils/widgets/app_loader.dart';
@@ -84,6 +85,10 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
   /// معرّف الرحلة — بدونه لا تستطيع الشاشة الجلب بنفسها.
   int? rideId;
 
+  /// حالة الرحلة — رحلة انتهت أو أُلغيت لا يُبلَّغ عن غياب فيها، والخادم
+  /// يردّ البلاغ عليها أصلاً. تصل من شاشة التفاصيل ثم يستبدلها الجلب.
+  String rideStatus = '';
+
   @override
   void initState() {
     super.initState();
@@ -96,6 +101,8 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
       final at = args['departure'];
       if (at is DateTime) departure = at;
       rideId = args['rideId'] is int ? args['rideId'] as int : null;
+      final status = args['rideStatus'];
+      if (status is String) rideStatus = status;
     } else if (args is List<BookingModel>) {
       usersBooking = args;
     }
@@ -177,6 +184,9 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
           } else if (state is BookingUserInTripRated) {
             showMySnackBar(context, 'شكراً لك على تقييمك',
                 type: SnackType.success);
+          } else if (state is BookingUserInTripAlreadyRated) {
+            // ليس أحمر: تقييمه الأول قائم، وإنما تُردّ محاولة ثانية
+            showMySnackBar(context, state.message, type: SnackType.info);
           } else if (state is BookingUserInTripOpenConversation) {
             Get.toNamed(RouteName.chatScreen, arguments: {
               'conversationId': state.conversationId,
@@ -188,6 +198,7 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
             setState(() {
               usersBooking = state.bookings;
               departure = state.departure;
+              rideStatus = state.rideStatus;
             });
           } else if (state is BookingUserInTripUpdated) {
             // قبول أو رفض غيّر الحالة على الخادم: العدّادات في الأعلى
@@ -233,6 +244,7 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
                       child: _BookingCard(
                         booking: usersBooking[i],
                         departure: departure,
+                        rideOver: isRideOver(rideStatus),
                       ),
                     ),
                 ],
@@ -375,7 +387,14 @@ class _BookingCard extends StatelessWidget {
   final BookingModel booking;
   final DateTime? departure;
 
-  const _BookingCard({required this.booking, this.departure});
+  /// انتهت الرحلة أو أُلغيت — انظر [_CardActions.rideOver].
+  final bool rideOver;
+
+  const _BookingCard({
+    required this.booking,
+    this.departure,
+    this.rideOver = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -419,6 +438,7 @@ class _BookingCard extends StatelessWidget {
                 status: status,
                 isBusy: isBusy,
                 departure: departure,
+                rideOver: rideOver,
               ),
             ],
           ),
@@ -588,11 +608,19 @@ class _CardActions extends StatelessWidget {
   final String status;
   final bool isBusy;
 
+  /// انتهت الرحلة أو أُلغيت.
+  ///
+  /// حالة الحجز وحدها لا تكفي: الحجز يبقى `confirmed` وقد انتهت رحلته —
+  /// فيُعرض على السائق بلاغُ غياب يردّه الخادم بـ«لم يعد الإبلاغ متاحاً
+  /// لهذه الرحلة». الحالتان تُقرآن معاً: حجزٌ قائم في رحلة قائمة.
+  final bool rideOver;
+
   const _CardActions({
     required this.booking,
     required this.status,
     required this.isBusy,
     this.departure,
+    this.rideOver = false,
   });
 
   @override
@@ -633,11 +661,6 @@ class _CardActions extends StatelessWidget {
 
       case 'confirmed':
       case 'accepted':
-        // البلاغ لا يُفتح إلا بعد ساعة من الانطلاق: التأخّر نصف ساعة
-        // زحمة سير لا غياب، والبلاغ يخصم من نقاط ثقة الراكب.
-        final canReport = departure != null &&
-            RideTimeRules.canReportNoShow(departure!);
-
         final chat = _FilledAction(
           label: 'مراسلة',
           icon: Icons.chat_bubble_outline_rounded,
@@ -653,12 +676,24 @@ class _CardActions extends StatelessWidget {
         // موعد مجهول: لا نعرض بلاغاً قد يقع قبل أوانه — انظر [departure]
         if (departure == null) return chat;
 
-        return Row(
-          children: [
-            Expanded(child: chat),
-            SizedBox(width: 10.w),
-            Expanded(child: _noShowAction(context, canReport: canReport)),
-          ],
+        // ورحلة انتهت أو أُلغيت لا بلاغ فيها — انظر [rideOver]
+        if (rideOver) return chat;
+
+        // البوابة تحكم الصفّ كلّه لا الزرّ وحده: ما دامت مغلقة فالمراسلة
+        // تأخذ العرض كاملاً، فلا يبقى نصفه فراغاً مكان زرّ مخفيّ.
+        return NoShowGate(
+          departure: departure!,
+          builder: (context, remaining) {
+            if (remaining != null) return chat;
+
+            return Row(
+              children: [
+                Expanded(child: chat),
+                SizedBox(width: 10.w),
+                Expanded(child: _noShowAction(context)),
+              ],
+            );
+          },
         );
 
       // الرحلة تمّت — يُتاح للسائق تقييم راكبه.
@@ -699,13 +734,16 @@ class _CardActions extends StatelessWidget {
         comment: result.comment);
   }
 
-  /// زرّ «لم يحضر» بأحواله الثلاثة — كما في جانب الراكب.
+  /// زرّ «لم يحضر» بعد أن تُفتح بوابته — كما في جانب الراكب.
   ///
-  /// **لا يُخفى قبل أوانه بل يُعطَّل ومعه ما بقي**: السائق الذي انتظر
-  /// راكباً يبحث عن الإبلاغ، وغيابُ الزرّ يوهمه أن التطبيق لا يتيحه.
+  /// **يُخفى قبل أوانه ولا يُعطَّل**: كان يُعرض معطّلاً بعدّاده منذ لحظة
+  /// قبول الحجز، فيرى السائق على حجز مؤكَّد لرحلة غد بلاغَ غياب برأس
+  /// «بعد ١٤ ساعة» — إنذارٌ لا معنى له في موضعه. والمهلة صارت دقيقة
+  /// واحدة، فلا عدّاد يستحق العرض أصلاً.
+  ///
   /// والمُبلَّغ عنه سابقاً يُعطَّل — الحالة محلية لأن الخادم لا يكشف
   /// تقارير الغياب في أي مسار.
-  Widget _noShowAction(BuildContext context, {required bool canReport}) {
+  Widget _noShowAction(BuildContext context) {
     if (NoShowReportStore.wasReported(
         NoShowReportStore.bookingKey(booking.id))) {
       return _OutlinedAction(
@@ -716,26 +754,11 @@ class _CardActions extends StatelessWidget {
       );
     }
 
-    // العدّاد حيّ: يُعيد بناء نفسه كل دقيقة، ثم يفتح الزرّ عند انقضاء
-    // المهلة بلا أن يغادر السائق الشاشة ويعود.
-    return NoShowGate(
-      departure: departure!,
-      builder: (context, remaining) {
-        if (remaining != null) {
-          return _OutlinedAction(
-            label: noShowCountdownLabel(remaining),
-            icon: Icons.schedule_rounded,
-            color: MyColors.textSecondary,
-            onTap: null,
-          );
-        }
-        return _OutlinedAction(
-          label: 'لم يحضر',
-          icon: Icons.report_problem_outlined,
-          color: MyColors.error,
-          onTap: () => _confirmNoShow(context),
-        );
-      },
+    return _OutlinedAction(
+      label: 'لم يحضر',
+      icon: Icons.report_problem_outlined,
+      color: MyColors.error,
+      onTap: () => _confirmNoShow(context),
     );
   }
 

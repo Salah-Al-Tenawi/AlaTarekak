@@ -39,11 +39,21 @@ class Filuar {
   /// تفاصيل الحظر (فقط مع USER_BANNED).
   final BanInfo? ban;
 
+  /// رمز حالة HTTP كما ردّه الخادم — 422، 500، 401…
+  ///
+  /// يُذيَّل به النصّ العربي المعروض للمستخدم: «تعذّر الاتصال بالخادم
+  /// (500)». الرسالة وحدها لا تكفي حين يتصل المستخدم بالدعم — الرمز
+  /// يقود إلى السطر الذي فشل في سجلّ الخادم.
+  ///
+  /// `null` لأعطال لا رمز لها: انقطاع الشبكة، مهلة الاتصال، إلغاء الطلب.
+  final int? statusCode;
+
   const Filuar({
     required this.message,
     this.code,
     this.errors,
     this.ban,
+    this.statusCode,
   });
 
   bool get isValidation => errors != null && errors!.isNotEmpty;
@@ -55,7 +65,7 @@ class Filuar {
   /// هل فشل الحقل المحدد في التحقق؟
   bool hasFieldError(String field) => errors?.containsKey(field) ?? false;
 
-  factory Filuar.fromJson(Map<String, dynamic> json) {
+  factory Filuar.fromJson(Map<String, dynamic> json, {int? statusCode}) {
     // الرسالة: message أو error.message أو error
     String message = '';
     final rawMessage = json['message'];
@@ -97,6 +107,7 @@ class Filuar {
       code: json['code']?.toString(),
       errors: errors,
       ban: ban,
+      statusCode: statusCode,
     );
   }
 }

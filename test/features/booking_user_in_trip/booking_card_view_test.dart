@@ -54,8 +54,10 @@ void main() {
     WidgetTester tester,
     List<BookingModel> bookings, {
     BookingUserInTripState? state,
-    /// موعد انطلاق الرحلة — بلاغ «لم يحضر» مرهون بمضيّ ساعة عليه.
+    /// موعد انطلاق الرحلة — بلاغ «لم يحضر» مرهون بمضيّ دقيقة عليه.
     DateTime? departure,
+    /// حالة الرحلة نفسها — لا بلاغ في رحلة انتهت أو أُلغيت.
+    String rideStatus = 'active',
     // حالة التحميل ترسم Lottie تدور بلا نهاية، فلا تستقرّ الشجرة أبداً
     bool settle = true,
   }) async {
@@ -93,8 +95,11 @@ void main() {
       ),
     );
     await tester.pump();
-    Get.offAllNamed('/bookings',
-        arguments: {'bookings': bookings, 'departure': departure});
+    Get.offAllNamed('/bookings', arguments: {
+      'bookings': bookings,
+      'departure': departure,
+      'rideStatus': rideStatus,
+    });
     if (settle) {
       await tester.pumpAndSettle(const Duration(milliseconds: 600));
     } else {
@@ -214,11 +219,11 @@ void main() {
       expect(find.text('رفض'), findsOneWidget);
     });
 
-    // البلاغ لا **يُتاح** قبل مضيّ ساعة على الانطلاق، لكنه صار يُعرض
-    // معطّلاً بما بقي بدل أن يُخفى: من انتظر راكباً ولم يأتِ يبحث عن
-    // الزرّ، وغيابُه يوهمه أن التطبيق لا يتيح الإبلاغ فيقصد الدعم.
+    // البلاغ **يُخفى** حتى تُفتح بوابته بعد دقيقة من الانطلاق. كان
+    // يُعرض معطّلاً بعدّاده منذ لحظة القبول، فيرى السائق على حجز مؤكَّد
+    // لرحلة غد زرَّ «بعد ١٤ ساعة» — إنذارٌ في غير موضعه.
 
-    testWidgets('confirmed → مراسلة، والبلاغ معطّل بعدّاده قبل الانطلاق',
+    testWidgets('confirmed قبل الانطلاق → مراسلة وحدها، بلا بلاغ ولا عدّاد',
         (tester) async {
       await pump(
         tester,
@@ -230,42 +235,71 @@ void main() {
       expect(find.text('قبول'), findsNothing);
       expect(find.text('لم يحضر'), findsNothing,
           reason: 'الرحلة لم تنطلق بعد — لا غياب يُبلَّغ عنه');
-      expect(find.textContaining('بعد '), findsOneWidget,
-          reason: 'يُعرض ما بقي حتى تُفتح البوابة');
+      expect(find.textContaining('بعد '), findsNothing,
+          reason: 'ولا عدّاد كذلك: حجز مؤكَّد لرحلة قادمة لا شأن له بالغياب');
     });
 
-    testWidgets('قبل مضيّ ساعة على الانطلاق: معطّل لا مخفيّ', (tester) async {
+    testWidgets('قبل مضيّ دقيقة على الانطلاق: مخفيّ لا معطّل', (tester) async {
       await pump(
         tester,
         [_booking(status: 'confirmed')],
-        departure: DateTime.now().subtract(const Duration(minutes: 40)),
+        departure: DateTime.now().subtract(const Duration(seconds: 30)),
       );
 
       expect(find.text('مراسلة'), findsOneWidget);
       expect(find.text('لم يحضر'), findsNothing,
-          reason: 'تأخّر أربعين دقيقة زحمة سير لا غياب، والبلاغ يخصم نقاطاً');
-
-      // عشرون دقيقة باقية على فتح البوابة
-      expect(find.textContaining('20 دقيقة'), findsOneWidget);
-
-      final button = tester.widget<OutlinedButton>(
-        find.ancestor(
-          of: find.textContaining('20 دقيقة'),
-          matching: find.byType(OutlinedButton),
-        ),
-      );
-      expect(button.onPressed, isNull, reason: 'معطّل فعلاً لا شكلاً');
+          reason: 'من انطلق قبل نصف دقيقة ليس غائباً');
+      expect(find.byType(OutlinedButton), findsNothing,
+          reason: 'لا زرّ معطّل بعدّاده — الصفّ كلّه للمراسلة');
     });
 
-    testWidgets('بعد ساعة من الانطلاق يظهر البلاغ', (tester) async {
+    testWidgets('بعد دقيقة من الانطلاق يظهر البلاغ', (tester) async {
       await pump(
         tester,
         [_booking(status: 'confirmed')],
-        departure: DateTime.now().subtract(const Duration(hours: 1, minutes: 5)),
+        departure: DateTime.now().subtract(const Duration(minutes: 2)),
       );
 
       expect(find.text('مراسلة'), findsOneWidget);
       expect(find.text('لم يحضر'), findsOneWidget);
+    });
+
+    // حالة الحجز وحدها لا تكفي: الحجز يبقى `confirmed` وقد انتهت رحلته،
+    // فيُعرض بلاغٌ يردّه الخادم بـ«لم يعد الإبلاغ متاحاً لهذه الرحلة».
+    testWidgets('رحلة انتهت: لا بلاغ ولو كان الحجز مؤكَّداً', (tester) async {
+      await pump(
+        tester,
+        [_booking(status: 'confirmed')],
+        departure: DateTime.now().subtract(const Duration(hours: 2)),
+        rideStatus: 'finished',
+      );
+
+      expect(find.text('مراسلة'), findsOneWidget);
+      expect(find.text('لم يحضر'), findsNothing,
+          reason: 'الخادم يردّ البلاغ على رحلة منتهية، فعرضه وعدٌ كاذب');
+    });
+
+    testWidgets('ورحلة ملغاة كذلك', (tester) async {
+      await pump(
+        tester,
+        [_booking(status: 'confirmed')],
+        departure: DateTime.now().subtract(const Duration(hours: 2)),
+        rideStatus: 'cancelled',
+      );
+
+      expect(find.text('لم يحضر'), findsNothing);
+    });
+
+    testWidgets('أما الممتلئة فرحلة قائمة: البلاغ متاح', (tester) async {
+      await pump(
+        tester,
+        [_booking(status: 'confirmed')],
+        departure: DateTime.now().subtract(const Duration(hours: 2)),
+        rideStatus: 'full',
+      );
+
+      expect(find.text('لم يحضر'), findsOneWidget,
+          reason: 'الامتلاء ليس انتهاءً — ولا يصحّ حرمان سائقها من البلاغ');
     });
 
     testWidgets('بلا موعد معروف لا يظهر البلاغ إطلاقاً', (tester) async {

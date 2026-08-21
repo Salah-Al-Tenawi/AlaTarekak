@@ -224,6 +224,68 @@ void main() {
     });
   });
 
+  group('HandelErorrMessage — التقييم والتعليق: الرحلة مرّة واحدة', () {
+    // 409 على المسارين: الخادم يحرس أن تُقيَّم الرحلة مرّة وأن يُترك
+    // عليها تعليق واحد. وكانت الرسالتان تسقطان إلى «حدث خطأ غير
+    // متوقع» — فلا يعرف المستخدم أن تقييمه الأول قائم أصلاً.
+
+    // بلا رموز جديدة: يسقط هذان على الشيفرة القديمة سقوطاً حقيقياً لا
+    // بفشل ترجمة — فيبقيان حارسَين على السلوك لا على أسماء الثوابت.
+    test('التقييم المكرّر لا يسقط إلى الرسالة العامة', () {
+      final text =
+          HandelErorrMessage.rateUser('You have already rated this ride.');
+
+      expect(text, isNot(HandelErorrMessage.errServer));
+      expect(text, contains('سبق أن قيّمت هذه الرحلة'));
+    });
+
+    test('والتعليق المكرّر كذلك', () {
+      final text = HandelErorrMessage.commet(
+          'You have already left a comment for this ride.');
+
+      expect(text, isNot(HandelErorrMessage.errServer));
+      expect(text, contains('سبق أن علّقت على هذه الرحلة'));
+    });
+
+    test('تقييم ثانٍ لنفس الرحلة → السبب صريح لا «خطأ غير متوقع»', () {
+      expect(HandelErorrMessage.rateUser('You have already rated this ride.'),
+          HandelErorrMessage.alreadyRatedRide);
+      expect(HandelErorrMessage.alreadyRatedRide,
+          isNot(HandelErorrMessage.errServer));
+    });
+
+    test('تعليق ثانٍ لنفس الرحلة → السبب صريح كذلك', () {
+      expect(
+          HandelErorrMessage.commet(
+              'You have already left a comment for this ride.'),
+          HandelErorrMessage.alreadyCommentedRide);
+    });
+
+    test('«تعليق مكرّر» لا يسقط في فخّ مفتاح «comment» العام', () {
+      expect(
+          HandelErorrMessage.commet(
+              'You have already left a comment for this ride.'),
+          isNot('التعليق مطلوب (بحد أقصى 500 حرف)'),
+          reason: 'الرسالة تحوي كلمة comment، والأسبقية للمفتاح الأدقّ');
+    });
+
+    test('التمييز البرمجي: 409 يُعرف قبل أن يُعرَّب', () {
+      expect(
+          HandelErorrMessage.isAlreadyRated('You have already rated this ride.'),
+          isTrue);
+      expect(HandelErorrMessage.isAlreadyCommented(
+              'You have already left a comment for this ride.'),
+          isTrue);
+    });
+
+    test('وأخطاء التقييم الأخرى تبقى على حالها', () {
+      expect(HandelErorrMessage.isAlreadyRated('The rating field is required'),
+          isFalse);
+      expect(HandelErorrMessage.rateUser('The rating must be between 1 and 5'),
+          'يرجى اختيار تقييم من 1 إلى 5');
+    });
+  });
+
   group('HandelErorrMessage — تسجيل الخروج', () {
     test('فشل غير معروف → رسالة الخروج لا الرسالة العامة', () {
       expect(HandelErorrMessage.logout('Logout failed unexpectedly'),

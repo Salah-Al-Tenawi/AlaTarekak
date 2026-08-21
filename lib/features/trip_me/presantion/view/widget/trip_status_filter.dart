@@ -5,8 +5,9 @@ import 'package:alatarekak/features/trip_create/data/model/trip_model.dart';
 
 /// تصنيف رحلات «رحلاتي» إلى مجموعات يفهمها السائق.
 ///
-/// الخادم يرسل سبع حالات (`active`, `full`, `awaiting_confirmation`,
-/// `finished`, `completed`, `cancelled`, `no_show`) — وعرضها جميعاً في
+/// الخادم يرسل ستّ حالات (`active`, `full`, `launched`, `finished`,
+/// `cancelled`، ومعها `awaiting_confirmation` المهجورة التي حلّت
+/// `launched` محلّها) — وعرضها جميعاً في
 /// قائمة واحدة يخلط رحلة ألغاها السائق أمس برحلة تنطلق بعد ساعة وما زالت
 /// تنتظر ركّاباً.
 ///
@@ -36,7 +37,15 @@ enum TripStatusFilter {
 /// الوارد قبلها لأن الخادم أرسل حالات بحروف كبيرة في بعض الردود.
 const _openStatuses = {'active'};
 const _fullStatuses = {'full'};
-const _doneStatuses = {'finished', 'completed', 'awaiting_confirmation'};
+/// `launched` هي اسم `awaiting_confirmation` الجديد عند الخادم — وكانت
+/// ناقصة هنا، فرحلةٌ انطلقت لا تُطابق مجموعةً فتختفي من كل الرقاقات إلا
+/// «الكل»، ويبحث عنها سائقها في «منتهية» فلا يجدها.
+const _doneStatuses = {
+  'finished',
+  'completed',
+  'launched',
+  'awaiting_confirmation',
+};
 const _cancelledStatuses = {'cancelled', 'canceled', 'no_show', 'rejected'};
 
 extension TripStatusFilterX on TripStatusFilter {

@@ -83,6 +83,20 @@ final class BookingMeRated extends BookingMeState {
   List<Object> get props => [rate];
 }
 
+/// الرحلة قُيّمت من قبل — ردّ الخادم 409 على تقييم ثانٍ.
+///
+/// منفصلة عن [BookingMeErorr] لأنها ليست عطلاً: تقييم الراكب الأول
+/// قائم، وهذه محاولة ثانية تُردّ. فتُعرض بنبرة خبر لا بأحمر يوهم أن
+/// التقييم ضاع فيعيد الكرّة.
+final class BookingMeAlreadyRated extends BookingMeState {
+  final String message;
+
+  const BookingMeAlreadyRated({required this.message});
+
+  @override
+  List<Object> get props => [message];
+}
+
 final class BookingMeCommented extends BookingMeState {}
 
 /// محادثة السائق جاهزة للفتح — الشاشة تنتقل إليها.

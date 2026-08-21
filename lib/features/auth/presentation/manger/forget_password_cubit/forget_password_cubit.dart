@@ -29,7 +29,7 @@ class ForgetPasswordCubit extends SafeCubit<ForgetPasswordState> {
     final response = await authRepoIm.forgotPassword(email);
     response.fold(
       (error) => emit(ForgetPasswordErorr(
-          message: HandelErorrMessage.forgetPassword(error.message))),
+          message: error.arabic(HandelErorrMessage.forgetPassword))),
       (_) => emit(ForgetPasswordGoToOtp(email: email)),
     );
   }
@@ -62,7 +62,7 @@ class ForgetPasswordCubit extends SafeCubit<ForgetPasswordState> {
     final response = await authRepoIm.resendOtpForgetPassword(email);
     response.fold(
       (error) => emit(ForgetPasswordErorr(
-          message: HandelErorrMessage.forgetPassword(error.message))),
+          message: error.arabic(HandelErorrMessage.forgetPassword))),
       (_) => startOtpTimer(),
     );
   }
@@ -74,7 +74,7 @@ class ForgetPasswordCubit extends SafeCubit<ForgetPasswordState> {
     final result = await authRepoIm.verifyOtpResetPassword(email, _currentOtp);
     result.fold(
       (error) => emit(ForgetPasswordErorr(
-          message: HandelErorrMessage.verifyOtpForgetPassword(error.message))),
+          message: error.arabic(HandelErorrMessage.verifyOtpForgetPassword))),
       (token) => emit(ForgetPasswordOtpVerified(email: email, resetToken: token)),
     );
   }
@@ -110,7 +110,7 @@ class ForgetPasswordCubit extends SafeCubit<ForgetPasswordState> {
     );
     response.fold(
       (error) => emit(ForgetPasswordErorr(
-          message: HandelErorrMessage.resetPassword(error.message))),
+          message: error.arabic(HandelErorrMessage.resetPassword))),
       (_) => emit(ForgetPasswordResetSuccess()),
     );
   }

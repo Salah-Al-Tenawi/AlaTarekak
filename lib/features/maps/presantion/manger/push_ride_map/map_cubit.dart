@@ -221,7 +221,7 @@ class MapCubit extends SafeCubit<MapState> {
             startLocation!, endLocation!);
 
     response.fold(
-      (failure) => emit(MapError(HandelErorrMessage.routeOptions(failure.message))),
+      (failure) => emit(MapError(failure.arabic(HandelErorrMessage.routeOptions))),
       (routes) {
         if (routes.isEmpty) {
           emit(MapError("لم يتم العثور على مسارات"));

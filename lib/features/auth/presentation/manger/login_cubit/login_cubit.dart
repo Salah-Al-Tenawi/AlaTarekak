@@ -24,7 +24,7 @@ class LoginCubit extends SafeCubit<LoginState> {
         emit(LoginEmailNotVerified(email.trim()));
         return;
       }
-      emit(LoginError(error.message));
+      emit(LoginError(error.message, statusCode: error.statusCode));
     }, (user) {
       // تسجيل توكن FCM لدى الباك إند بعد نجاح الدخول (لا يعطل التدفق إن فشل)
       PushTokenService.instance.registerToken();

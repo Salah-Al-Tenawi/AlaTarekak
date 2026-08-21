@@ -1,3 +1,4 @@
+import 'package:alatarekak/core/errors/filuar.dart';
 import 'package:alatarekak/core/utils/class/arabic_plural.dart';
 import 'package:alatarekak/core/utils/class/no_show_report.dart';
 
@@ -78,6 +79,18 @@ class HandelErorrMessage {
     }
     if (m.contains("valid syrian mobile number")) return errPhoneSyrian;
     return null;
+  }
+
+  /// النصّ العربي مذيّلاً برمز حالة HTTP — «(500)».
+  ///
+  /// **للأخطاء وحدها**: 2xx نجاح لا يُذيَّل، و`null` رمزُ ما لا رمز له
+  /// (انقطاع شبكة، مهلة، إلغاء طلب) فلا يُختلق له رقم.
+  ///
+  /// الرمز في آخر النصّ بين قوسين: المستخدم يقرأ الجملة أولاً، ومن
+  /// يتصل بالدعم يجد الرقم حيث يتوقّعه.
+  static String withStatus(String text, int? status) {
+    if (status == null || (status >= 200 && status < 300)) return text;
+    return '$text ($status)';
   }
 
   static String _match(String message, Map<String, String> map,
@@ -193,11 +206,36 @@ class HandelErorrMessage {
         "image": "يجب أن تكون الصورة بصيغة JPG أو PNG وبحجم أقصى 2 ميغابايت",
       });
 
+  /// 409 على `POST /profile/{id}/rate` — تقييم ثانٍ للرحلة نفسها.
+  ///
+  /// ليس خطأً في ما فعل المستخدم: تقييمه الأول قائم على الخادم، وهذه
+  /// محاولة ثانية تُردّ. فتُقال له الحقيقة — الرحلة تُقيَّم مرّة —
+  /// بنبرة خبرٍ لا بنبرة عطل. انظر [isAlreadyRated].
+  static const String alreadyRatedRide =
+      "سبق أن قيّمت هذه الرحلة. لا تُقيَّم الرحلة الواحدة أكثر من مرّة";
+
+  /// 409 على `POST /profile/{id}/comments` — تعليق ثانٍ للرحلة نفسها.
+  static const String alreadyCommentedRide =
+      "سبق أن علّقت على هذه الرحلة. لا يُترك أكثر من تعليق واحد عليها";
+
+  /// هل ردّ الخادم أن الرحلة قُيّمت من قبل؟
+  ///
+  /// يميّزها المستدعي عن بقية الأخطاء ليعرضها خبراً لا عطلاً — كما يميّز
+  /// [NoShowReport.isAlreadyReported] بلاغَ الغياب المكرَّر.
+  static bool isAlreadyRated(String message) =>
+      message.toLowerCase().contains("already rated this ride");
+
+  /// هل ردّ الخادم أن للرحلة تعليقاً سابقاً؟
+  static bool isAlreadyCommented(String message) =>
+      message.toLowerCase().contains("already left a comment for this ride");
+
   static String commet(String message) => _match(message, {
+        "already left a comment for this ride": alreadyCommentedRide,
         "comment": "التعليق مطلوب (بحد أقصى 500 حرف)",
       });
 
   static String rateUser(String message) => _match(message, {
+        "already rated this ride": alreadyRatedRide,
         "rating": "يرجى اختيار تقييم من 1 إلى 5",
       });
 
@@ -396,8 +434,12 @@ class HandelErorrMessage {
   }
 
   /// «يمكنك الإبلاغ بعد ٣٧ دقيقة» — بصيغة العربية لا «37 دقيقة» دائماً.
+  ///
+  /// **لا تذكر طول المهلة.** كانت تقول «يُفتح بعد ساعة من الانطلاق»، وهي
+  /// مهلة الخادم لا مهلة التطبيق، وقد تتغيّر عنده فتصير الجملة كذباً على
+  /// المستخدم. والدقائق الباقية تصل في رسالته نفسها، وهي وحدها ما يعنيه.
   static String _unlocksIn(int minutes) =>
-      'الإبلاغ عن الغياب يُفتح بعد ساعة من الانطلاق — يمكنك الإبلاغ بعد '
+      'لم يُفتح الإبلاغ عن الغياب بعد — يمكنك الإبلاغ بعد '
       '${arabicMinutes(minutes)}';
 
   // =====================================================================
@@ -529,4 +571,18 @@ class HandelErorrMessage {
         "notification not found": "الإشعار غير موجود",
         "no notifications found": "لا توجد إشعارات",
       });
+}
+
+/// تعريب الفشل ورمزه معاً.
+///
+/// كان كل موضع يكتب `HandelErorrMessage.x(error.message)` فيضيع الرمز:
+/// المُطابِق لا يراه أصلاً، وهو ليس في النصّ بل في كائن الفشل. هذه
+/// تجمعهما في نداء واحد — والمُترجِم يُمرَّر مرجعاً لا يُستدعى:
+///
+/// ```dart
+/// emit(Erorr(message: error.arabic(HandelErorrMessage.login)));
+/// ```
+extension FiluarArabic on Filuar {
+  String arabic(String Function(String) translate) =>
+      HandelErorrMessage.withStatus(translate(message), statusCode);
 }

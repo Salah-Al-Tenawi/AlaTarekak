@@ -39,7 +39,7 @@ class BookingUserInTripCubit extends SafeCubit<BookingUserInTripState> {
 
     result.fold(
       (error) => emit(BookingUserInTripErorr(
-          message: HandelErorrMessage.chat(error.message))),
+          message: error.arabic(HandelErorrMessage.chat))),
       (conversationId) => emit(BookingUserInTripOpenConversation(
         conversationId: conversationId,
         title: name,
@@ -63,11 +63,12 @@ class BookingUserInTripCubit extends SafeCubit<BookingUserInTripState> {
         // مُطابِق الرحلة لا الملف الشخصي: كان `showProfile` هنا، فلا
         // يُطابَق شيء ويسقط كل خطأ إلى «حدث خطأ غير متوقع» العامّة.
         emit(BookingUserInTripErorr(
-            message: HandelErorrMessage.showOneRide(error.message)));
+            message: error.arabic(HandelErorrMessage.showOneRide)));
       },
       (trip) => emit(BookingUserInTripListLoaded(
         bookings: trip.booking,
         departure: trip.departure,
+        rideStatus: trip.status,
       )),
     );
   }
@@ -78,7 +79,7 @@ class BookingUserInTripCubit extends SafeCubit<BookingUserInTripState> {
     final response = await repo.acceptPassanger(bookingId);
     response.fold(
       (error) => emit(BookingUserInTripErorr(
-          message: HandelErorrMessage.acceptPassanger(error.message))),
+          message: error.arabic(HandelErorrMessage.acceptPassanger))),
       (succ) {
         emit(BookingUserInTripUpdated(
           bookingId: bookingId,
@@ -94,7 +95,7 @@ class BookingUserInTripCubit extends SafeCubit<BookingUserInTripState> {
     final response = await repo.rejectPassanger(bookingId);
     response.fold(
       (error) => emit(BookingUserInTripErorr(
-          message: HandelErorrMessage.rejectPassanger(error.message))),
+          message: error.arabic(HandelErorrMessage.rejectPassanger))),
       (raw) {
         // الرفض ينتج حالة "cancelled" — لا وجود لقيمة "rejected" في
         // enum الباك إند، وتلفيقها محلياً يجعل البطاقة تنقلب عند أول
@@ -133,7 +134,7 @@ class BookingUserInTripCubit extends SafeCubit<BookingUserInTripState> {
         return;
       }
       emit(BookingUserInTripErorr(
-          message: HandelErorrMessage.passengerNoShow(error.message)));
+          message: error.arabic(HandelErorrMessage.passengerNoShow)));
     }, (raw) async {
       await NoShowReportStore.remember(
           NoShowReportStore.bookingKey(bookingId));
@@ -180,8 +181,15 @@ class BookingUserInTripCubit extends SafeCubit<BookingUserInTripState> {
     if (isClosed) return;
 
     await response.fold((error) async {
+      // 409 «سبق أن قيّمت هذه الرحلة» خبرٌ لا عطل — انظر
+      // [BookingUserInTripAlreadyRated]
+      if (HandelErorrMessage.isAlreadyRated(error.message)) {
+        emit(const BookingUserInTripAlreadyRated(
+            message: HandelErorrMessage.alreadyRatedRide));
+        return;
+      }
       emit(BookingUserInTripErorr(
-          message: HandelErorrMessage.rateUser(error.message)));
+          message: error.arabic(HandelErorrMessage.rateUser)));
     }, (rate) async {
       final text = comment?.trim();
       if (text != null && text.isNotEmpty) {

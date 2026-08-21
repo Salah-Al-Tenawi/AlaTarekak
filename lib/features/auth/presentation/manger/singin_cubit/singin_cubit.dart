@@ -53,7 +53,7 @@ class SinginCubit extends SafeCubit<SinginState> {
     final response = await authRepoIm.resendOtpSinging(email);
     response.fold(
       (e) => emit(
-          SinginResendOtpError(HandelErorrMessage.emailVerification(e.message))),
+          SinginResendOtpError(e.arabic(HandelErorrMessage.emailVerification))),
       (_) => startOtpTimer(),
     );
   }
@@ -69,7 +69,7 @@ class SinginCubit extends SafeCubit<SinginState> {
     (e) {
       // نفس الحالة تُبثّ من التسجيل ومن تأكيد الرمز، والشاشتان لا تفرّقان
       // بينهما — فالترجمة هنا حيث تُعرف العملية الفاشلة
-      emit(SinginErorre(HandelErorrMessage.emailVerification(e.message)));
+      emit(SinginErorre(e.arabic(HandelErorrMessage.emailVerification)));
     },
     (auth) {
       // تسجيل توكن FCM بعد تأكيد البريد كما يفعل الدخول تماماً.
@@ -124,7 +124,7 @@ class SinginCubit extends SafeCubit<SinginState> {
 
   response.fold(
     (failure) {
-      emit(SinginErorre(HandelErorrMessage.singin(failure.message)));
+      emit(SinginErorre(failure.arabic(HandelErorrMessage.singin)));
     },
     (succ) {
       emit(SingInGotoVerfiyOtp(email: email));

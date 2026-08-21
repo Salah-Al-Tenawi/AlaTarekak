@@ -18,7 +18,7 @@ class SearchCubit extends SafeCubit<SearchState> {
 
     response.fold((erorr) {
       emit(SearchErorr(
-        error: HandelErorrMessage.search(erorr.message),
+        error: erorr.arabic(HandelErorrMessage.search),
         needsVerification:
             HandelErorrMessage.isPassengerNotVerified(erorr.message),
       ));
@@ -38,7 +38,7 @@ class SearchCubit extends SafeCubit<SearchState> {
 
     response.fold(
       (erorr) => emit(SearchErorr(
-        error: HandelErorrMessage.search(erorr.message),
+        error: erorr.arabic(HandelErorrMessage.search),
         needsVerification:
             HandelErorrMessage.isPassengerNotVerified(erorr.message),
       )),

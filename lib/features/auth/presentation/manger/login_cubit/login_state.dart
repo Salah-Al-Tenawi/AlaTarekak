@@ -13,13 +13,17 @@ final class LoginLoading extends LoginState {}
 
 class LoginSuccess extends LoginState {}
 
+/// **الرسالة خام إنجليزية** — الواجهة تفحصها قبل أن تعرّبها (تمييز
+/// «البريد غير مؤكَّد» مثلاً)، فالتعريب يقع هناك لا هنا. و[statusCode]
+/// يرافقها ليُذيَّل به النصّ المعروض — انظر [HandelErorrMessage.withStatus].
 class LoginError extends LoginState {
   final String message;
+  final int? statusCode;
 
-  const LoginError(this.message);
+  const LoginError(this.message, {this.statusCode});
 
   @override
-  List<Object> get props => [message];
+  List<Object> get props => [message, statusCode ?? -1];
 }
 
 /// بيانات الدخول صحيحة لكن البريد غير مؤكَّد بعد.

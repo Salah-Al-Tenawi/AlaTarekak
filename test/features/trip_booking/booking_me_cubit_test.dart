@@ -1,4 +1,5 @@
 import 'package:alatarekak/core/errors/filuar.dart';
+import 'package:alatarekak/core/errors/handel_erorr_message.dart';
 import 'package:alatarekak/features/profiles/data/model/rating_modle.dart';
 import 'package:alatarekak/features/profiles/domain/entity/comment_entity.dart';
 import 'package:alatarekak/features/trip_booking/data/model/booking_me_model.dart';
@@ -222,6 +223,55 @@ void main() {
       expect: () => [
         isA<BookingMeButtonloading>(),
         isA<BookingMeRated>().having((s) => s.rate, 'المتوسط', 4.3),
+      ],
+    );
+
+    // الخادم يردّ 409 على تقييم ثانٍ للرحلة نفسها. وهو ليس عطلاً:
+    // تقييم الراكب الأول قائم — فيُقال له ذلك بحالة مستقلّة تُعرض بنبرة
+    // خبر، لا بحمرة توهمه أن تقييمه ضاع فيعيد الكرّة.
+    blocTest<BookingMeCubit, BookingMeState>(
+      'تقييم ثانٍ لنفس الرحلة: خبرٌ لا خطأ',
+      build: () {
+        when(() => repo.rateUser(any(), any())).thenAnswer((_) async =>
+            left(const Filuar(message: 'You have already rated this ride.')));
+        return BookingMeCubit(repo);
+      },
+      act: (cubit) => cubit.reateUser(4.0, 3),
+      expect: () => [
+        isA<BookingMeButtonloading>(),
+        isA<BookingMeAlreadyRated>().having((s) => s.message, 'الرسالة',
+            HandelErorrMessage.alreadyRatedRide),
+      ],
+    );
+
+    blocTest<BookingMeCubit, BookingMeState>(
+      'فشل آخر في التقييم: رسالة معرّبة لا «فشل التقيم» لكل شيء',
+      build: () {
+        when(() => repo.rateUser(any(), any())).thenAnswer((_) async =>
+            left(const Filuar(message: 'Unauthenticated.')));
+        return BookingMeCubit(repo);
+      },
+      act: (cubit) => cubit.reateUser(4.0, 3),
+      expect: () => [
+        isA<BookingMeButtonloading>(),
+        isA<BookingMeErorr>().having(
+            (s) => s.message, 'الرسالة', HandelErorrMessage.errSession),
+      ],
+    );
+
+    blocTest<BookingMeCubit, BookingMeState>(
+      'تعليق ثانٍ لنفس الرحلة: السبب معرّب',
+      build: () {
+        when(() => repo.addcommit(any(), any())).thenAnswer((_) async => left(
+            const Filuar(
+                message: 'You have already left a comment for this ride.')));
+        return BookingMeCubit(repo);
+      },
+      act: (cubit) => cubit.addComment('رحلة ممتازة', 3),
+      expect: () => [
+        isA<BookingMeButtonloading>(),
+        isA<BookingMeErorr>().having((s) => s.message, 'الرسالة',
+            HandelErorrMessage.alreadyCommentedRide),
       ],
     );
 
