@@ -107,12 +107,9 @@ void main() {
     });
   });
 
-  group('نقاط السائق ورسوم الإنشاء', () {
-    test('حتى 30%: بلا خصم ورسومه تعود', () {
+  group('نقاط السائق — وهي كلفته كلها', () {
+    test('حتى 30%: بلا خصم', () {
       expect(CancelPolicy.driverCancelRidePoints(30), 0);
-      expect(
-          CancelPolicy.creationFeeRefunded(elapsed: 30, hasPassengers: true),
-          isTrue);
     });
 
     test('30–50%: سبع نقاط', () {
@@ -124,17 +121,6 @@ void main() {
       expect(CancelPolicy.driverCancelRidePoints(100), 12);
     });
 
-    test('الرسوم تُحتجز بتأخّر الإلغاء وفي الرحلة ركّاب', () {
-      expect(
-          CancelPolicy.creationFeeRefunded(elapsed: 80, hasPassengers: true),
-          isFalse);
-    });
-
-    test('ورحلةٌ بلا ركّاب تُعاد رسومها مهما تأخّر إلغاؤها', () {
-      expect(
-          CancelPolicy.creationFeeRefunded(elapsed: 99, hasPassengers: false),
-          isTrue);
-    });
   });
 
   group('ما يُقال للراكب', () {
@@ -224,14 +210,19 @@ void main() {
       final lines = texts(elapsed: 10);
 
       expect(lines[1], contains('لن تخسر'));
-      expect(lines[2], contains('وتُعاد إليك رسوم'));
     });
 
-    test('والمتأخّر يجمع الخصمين', () {
-      final lines = texts(elapsed: 90);
+    test('والمتأخّر يخصم النقاط', () {
+      expect(texts(elapsed: 90)[1], contains('12 نقطة'));
+    });
 
-      expect(lines[1], contains('12 نقطة'));
-      expect(lines[2], contains('لن تُعاد رسوم'));
+    // **لا رسوم على السائق**: المال يدفعه الراكب، والتطبيق يأخذ نسبته
+    // من الحجز. فوعدُ «تُعاد إليك رسومك» كان يَعِد بمالٍ لم يدفعه.
+    test('ولا تُذكر رسوم إنشاء لا وجود لها', () {
+      for (final elapsed in [10.0, 40.0, 90.0]) {
+        expect(texts(elapsed: elapsed).join(), isNot(contains('رسوم')),
+            reason: 'عند $elapsed%');
+      }
     });
   });
 

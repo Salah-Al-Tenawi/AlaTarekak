@@ -8,7 +8,6 @@ import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/animations/app_animations.dart';
-import 'package:alatarekak/core/utils/functions/my_dilaog.dart';
 import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/utils/class/refund_notice.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
@@ -92,16 +91,24 @@ class _BookingMeListState extends State<BookingMeList> {
 
   void _onState(BuildContext context, BookingMeState state) {
     if (state is BookingMeCanceled) {
-      // كان يُعرض `refund_percentage` بلاحقة «ل.س»: «تم استرداد 70 ل.س»
-      // على استردادٍ قدره أربعة عشر ألفاً — انظر [refundNotice]
-      myConfirmDilaogWithPolicy(
+      // **خبرُ نجاحٍ بحوار التطبيق**: كان يُعرض بـ`AlertDialog` عارٍ
+      // عليه أيقونة خطأ حمراء وزرّا «نعم/لا» — سؤالٌ عن أمرٍ وقع
+      // للتوّ. صار حوار التطبيق نفسه: أيقونة صحّ خضراء وزرّ واحد.
+      //
+      // والرقم كان `refund_percentage` بلاحقة «ل.س»: «تم استرداد 70 ل.س»
+      // على استردادٍ قدره أربعة عشر ألفاً — انظر [refundNotice].
+      showAppDialog(
         context,
-        refundNotice(
+        icon: Icons.check_circle_outline_rounded,
+        accentColor: MyColors.success,
+        title: state.isWholeBooking ? 'تم إلغاء الحجز' : 'تم إلغاء المقاعد',
+        message: refundNotice(
           state.cancelModel.data.refundPolicy,
           wasConfirmed: state.wasConfirmed,
           cashRide: state.cashRide,
         ),
-        title: state.isWholeBooking ? "تم إلغاء الحجز" : "تم إلغاء المقاعد",
+        content: const _PolicyLink(),
+        cancelLabel: 'حسناً',
       );
       _refreshData();
     } else if (state is BookingMeWholeCanceled) {
@@ -300,6 +307,29 @@ class _BookingMeListState extends State<BookingMeList> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// رابط سياسة الإلغاء — يرافق خبرَ الاسترداد لمن أراد تفصيل شرائحه.
+class _PolicyLink extends StatelessWidget {
+  const _PolicyLink();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Get.toNamed(RouteName.policy),
+      child: Text(
+        'اطّلع على سياسة الإلغاء',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 12.sp,
+          color: MyColors.accent,
+          fontWeight: FontWeight.w700,
+          decoration: TextDecoration.underline,
+          decorationColor: MyColors.accent,
         ),
       ),
     );

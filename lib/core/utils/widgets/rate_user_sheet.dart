@@ -35,13 +35,19 @@ class RateUserSheet extends StatefulWidget {
 
   final String? avatar;
 
-  /// «كيف كانت رحلتك مع أحمد؟» للراكب، و«كيف كان أحمد راكباً؟» للسائق.
-  final String question;
+  /// **السؤال واحد للطرفين** — يُبنى هنا من [name] ولا يُمرَّر.
+  ///
+  /// كان لكلٍّ صيغته: «كيف كانت رحلتك مع أحمد؟» للراكب و«كيف كان أحمد
+  /// راكباً؟» للسائق. والثانية تُسمّي الدور لا الشخص، ولا معنى لتذكير
+  /// السائق بأن راكبه راكب. والصيغة الواحدة تمنع أن تفترقا مرّة أخرى.
+  String get question => 'كيف كان $name في هذه الرحلة؟';
+
+  /// سطرٌ أصغر تحته: لماذا يستحقّ هذا التقييم عناءه.
+  static const String note = 'تقييمك يساهم في بناء الثقة به';
 
   const RateUserSheet({
     super.key,
     required this.name,
-    required this.question,
     this.avatar,
   });
 
@@ -49,7 +55,6 @@ class RateUserSheet extends StatefulWidget {
   static Future<RateUserResult?> show(
     BuildContext context, {
     required String name,
-    required String question,
     String? avatar,
   }) {
     return showModalBottomSheet<RateUserResult>(
@@ -57,11 +62,7 @@ class RateUserSheet extends StatefulWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: MyColors.navy.withValues(alpha: 0.45),
-      builder: (_) => RateUserSheet(
-        name: name,
-        question: question,
-        avatar: avatar,
-      ),
+      builder: (_) => RateUserSheet(name: name, avatar: avatar),
     );
   }
 
@@ -122,6 +123,15 @@ class _RateUserSheetState extends State<RateUserSheet> {
                   widget.question,
                   textAlign: TextAlign.center,
                   style: AppTextStyles.titleMedium.copyWith(fontSize: 16.sp),
+                ),
+                SizedBox(height: 6.h),
+                Text(
+                  RateUserSheet.note,
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    fontSize: 12.sp,
+                    color: MyColors.textSecondary,
+                  ),
                 ),
                 SizedBox(height: 18.h),
                 _stars(),

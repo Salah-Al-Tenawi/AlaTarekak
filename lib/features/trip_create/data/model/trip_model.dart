@@ -107,6 +107,21 @@ class TripModel {
     }());
   }
 
+  /// عدد الحجوزات القائمة — لا المقاعد، ولا الملغاة.
+  ///
+  /// `GET /rides/{id}/passengers` يرسل **كل** الحجوزات بما فيها الملغاة
+  /// وغير الحاضرين، فعدّ القائمة كما هي يُضخّم الرقم. وحين لا تصل قائمة
+  /// يُقرأ العدّاد، ثم المقاعد آخراً.
+  int get activeBookingsCount {
+    if (booking.isNotEmpty) {
+      const dead = {'cancelled', 'canceled', 'rejected', 'no_show'};
+      return booking
+          .where((b) => !dead.contains(b.status.trim().toLowerCase()))
+          .length;
+    }
+    return bookingsCount > 0 ? bookingsCount : seatsBooked;
+  }
+
   /// المقاعد المحجوزة من قائمة الحجوزات حين لا يرسل الخادم عدّاداً لها.
   ///
   /// رد البحث لا يحمل `seats_booked` إطلاقاً، و`passengers_confirmed` شيء

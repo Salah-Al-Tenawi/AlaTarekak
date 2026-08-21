@@ -786,7 +786,6 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
     final result = await RateUserSheet.show(
       context,
       name: driver,
-      question: 'كيف كانت رحلتك مع $driver؟',
       avatar: b.driverAvatar,
     );
     if (result == null || !mounted) return;

@@ -100,6 +100,24 @@ class TripDetailsCubit extends SafeCubit<TripDetailsState> {
   /// يتعفّن مع كل نوع يضيفه الخادم. فتُحسم من الردّ نفسه: إن تبيّن أن
   /// الرحلة لي أُعيد الجلب من مسار السائق — طلب إضافي واحد، لسائق يفتح
   /// رحلته من إشعار وحده.
+  /// إلغاء السائق رحلته من شاشة تفاصيلها.
+  ///
+  /// كان متاحاً من «رحلاتي» وحدها، فمن فتح رحلته ليراجعها قبل إلغائها
+  /// وجب عليه الرجوع إلى القائمة ليلغيها — والشاشة التي فيها القرار
+  /// أولى بالإجراء.
+  Future<void> cancelTrip(int tripId) async {
+    emit(TripDetailsButtonLoading());
+
+    final response = await tripDetailsRepoIM.cancelTrip(tripId);
+    if (isClosed) return;
+
+    response.fold(
+      (error) => emit(TripDetailsError(
+          message: error.arabic(HandelErorrMessage.cancelRide))),
+      (_) => emit(const TripDetailsCancel(message: 'تم إلغاء رحلتك')),
+    );
+  }
+
   Future<void> fetchTrip(int tripId, {bool? asDriver}) async {
     emit(TripDetailsLoading());
 

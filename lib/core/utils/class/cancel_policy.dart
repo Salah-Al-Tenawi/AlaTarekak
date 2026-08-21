@@ -94,12 +94,11 @@ class CancelPolicy {
     return 12;
   }
 
-  /// هل تُعاد رسوم إنشاء الرحلة؟ تُحتجز إن تأخّر الإلغاء وفي الرحلة ركّاب.
-  static bool creationFeeRefunded({
-    required double elapsed,
-    required bool hasPassengers,
-  }) =>
-      elapsed <= 30 || !hasPassengers;
+  // **لا رسوم على السائق أصلاً.** كانت هنا `creationFeeRefunded` مأخوذة
+  // عن جدول الباك إند («رسوم إنشاء الرحلة: تُسترد كاملة / تُحتجز»)، ثمّ
+  // تبيّن أن لا وجود لها في المنتج: المال يدفعه الراكب، والتطبيق يأخذ
+  // نسبته من الحجز لا من السائق. فعقوبة السائق نقاطُ ثقةٍ لا غير، ووعدُ
+  // «تُعاد إليك رسومك» كان يَعِد بمالٍ لم يدفعه.
 
   // ── ما يُقال للمستخدم ────────────────────────────────────────────
 
@@ -151,6 +150,9 @@ class CancelPolicy {
   ///
   /// [passengers] عدد الركّاب أصحاب الحجوزات القائمة — يُستردّ لهم كامل
   /// مبالغهم مهما تأخّر الإلغاء، فالخصم على من ألغى لا على من انتظر.
+  ///
+  /// **وكلفة السائق نقاطٌ لا مال**: لا يدفع رسوماً على رحلته، والتطبيق
+  /// يأخذ نسبته من حجز الراكب.
   static List<Consequence> driverCancelRide({
     required double? elapsed,
     required int passengers,
@@ -177,13 +179,6 @@ class CancelPolicy {
             'ولن تخسر أي نقاط من رصيد ثقتك.')
         : Consequence(ConsequenceKind.points, ConsequenceTone.bad,
             'وتُخصم ${_points(points)} من رصيد ثقتك.'));
-
-    lines.add(
-        creationFeeRefunded(elapsed: elapsed, hasPassengers: passengers > 0)
-            ? const Consequence(ConsequenceKind.money, ConsequenceTone.good,
-                'وتُعاد إليك رسوم إنشاء الرحلة.')
-            : const Consequence(ConsequenceKind.money, ConsequenceTone.bad,
-                'ولن تُعاد رسوم إنشاء الرحلة.'));
 
     return lines;
   }

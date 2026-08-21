@@ -9,6 +9,9 @@ import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/class/format_money.dart';
 import 'package:alatarekak/core/utils/class/ride_booking_rules.dart';
+import 'package:alatarekak/core/utils/class/ride_time_rules.dart';
+import 'package:alatarekak/core/utils/widgets/consequence_card.dart';
+import 'package:alatarekak/core/utils/class/cancel_policy.dart';
 import 'package:alatarekak/core/utils/class/syrian_phone.dart';
 import 'package:alatarekak/core/utils/widgets/syrian_phone_field.dart';
 import 'package:alatarekak/core/utils/functions/get_userid.dart';
@@ -466,20 +469,67 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
 
   Widget _buildPrimaryAction(BuildContext context) {
     if (widget.mode == TripDetailsMode.myView) {
+      // الإلغاء متاحٌ ما دامت لم تنطلق ولم تنتهِ — وكان غائباً عن هذه
+      // الشاشة كلياً، فمن فتح رحلته ليراجعها قبل إلغائها وجب أن يعود
+      // إلى القائمة ليجد الزرّ هناك.
+      final canCancel = RideTimeRules.canCancelRide(trip.departure) &&
+          !isRideOver(trip.status);
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildBookingsListButton(),
+          if (canCancel) ...[
+            SizedBox(height: 10.h),
+            _ActionButton(
+              icon: Icons.cancel_schedule_send_rounded,
+              label: 'إلغاء الرحلة',
+              color: MyColors.error,
+              onTap: () => _askCancelRide(context),
+            ),
+          ],
         ],
       );
     }
     return _buildConditionalBookingButton(context);
   }
 
+  /// كلفة الإلغاء تُعرض قبله — انظر [CancelPolicy].
+  Future<void> _askCancelRide(BuildContext context) async {
+    final cubit = context.read<TripDetailsCubit>();
+    final confirm = await showAppDialog(
+      context,
+      icon: Icons.cancel_schedule_send_rounded,
+      title: 'إلغاء الرحلة',
+      message: 'لا يمكن التراجع بعده.',
+      content: ConsequenceCard(
+        title: 'ماذا يقع إن ألغيتَ الآن',
+        lines: CancelPolicy.driverCancelRide(
+          elapsed: CancelPolicy.elapsedPercent(
+            createdAt: trip.createdAt,
+            departure: trip.departure,
+          ),
+          passengers: trip.activeBookingsCount,
+        ),
+      ),
+      confirmLabel: 'إلغاء الرحلة',
+      cancelLabel: 'تراجع',
+      destructive: true,
+    );
+
+    if (confirm == true) cubit.cancelTrip(trip.id);
+  }
+
   Widget _buildBookingsListButton() {
+    // **العدد من القائمة نفسها**: كان `seatsBooked` وهو يُقرأ من
+    // `seats.booked` الصفريّة في هذا المسار، فيظهر «عرض الحجوزات (0)»
+    // لسائقٍ يفتحه ليجد فيه ثلاثة حجوزات. وصفرٌ لا يُعرض أصلاً — الزرّ
+    // بلا رقم أصدق من رقم كاذب.
+    final count = trip.activeBookingsCount;
+
     return _ActionButton(
       icon: Icons.list_alt_rounded,
-      label: 'عرض الحجوزات (${trip.seatsBooked})',
+      label: count > 0 ? 'عرض الحجوزات ($count)' : 'عرض الحجوزات',
       color: MyColors.primary,
       // موعد الانطلاق وحالة الرحلة يُمرَّران معها: بلاغ «لم يحضر» لا
       // يظهر قبل الموعد بدقيقة ولا على رحلة انتهت، والحجز وحده لا يحمل

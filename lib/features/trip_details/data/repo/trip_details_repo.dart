@@ -41,6 +41,15 @@ class TripDetailsRepoIM extends TripDetailsRepo {
   }
   
   @override
+  /// إلغاء السائق رحلته — انظر [TripDetailsRemoteDataSource.cancelTrip].
+  Future<Either<Filuar, dynamic>> cancelTrip(int tripId) async {
+    try {
+      return right(await remoteDataSource.cancelTrip(tripId));
+    } on ServerExpcptions catch (e) {
+      return left(e.error);
+    }
+  }
+
   Future<Either<Filuar, dynamic>> confirmTrip(int tripId) async{
      try {
       final response = await remoteDataSource.confirmTrip(tripId);

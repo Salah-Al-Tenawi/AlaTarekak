@@ -9,6 +9,18 @@ import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/features/auth/presentation/manger/login_cubit/login_cubit.dart';
+
+/// الدخول بحسابٍ اجتماعي — **مخفيّ لا محذوف**.
+///
+/// زرّ Google كان معروضاً و`onPressed` فارغة: يضغطه المستخدم فلا يقع
+/// شيء، فيظنّ العطل في حسابه أو في التطبيق. وخلفه لا يوجد شيء أصلاً —
+/// `loginWithGoogle` في الكيوبت معلَّقة، ولا مسار عند الخادم.
+///
+/// أُخفي هو وفاصلُه: فاصلٌ يقول «أو عبر الوسائل الاجتماعي» ولا شيء تحته
+/// أسوأ من غيابه. والزرّ باقٍ في الشيفرة — يُعاد بتحويل هذه إلى `true`
+/// يوم يصير خلفه مسار يعمل.
+const bool kSocialLoginEnabled = false;
+
 class ColumnButtonsLogin extends StatelessWidget {
   final TextEditingController phone;
   final TextEditingController password;
@@ -83,53 +95,50 @@ class ColumnButtonsLogin extends StatelessWidget {
             // ━━━━━━━━━━━━━━━━━━━━━━━━
             // ✅ فاصل بنص أطول
             // ━━━━━━━━━━━━━━━━━━━━━━━━
-            Row(
-              children: [
-                const Expanded(child: Divider()),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w),
-                  child: Text(
-                    "أو عبر الوسائل الاجتماعي",
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: MyColors.textHint,
+            // الفاصل والأزرار الاجتماعية — انظر [kSocialLoginEnabled]
+            if (kSocialLoginEnabled) ...[
+              Row(
+                children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.w),
+                    child: Text(
+                      "أو عبر الوسائل الاجتماعي",
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: MyColors.textHint,
+                          ),
                     ),
                   ),
-                ),
-                const Expanded(child: Divider()),
-              ],
-            ),
-
-            SizedBox(height: 20.h),
-
-            // ━━━━━━━━━━━━━━━━━━━━━━━━
-            // ✅ أزرار مستطيلة من الواجهة
-            // ━━━━━━━━━━━━━━━━━━━━━━━━
-            Row(
-              children: [
-                // Google
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: MyColors.textPrimary,
-                      side: BorderSide(color: MyColors.border),
-                      padding: EdgeInsets.symmetric(vertical: 12.h),
-                    ),
-                    icon: Image.asset(ImagesUrl.imagegoogle, width: 20, height: 20),
-                    label: Text(
-                      "Google",
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                  const Expanded(child: Divider()),
+                ],
+              ),
+              SizedBox(height: 20.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {},
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: MyColors.textPrimary,
+                        side: BorderSide(color: MyColors.border),
+                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                      ),
+                      icon: Image.asset(ImagesUrl.imagegoogle,
+                          width: 20, height: 20),
+                      label: Text(
+                        "Google",
+                        style:
+                            Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
                       ),
                     ),
                   ),
-                ),
-                SizedBox(width: 12.w),
-                // Facebook
-               ],
-            ),
-
-            SizedBox(height: 24.h),
+                  SizedBox(width: 12.w),
+                ],
+              ),
+              SizedBox(height: 24.h),
+            ],
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━
             // ✅ سجل الآن

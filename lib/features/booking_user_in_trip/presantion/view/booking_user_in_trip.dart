@@ -761,7 +761,6 @@ class _CardActions extends StatelessWidget {
     final result = await RateUserSheet.show(
       context,
       name: name,
-      question: 'كيف كان $name راكباً؟',
       avatar: booking.avatar,
     );
     if (result == null) return;

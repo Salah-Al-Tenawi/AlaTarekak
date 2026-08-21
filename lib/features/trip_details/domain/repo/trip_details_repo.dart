@@ -7,7 +7,10 @@ abstract class TripDetailsRepo {
 
   /// الرحلة وحجوزاتها — لسائقها وحده. انظر شرح التنفيذ.
   Future<Either<Filuar, TripModel>> featchTripWithBookings(int tripId);
-  Future<Either<Filuar, dynamic>> finishTrip(int tripId); 
+  Future<Either<Filuar, dynamic>> finishTrip(int tripId);
+
+  /// إلغاء السائق رحلته — متاحٌ من التفاصيل كما من القائمة.
+  Future<Either<Filuar, dynamic>> cancelTrip(int tripId); 
   Future<Either<Filuar, dynamic>> confirmTrip(int tripId); 
   
 }

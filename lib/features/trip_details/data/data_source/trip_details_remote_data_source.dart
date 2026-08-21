@@ -48,6 +48,18 @@ class TripDetailsRemoteDataSource {
     return BookingResponse.fromJson(response);
   }
   // todo model
+  /// إلغاء السائق رحلته — `PATCH /rides/{id}/cancel`.
+  ///
+  /// المسار نفسه الذي تستعمله شاشة «رحلاتي». وكان الإلغاء متاحاً من
+  /// القائمة وحدها: من فتح تفاصيل رحلته لم يجد سبيلاً إليه فيها.
+  Future<dynamic> cancelTrip(int tripId) async {
+    final response = await api.patch(
+      "${ApiEndPoint.rides}/$tripId/cancel",
+      header: {ApiKey.authorization: "Bearer ${mytoken()}"},
+    );
+    return response;
+  }
+
   Future<dynamic> finishTrip(int tripId) async {
     final response = await api.post("${ApiEndPoint.rides}/$tripId/finish" , 
     header: {ApiKey.authorization: "Bearer ${mytoken()}"} ) ;

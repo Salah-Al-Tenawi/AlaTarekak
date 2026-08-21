@@ -29,7 +29,6 @@ void main() {
             child: Scaffold(
               body: RateUserSheet(
                 name: 'أحمد',
-                question: 'كيف كانت رحلتك مع أحمد؟',
               ),
             ),
           ),
@@ -73,8 +72,7 @@ void main() {
                     result = await RateUserSheet.show(
                       context,
                       name: 'أحمد',
-                      question: 'كيف كانت رحلتك مع أحمد؟',
-                    );
+                          );
                   },
                   child: const Text('افتح'),
                 ),
@@ -103,7 +101,22 @@ void main() {
         (tester) async {
       await pumpSheet(tester);
 
-      expect(find.text('كيف كانت رحلتك مع أحمد؟'), findsOneWidget);
+      expect(find.text('كيف كان أحمد في هذه الرحلة؟'), findsOneWidget);
+    });
+
+    // **صيغة واحدة للطرفين**: كان السائق يُسأل «كيف كان أحمد راكباً؟» —
+    // تسمية دورٍ لا شخص، ولا معنى لتذكيره بأن راكبه راكب.
+    testWidgets('ولا تُسمّى الأدوار فيه', (tester) async {
+      await pumpSheet(tester);
+
+      expect(find.textContaining('راكباً'), findsNothing);
+      expect(find.textContaining('سائقاً'), findsNothing);
+    });
+
+    testWidgets('وتحته سطرٌ أصغر يقول لماذا يستحقّ عناءه', (tester) async {
+      await pumpSheet(tester);
+
+      expect(find.text('تقييمك يساهم في بناء الثقة به'), findsOneWidget);
     });
 
     testWidgets('خمس نجوم وحقل تعليق موسوم اختيارياً', (tester) async {
