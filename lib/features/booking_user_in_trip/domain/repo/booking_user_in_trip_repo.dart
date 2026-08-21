@@ -13,8 +13,10 @@ abstract class BookingUserInTripRepo {
   Future<Either<Filuar, dynamic>> passengerNoShow(int bookingId);
 
   /// تقييم راكب — `POST /profile/{userId}/rate`.
-  Future<Either<Filuar, RatingModle>> rateUser(double rating, int userId);
+  Future<Either<Filuar, RatingModle>> rateUser(
+      double rating, int userId, int rideId);
 
   /// تعليق على راكب — `POST /profile/{userId}/comments`.
-  Future<Either<Filuar, CommentEntity>> addcommit(String comment, int userId);
+  Future<Either<Filuar, CommentEntity>> addcommit(
+      String comment, int userId, int rideId);
 }

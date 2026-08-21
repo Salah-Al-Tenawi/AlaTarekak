@@ -10,6 +10,7 @@ import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/core/utils/functions/my_dilaog.dart';
 import 'package:alatarekak/core/them/app_snack_bar.dart';
+import 'package:alatarekak/core/utils/class/refund_notice.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/class/no_show_report.dart';
 import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
@@ -91,11 +92,16 @@ class _BookingMeListState extends State<BookingMeList> {
 
   void _onState(BuildContext context, BookingMeState state) {
     if (state is BookingMeCanceled) {
-      final refund = state.cancelModel.data.refundPolicy.refundPercentage;
+      // كان يُعرض `refund_percentage` بلاحقة «ل.س»: «تم استرداد 70 ل.س»
+      // على استردادٍ قدره أربعة عشر ألفاً — انظر [refundNotice]
       myConfirmDilaogWithPolicy(
         context,
-        "تم استرداد $refund ل.س من قيمة الحجز",
-        title: "تم إلغاء الحجز",
+        refundNotice(
+          state.cancelModel.data.refundPolicy,
+          wasConfirmed: state.wasConfirmed,
+          cashRide: state.cashRide,
+        ),
+        title: state.isWholeBooking ? "تم إلغاء الحجز" : "تم إلغاء المقاعد",
       );
       _refreshData();
     } else if (state is BookingMeWholeCanceled) {

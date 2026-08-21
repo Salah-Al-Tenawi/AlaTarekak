@@ -106,14 +106,21 @@ final class BookingUserInTripListLoaded extends BookingUserInTripState {
   /// يردّ البلاغ حينها بـ«cannot report no-show for a ride with status».
   final String rideStatus;
 
+  /// طريقة الدفع — يُبنى عليها ما يُوعَد به السائق في بلاغ الغياب:
+  /// تحويل 95% من قيمة المقعد لا يقع في الرحلة النقدية، إذ لا مبلغ
+  /// محتجزاً فيها أصلاً.
+  final String paymentMethod;
+
   const BookingUserInTripListLoaded({
     required this.bookings,
     required this.departure,
     this.rideStatus = '',
+    this.paymentMethod = '',
   });
 
   @override
-  List<Object> get props => [bookings, departure, rideStatus];
+  List<Object> get props =>
+      [bookings, departure, rideStatus, paymentMethod];
 }
 
 /// المحادثة مع الراكب جاهزة — الواجهة تنتقل إلى شاشة المحادثة.

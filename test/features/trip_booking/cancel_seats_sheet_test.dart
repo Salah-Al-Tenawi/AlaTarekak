@@ -124,10 +124,15 @@ void main() {
       expect(find.text('قيمة ما يُلغى'), findsNothing);
     });
 
-    testWidgets('سياسة الإلغاء مذكورة وقابلة للفتح', (tester) async {
+    testWidgets('كلفة الإلغاء محسوبة لا موصوفة، والسياسة قابلة للفتح',
+        (tester) async {
       await pump(tester);
 
-      expect(find.textContaining('قد يُخصم جزء من المبلغ'), findsOneWidget);
+      // كانت جملة واحدة تُقال لمن يُعاد إليه كل مبلغه ولمن لا يُعاد إليه
+      // شيء سواءً بسواء
+      expect(find.textContaining('قد يُخصم جزء من المبلغ'), findsNothing);
+      expect(find.textContaining('المبلغ المسترد'), findsOneWidget,
+          reason: 'بلا وقت إنشاء لا نخترع نسبة — تُقال جملة عامّة');
       expect(find.text('اطّلع على سياسة الإلغاء'), findsOneWidget);
     });
   });

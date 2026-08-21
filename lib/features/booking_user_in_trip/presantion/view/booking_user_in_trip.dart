@@ -14,10 +14,12 @@ import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/widgets/trip_card_parts.dart';
 import 'package:alatarekak/core/service/no_show_report_store.dart';
 import 'package:alatarekak/core/utils/class/no_show_report.dart';
+import 'package:alatarekak/core/utils/class/cancel_policy.dart';
 import 'package:alatarekak/core/utils/class/ride_booking_rules.dart';
 import 'package:alatarekak/core/utils/class/ride_time_rules.dart';
 import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
 import 'package:alatarekak/core/utils/widgets/app_loader.dart';
+import 'package:alatarekak/core/utils/widgets/consequence_card.dart';
 import 'package:alatarekak/core/utils/widgets/no_show_gate.dart';
 import 'package:alatarekak/core/utils/widgets/rate_user_sheet.dart';
 import 'package:alatarekak/features/booking_user_in_trip/presantion/manger/cubit/booking_user_in_trip_cubit.dart';
@@ -89,6 +91,9 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
   /// يردّ البلاغ عليها أصلاً. تصل من شاشة التفاصيل ثم يستبدلها الجلب.
   String rideStatus = '';
 
+  /// طريقة الدفع — انظر [BookingUserInTripListLoaded.paymentMethod].
+  String paymentMethod = '';
+
   @override
   void initState() {
     super.initState();
@@ -103,6 +108,8 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
       rideId = args['rideId'] is int ? args['rideId'] as int : null;
       final status = args['rideStatus'];
       if (status is String) rideStatus = status;
+      final payment = args['paymentMethod'];
+      if (payment is String) paymentMethod = payment;
     } else if (args is List<BookingModel>) {
       usersBooking = args;
     }
@@ -199,6 +206,7 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
               usersBooking = state.bookings;
               departure = state.departure;
               rideStatus = state.rideStatus;
+              paymentMethod = state.paymentMethod;
             });
           } else if (state is BookingUserInTripUpdated) {
             // قبول أو رفض غيّر الحالة على الخادم: العدّادات في الأعلى
@@ -245,6 +253,9 @@ class _BookingUserINTripState extends State<BookingUserINTrip> {
                         booking: usersBooking[i],
                         departure: departure,
                         rideOver: isRideOver(rideStatus),
+                        cashRide:
+                            paymentMethod.trim().toLowerCase() == 'cash',
+                        rideId: rideId,
                       ),
                     ),
                 ],
@@ -390,10 +401,18 @@ class _BookingCard extends StatelessWidget {
   /// انتهت الرحلة أو أُلغيت — انظر [_CardActions.rideOver].
   final bool rideOver;
 
+  /// رحلة نقدية — انظر [_CardActions.cashRide].
+  final bool cashRide;
+
+  /// معرّف الرحلة — يشترطه الخادم مع التقييم والتعليق.
+  final int? rideId;
+
   const _BookingCard({
     required this.booking,
     this.departure,
     this.rideOver = false,
+    this.cashRide = false,
+    this.rideId,
   });
 
   @override
@@ -439,6 +458,8 @@ class _BookingCard extends StatelessWidget {
                 isBusy: isBusy,
                 departure: departure,
                 rideOver: rideOver,
+                cashRide: cashRide,
+                rideId: rideId,
               ),
             ],
           ),
@@ -615,12 +636,23 @@ class _CardActions extends StatelessWidget {
   /// لهذه الرحلة». الحالتان تُقرآن معاً: حجزٌ قائم في رحلة قائمة.
   final bool rideOver;
 
+  /// الرحلة نقدية: لا مبلغ محتجزاً يُحوَّل إلى السائق إن ثبت الغياب،
+  /// فالعقوبة نقاطٌ لا مال — ووعدُ «95% من قيمة المقعد» لا يقع فيها.
+  final bool cashRide;
+
+  /// معرّف الرحلة — **شرطٌ في جسم التقييم والتعليق**، وبه يمنع الخادم
+  /// تقييمين على الرحلة الواحدة. وغيابه يُخفي زرّ التقييم: تقييمٌ بلا
+  /// رحلة يردّه الخادم.
+  final int? rideId;
+
   const _CardActions({
     required this.booking,
     required this.status,
     required this.isBusy,
     this.departure,
     this.rideOver = false,
+    this.cashRide = false,
+    this.rideId,
   });
 
   @override
@@ -703,6 +735,10 @@ class _CardActions extends StatelessWidget {
       // لا معنى لتقييم لقاء لم يقع بعد.
       case 'completed':
       case 'finished':
+        // بلا رقم الرحلة لا تقييم: الخادم يشترطه، وزرٌّ يقود إلى رفضٍ
+        // مؤكَّد أسوأ من غيابه
+        if (rideId == null) return const SizedBox.shrink();
+
         return _FilledAction(
           label: 'قيّم الراكب',
           icon: Icons.star_rate_rounded,
@@ -730,7 +766,7 @@ class _CardActions extends StatelessWidget {
     );
     if (result == null) return;
 
-    cubit.ratePassenger(result.rating, booking.userId,
+    cubit.ratePassenger(result.rating, booking.userId, rideId!,
         comment: result.comment);
   }
 
@@ -768,9 +804,15 @@ class _CardActions extends StatelessWidget {
       context,
       icon: Icons.report_problem_outlined,
       title: 'الراكب لم يحضر؟',
-      message: 'سيُسجَّل بلاغ بحقّ ${booking.userName}، وله ساعتان '
-          'للاعتراض قبل أن يُحسم تلقائياً وتُخصم من نقاط ثقته. '
-          'لا تُرسله إلا بعد انتظاره فعلاً.',
+      message: 'بلاغٌ بحقّ ${booking.userName} — لا تُرسله إلا بعد '
+          'انتظاره فعلاً.',
+      content: ConsequenceCard(
+        title: 'ماذا يحدث بعد البلاغ',
+        lines: CancelPolicy.noShowReport(
+          againstPassenger: true,
+          cashRide: cashRide,
+        ),
+      ),
       confirmLabel: 'تسجيل البلاغ',
       cancelLabel: 'تراجع',
       destructive: true,

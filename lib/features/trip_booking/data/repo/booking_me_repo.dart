@@ -61,10 +61,10 @@ class BookingMeRepo {
   }
 
   Future<Either<Filuar, CommentEntity>> addcommit(
-      String commit, int userid) async {
+      String commit, int userid, int rideId) async {
     try {
       final response =
-          await _remoteDataSource.addcommit(commit, userid);
+          await _remoteDataSource.addcommit(commit, userid, rideId);
       return right(response);
     } on ServerExpcptions catch (e) {
       return left(e.error);
@@ -72,9 +72,10 @@ class BookingMeRepo {
   }
 
   Future<Either<Filuar, RatingModle>> rateUser(
-      double rating, int userId) async {
+      double rating, int userId, int rideId) async {
     try {
-      final response = await _remoteDataSource.rateUser(rating, userId);
+      final response =
+          await _remoteDataSource.rateUser(rating, userId, rideId);
       return right(response);
     } on ServerExpcptions catch (e) {
       return left(e.error);

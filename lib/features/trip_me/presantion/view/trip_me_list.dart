@@ -11,7 +11,9 @@ import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/animations/app_animations.dart';
 import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
+import 'package:alatarekak/core/utils/class/cancel_policy.dart';
 import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
+import 'package:alatarekak/core/utils/widgets/consequence_card.dart';
 import 'package:alatarekak/core/utils/widgets/app_error_view.dart';
 import 'package:alatarekak/core/utils/widgets/app_loader.dart';
 import 'package:alatarekak/core/utils/widgets/status_filter_bar.dart';
@@ -181,8 +183,20 @@ class _TripMeListState extends State<TripMeList> {
       context,
       icon: Icons.cancel_schedule_send_rounded,
       title: 'إلغاء الرحلة',
-      message: 'سيصل إشعار بالإلغاء إلى من حجز فيها، وتُعاد إليهم '
-          'مبالغهم. ولا يمكن التراجع بعده.',
+      message: 'لا يمكن التراجع بعده.',
+      // الكلفة تُحسب من عمر الرحلة لا من قربها للانطلاق، وتختلف اختلافاً
+      // بيّناً بين إلغاءٍ مبكّر لا يكلّف شيئاً وآخر يخصم اثنتي عشرة نقطة
+      // ويحتجز رسوم الإنشاء — انظر [CancelPolicy].
+      content: ConsequenceCard(
+        title: 'ماذا يقع إن ألغيتَ الآن',
+        lines: CancelPolicy.driverCancelRide(
+          elapsed: CancelPolicy.elapsedPercent(
+            createdAt: trip.createdAt,
+            departure: trip.departure,
+          ),
+          passengers: trip.seatsBooked,
+        ),
+      ),
       confirmLabel: 'إلغاء الرحلة',
       cancelLabel: 'تراجع',
       destructive: true,

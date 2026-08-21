@@ -5,7 +5,9 @@ import 'package:get/get.dart';
 import 'package:alatarekak/core/route/route_name.dart';
 import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
+import 'package:alatarekak/core/utils/class/cancel_policy.dart';
 import 'package:alatarekak/core/utils/class/format_money.dart';
+import 'package:alatarekak/core/utils/widgets/consequence_card.dart';
 import 'package:alatarekak/core/utils/widgets/seats_stepper.dart';
 
 /// إلغاء مقاعد من حجز — **خطوة واحدة لا خطوتين**.
@@ -24,10 +26,19 @@ class CancelSeatsSheet extends StatefulWidget {
   /// سعر المقعد — لعرض ما يُلغى من قيمة الحجز.
   final double pricePerSeat;
 
+  /// نسبة ما انقضى من عمر الحجز — تُحسب منها كلفة الإلغاء. `null` حين
+  /// يتعذّر حسابها، فتُعرض جملة عامّة بدل رقم مخترع.
+  final double? elapsedPercent;
+
+  /// الرحلة نقدية: لا استرداد أصلاً، والنقاط تُخصم.
+  final bool cashRide;
+
   const CancelSeatsSheet({
     super.key,
     required this.bookedSeats,
     required this.pricePerSeat,
+    this.elapsedPercent,
+    this.cashRide = false,
   });
 
   /// يفتحها ويُعيد عدد المقاعد المطلوب إلغاؤها — `null` إن تراجع.
@@ -35,6 +46,8 @@ class CancelSeatsSheet extends StatefulWidget {
     BuildContext context, {
     required int bookedSeats,
     required double pricePerSeat,
+    double? elapsedPercent,
+    bool cashRide = false,
   }) {
     return showModalBottomSheet<int>(
       context: context,
@@ -44,6 +57,8 @@ class CancelSeatsSheet extends StatefulWidget {
       builder: (_) => CancelSeatsSheet(
         bookedSeats: bookedSeats,
         pricePerSeat: pricePerSeat,
+        elapsedPercent: elapsedPercent,
+        cashRide: cashRide,
       ),
     );
   }
@@ -217,13 +232,18 @@ class _CancelSeatsSheetState extends State<CancelSeatsSheet> {
                 ),
               ],
             ),
-          if (value > 0) SizedBox(height: 8.h),
-          Text(
-            'قد يُخصم جزء من المبلغ حسب قربك من موعد الانطلاق.',
-            style: AppTextStyles.labelSmall
-                .copyWith(fontSize: 11.5.sp, color: MyColors.textSecondary),
+          if (value > 0) SizedBox(height: 10.h),
+          // **الكلفة تُحسب لا تُوصف.** كانت جملة واحدة — «قد يُخصم جزء من
+          // المبلغ حسب قربك من موعد الانطلاق» — تُقال لمن يُعاد إليه كل
+          // مبلغه ولمن لا يُعاد إليه شيء سواءً بسواء.
+          ConsequenceCard(
+            lines: CancelPolicy.passengerCancel(
+              elapsed: widget.elapsedPercent,
+              amount: value.round(),
+              cashRide: widget.cashRide,
+            ),
           ),
-          SizedBox(height: 6.h),
+          SizedBox(height: 8.h),
           GestureDetector(
             onTap: () => Get.toNamed(RouteName.policy),
             child: Text(

@@ -62,11 +62,11 @@ void main() {
     blocTest<BookingUserInTripCubit, BookingUserInTripState>(
       'تقييم ثانٍ لنفس الرحلة: خبرٌ لا خطأ',
       build: () {
-        when(() => repo.rateUser(any(), any())).thenAnswer((_) async =>
+        when(() => repo.rateUser(any(), any(), any())).thenAnswer((_) async =>
             left(const Filuar(message: 'You have already rated this ride.')));
         return BookingUserInTripCubit(repo);
       },
-      act: (cubit) => cubit.ratePassenger(5, 15),
+      act: (cubit) => cubit.ratePassenger(5, 15, 42),
       expect: () => [
         isA<BookingUserInTripLoading>(),
         isA<BookingUserInTripAlreadyRated>().having((s) => s.message, 'الرسالة',
@@ -77,22 +77,22 @@ void main() {
     blocTest<BookingUserInTripCubit, BookingUserInTripState>(
       'ولا يُرسل التعليق بعد تقييم مردود',
       build: () {
-        when(() => repo.rateUser(any(), any())).thenAnswer((_) async =>
+        when(() => repo.rateUser(any(), any(), any())).thenAnswer((_) async =>
             left(const Filuar(message: 'You have already rated this ride.')));
         return BookingUserInTripCubit(repo);
       },
-      act: (cubit) => cubit.ratePassenger(5, 15, comment: 'راكب مهذّب'),
-      verify: (_) => verifyNever(() => repo.addcommit(any(), any())),
+      act: (cubit) => cubit.ratePassenger(5, 15, 42, comment: 'راكب مهذّب'),
+      verify: (_) => verifyNever(() => repo.addcommit(any(), any(), any())),
     );
 
     blocTest<BookingUserInTripCubit, BookingUserInTripState>(
       'فشل آخر في التقييم يبقى خطأً معرّباً',
       build: () {
-        when(() => repo.rateUser(any(), any())).thenAnswer(
+        when(() => repo.rateUser(any(), any(), any())).thenAnswer(
             (_) async => left(const Filuar(message: 'Unauthenticated.')));
         return BookingUserInTripCubit(repo);
       },
-      act: (cubit) => cubit.ratePassenger(5, 15),
+      act: (cubit) => cubit.ratePassenger(5, 15, 42),
       expect: () => [
         isA<BookingUserInTripLoading>(),
         isA<BookingUserInTripErorr>().having(
@@ -170,7 +170,7 @@ void main() {
         isA<BookingUserInTripNoShowReported>()
             .having((s) => s.bookingId, 'bookingId', 7)
             .having((s) => s.outcome, 'outcome', NoShowOutcome.reported)
-            .having((s) => s.message, 'message', contains('ساعتان')),
+            .having((s) => s.message, 'message', contains('مهلة للاعتراض')),
       ],
     );
 

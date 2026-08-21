@@ -31,8 +31,8 @@ abstract class ProfileRemoteDateSource {
       {String? firstName,
       String? lastName});
 
-  Future<CommentModel> addcommit(String commit, int userid);
-  Future<RatingModle> rateUser(double rating, int userId);
+  Future<CommentModel> addcommit(String commit, int userid, int rideId);
+  Future<RatingModle> rateUser(double rating, int userId, int rideId);
 }
 
 class ProfileRemoteDateSourceIm extends ProfileRemoteDateSource {
@@ -47,10 +47,11 @@ class ProfileRemoteDateSourceIm extends ProfileRemoteDateSource {
   }
 
   @override
-  Future<CommentModel> addcommit(String commit, int userId) async {
+  Future<CommentModel> addcommit(
+      String commit, int userId, int rideId) async {
     final response = await api.post("${ApiEndPoint.profile}/$userId/comments",
         header: {ApiKey.authorization: "Bearer ${mytoken()}"},
-        data: {ApiKey.comment: commit});
+        data: {ApiKey.comment: commit, ApiKey.rideId: rideId});
 
     return CommentModel.fromJson(response);
   }
@@ -101,10 +102,11 @@ class ProfileRemoteDateSourceIm extends ProfileRemoteDateSource {
   }
 
   @override
-  Future<RatingModle> rateUser(double rating, int userId) async {
+  Future<RatingModle> rateUser(
+      double rating, int userId, int rideId) async {
     final response = await api.post("${ApiEndPoint.profile}/$userId/rate",
         header: {ApiKey.authorization: "Bearer ${mytoken()}"},
-        data: {ApiKey.rating: rating});
+        data: {ApiKey.rating: rating, ApiKey.rideId: rideId});
 
     return RatingModle.fromJson(response);
   }

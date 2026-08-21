@@ -31,13 +31,28 @@ final class BookingMeListLoaded extends BookingMeState {
   List<Object> get props => [bookings];
 }
 
+/// أُلغيت مقاعد من الحجز — كلياً أو جزئياً.
+///
+/// [wasConfirmed] و[cashRide] يرافقان الردّ لأن `refund_policy` يصل
+/// محسوباً حتى حين لا يُنفَّذ منه شيء — انظر [refundNotice].
 final class BookingMeCanceled extends BookingMeState {
   final CancelBookingModel cancelModel;
+  final bool wasConfirmed;
+  final bool cashRide;
 
-  const BookingMeCanceled({required this.cancelModel});
+  const BookingMeCanceled({
+    required this.cancelModel,
+    this.wasConfirmed = true,
+    this.cashRide = false,
+  });
+
+  /// أُلغي الحجز كلّه لا بعضه — يُقرأ من الردّ لا من نصّ رسالته.
+  bool get isWholeBooking =>
+      cancelModel.data.remainingSeats == 0 ||
+      cancelModel.data.bookingStatus.trim().toLowerCase() == 'cancelled';
 
   @override
-  List<Object> get props => [cancelModel];
+  List<Object> get props => [cancelModel, wasConfirmed, cashRide];
 }
 
 final class BookingMeWholeCanceled extends BookingMeState {

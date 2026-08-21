@@ -64,14 +64,31 @@ class BookingMeCubit extends SafeCubit<BookingMeState> {
     );
   }
 
-  Future<void> cancelBooking(int bookingId, int seats) async {
+  /// إلغاء مقاعد من الحجز — **كلّها أو بعضها بالمسار نفسه**.
+  ///
+  /// `POST /bookings/{id}/cancel-seats` وحده يردّ كتلة `refund_policy`؛
+  /// و`/cancel` يُنهي الحجز صامتاً بلا رقم. فكان الراكب الذي يلغي حجزه
+  /// كاملاً لا يعرف كم أُعيد إليه.
+  ///
+  /// [wasConfirmed] و[cashRide] من حال الحجز لا من الردّ — انظر
+  /// [refundNotice].
+  Future<void> cancelBooking(
+    int bookingId,
+    int seats, {
+    bool wasConfirmed = true,
+    bool cashRide = false,
+  }) async {
     emit(BookingMeloading());
     final response = await _repo.cancelBooking(bookingId, seats);
     response.fold((erorr) {
       emit(BookingMeErorr(
           message: erorr.arabic(HandelErorrMessage.cancelBooking)));
     }, (cancel) {
-      emit(BookingMeCanceled(cancelModel: cancel));
+      emit(BookingMeCanceled(
+        cancelModel: cancel,
+        wasConfirmed: wasConfirmed,
+        cashRide: cashRide,
+      ));
     });
   }
 
@@ -121,7 +138,7 @@ class BookingMeCubit extends SafeCubit<BookingMeState> {
         message: conflict
             ? "أبلغ الطرفان كلٌّ عن الآخر، فلا عقوبة تلقائية. فُتحت شكوى "
                 "وسيتواصل معك فريق الدعم."
-            : "تم تسجيل البلاغ. للسائق ساعتان للاعتراض، ثم يُحسم تلقائياً.",
+            : "تم تسجيل البلاغ. للسائق مهلة للاعتراض، ثم يُحسم تلقائياً.",
         outcome: conflict ? NoShowOutcome.conflict : NoShowOutcome.reported,
       ));
     });
@@ -154,9 +171,14 @@ class BookingMeCubit extends SafeCubit<BookingMeState> {
   /// وفشل التعليق **لا يُفشل التقييم**: النجوم وصلت الخادم فعلاً، وإظهار
   /// خطأ أحمر بعدها يوهم المستخدم أن شيئاً لم يقع فيعيد الكرّة — فيُقيَّم
   /// السائق مرتين. التعليق تفصيل ثانوي يُسقَط بصمت.
-  Future<void> reateUser(double rating, int userId, {String? comment}) async {
+  Future<void> reateUser(
+    double rating,
+    int userId,
+    int rideId, {
+    String? comment,
+  }) async {
     emit(BookingMeButtonloading());
-    final response = await _repo.rateUser(rating, userId);
+    final response = await _repo.rateUser(rating, userId, rideId);
     if (isClosed) return;
 
     await response.fold((erorr) async {
@@ -174,16 +196,16 @@ class BookingMeCubit extends SafeCubit<BookingMeState> {
     }, (rate) async {
       final text = comment?.trim();
       if (text != null && text.isNotEmpty) {
-        await _repo.addcommit(text, userId);
+        await _repo.addcommit(text, userId, rideId);
         if (isClosed) return;
       }
       emit(BookingMeRated(rate: rate.averageRating));
     });
   }
 
-  Future<void> addComment(String comment, int userid) async {
+  Future<void> addComment(String comment, int userid, int rideId) async {
     emit(BookingMeButtonloading());
-    final response = await _repo.addcommit(comment, userid);
+    final response = await _repo.addcommit(comment, userid, rideId);
     response.fold((erorr) {
       emit(BookingMeErorr(message: erorr.arabic(HandelErorrMessage.commet)));
     }, (succ) {

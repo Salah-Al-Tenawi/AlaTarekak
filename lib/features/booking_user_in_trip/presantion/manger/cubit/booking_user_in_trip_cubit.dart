@@ -69,6 +69,7 @@ class BookingUserInTripCubit extends SafeCubit<BookingUserInTripState> {
         bookings: trip.booking,
         departure: trip.departure,
         rideStatus: trip.status,
+        paymentMethod: trip.paymentMethod,
       )),
     );
   }
@@ -146,7 +147,7 @@ class BookingUserInTripCubit extends SafeCubit<BookingUserInTripState> {
         message: conflict
             ? "أبلغ الطرفان كلٌّ عن الآخر، فلا عقوبة تلقائية. فُتحت شكوى "
                 "وسيتواصل معك فريق الدعم."
-            : "تم تسجيل البلاغ. للراكب ساعتان للاعتراض، ثم يُحسم تلقائياً.",
+            : "تم تسجيل البلاغ. للراكب مهلة للاعتراض، ثم يُحسم تلقائياً.",
         outcome: conflict ? NoShowOutcome.conflict : NoShowOutcome.reported,
       ));
     });
@@ -172,12 +173,13 @@ class BookingUserInTripCubit extends SafeCubit<BookingUserInTripState> {
   /// أن شيئاً لم يقع فيعيد الكرّة — فيُقيَّم الراكب مرتين.
   Future<void> ratePassenger(
     double rating,
-    int userId, {
+    int userId,
+    int rideId, {
     String? comment,
   }) async {
     emit(BookingUserInTripLoading(bookingId: userId));
 
-    final response = await repo.rateUser(rating, userId);
+    final response = await repo.rateUser(rating, userId, rideId);
     if (isClosed) return;
 
     await response.fold((error) async {
@@ -193,7 +195,7 @@ class BookingUserInTripCubit extends SafeCubit<BookingUserInTripState> {
     }, (rate) async {
       final text = comment?.trim();
       if (text != null && text.isNotEmpty) {
-        await repo.addcommit(text, userId);
+        await repo.addcommit(text, userId, rideId);
         if (isClosed) return;
       }
       emit(BookingUserInTripRated(averageRating: rate.averageRating));

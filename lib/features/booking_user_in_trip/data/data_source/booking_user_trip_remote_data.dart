@@ -47,21 +47,25 @@ class BookingUserTripRemoteData {
   ///
   /// المسار نفسه الذي يقيّم به الراكبُ سائقَه: التقييم صفة مستخدم لا
   /// صفة دور.
-  Future<RatingModle> rateUser(double rating, int userId) async {
+  ///
+  /// **و`ride_id` شرطٌ في الجسم**: به يعرف الخادم أي رحلة يخصّها التقييم،
+  /// وبه يمنع تقييمين على الرحلة الواحدة. كان يُرسَل التقييم عارياً منه.
+  Future<RatingModle> rateUser(double rating, int userId, int rideId) async {
     final response = await api.post(
       "${ApiEndPoint.profile}/$userId/rate",
       header: {ApiKey.authorization: "Bearer ${mytoken()}"},
-      data: {ApiKey.rating: rating},
+      data: {ApiKey.rating: rating, ApiKey.rideId: rideId},
     );
     return RatingModle.fromJson(response);
   }
 
-  /// تعليق على راكب — `POST /profile/{userId}/comments`.
-  Future<CommentModel> addcommit(String comment, int userId) async {
+  /// تعليق على راكب — `POST /profile/{userId}/comments`، ومعه رحلته.
+  Future<CommentModel> addcommit(
+      String comment, int userId, int rideId) async {
     final response = await api.post(
       "${ApiEndPoint.profile}/$userId/comments",
       header: {ApiKey.authorization: "Bearer ${mytoken()}"},
-      data: {ApiKey.comment: comment},
+      data: {ApiKey.comment: comment, ApiKey.rideId: rideId},
     );
     return CommentModel.fromJson(response);
   }

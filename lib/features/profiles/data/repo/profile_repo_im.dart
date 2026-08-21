@@ -21,10 +21,10 @@ class ProfileRepoIm extends ProfileRepo {
 
   @override
   Future<Either<Filuar, CommentEntity>> addcommit(
-      String commit, int userid) async {
+      String commit, int userid, int rideId) async {
     try {
       final response =
-          await profileRemoteDateSourceIm.addcommit(commit, userid);
+          await profileRemoteDateSourceIm.addcommit(commit, userid, rideId);
       return right(response);
     } on ServerExpcptions catch (e) {
       return left(e.error);
@@ -33,9 +33,10 @@ class ProfileRepoIm extends ProfileRepo {
 
   @override
   Future<Either<Filuar, RatingModle>> rateUser(
-      double rating, int userId) async {
+      double rating, int userId, int rideId) async {
     try {
-      final response = await profileRemoteDateSourceIm.rateUser(rating, userId);
+      final response =
+          await profileRemoteDateSourceIm.rateUser(rating, userId, rideId);
       return right(response);
     } on ServerExpcptions catch (e) {
       return left(e.error);

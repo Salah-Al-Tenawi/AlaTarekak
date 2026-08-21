@@ -112,6 +112,11 @@ class TripModel {
   /// رد البحث لا يحمل `seats_booked` إطلاقاً، و`passengers_confirmed` شيء
   /// آخر (عدد من أكّد *انتهاء* الرحلة). فحين تصل قائمة الحجوزات تُجمع
   /// مقاعد الحجوزات القائمة منها بدل عرض صفر مضلِّل.
+  /// المحجوز من قائمة الحجوزات — `null` إن لم تصل قائمة أصلاً، تمييزاً
+  /// لـ«لا أعرف» عن «صفر»: الأولى تُجرَّب بعدها مصادرُ أخرى.
+  static int? _bookedFromNonEmpty(List<dynamic> bookings) =>
+      bookings.isEmpty ? null : _bookedFrom(bookings);
+
   static int _bookedFrom(List<dynamic> bookings) {
     var total = 0;
     for (final b in bookings.whereType<Map>()) {
@@ -147,9 +152,18 @@ class TripModel {
     return const [];
   }
 
-  /// ملخّص المقاعد المرسَل مع قائمة الحجوزات، إن وُجد.
+  /// ملخّص المقاعد أياً كان موضعه.
+  ///
+  /// يصل داخل كتلة `bookings` في مسار الحجوزات، وقد يصل مفتاحاً مستقلاً
+  /// في غيره — والمغلّف هنا غير معتاد أصلاً (`bookings` شقيقة لـ`data`
+  /// لا داخلها)، فتُجرَّب المواضع الأربعة.
   static Map<String, dynamic> _seatSummary(
       Map<String, dynamic> outer, Map<String, dynamic> data) {
+    for (final direct in [data['seat_summary'], outer['seat_summary']]) {
+      final map = asMap(direct);
+      if (map != null) return map;
+    }
+
     for (final source in [data['bookings'], outer['bookings']]) {
       final map = asMap(source);
       if (map == null) continue;
@@ -157,6 +171,21 @@ class TripModel {
       if (summary != null) return summary;
     }
     return const <String, dynamic>{};
+  }
+
+  /// المحجوز = السعة ناقص الشاغر.
+  ///
+  /// **`available` هو الحقل الموثوق وحده** بشهادة الباك إند: `booked`
+  /// و`total` مكسوران في كل المسارات — `GET /rides/{id}` لا يستدعي
+  /// `loadCount` فيصلان `0` و`= available`، وبقيّة المسارات تستدعيه بلا
+  /// ترشيح على الحالة فتُضخّمهما الحجوزاتُ الملغاة.
+  static int? _bookedFromCapacity(Map<String, dynamic> summary) {
+    final capacity = asInt(summary['total_capacity']);
+    final available = asInt(summary['available']);
+    if (capacity == null || available == null) return null;
+
+    final booked = capacity - available;
+    return booked < 0 ? null : booked;
   }
 
   /// المحجوز من الملخّص: المؤكَّد والمعلَّق كلاهما يشغل مقعداً.
@@ -210,24 +239,30 @@ class TripModel {
       destination: LocationModel.fromTrip(data, 'destination'),
       departure: requireField(asDate(pick(data, ['departure', 'departure_time'])),
           'TripModel', 'departure', data),
-      seatsAvailable: asInt(seats['available']) ??
+      // `seat_summary.available` أولاً: هو الحقل الذي يضبطه الخادم في
+      // معاملة الحجز نفسها، وبقيّة عدّادات المقاعد مشتقّة منه أو مكسورة
+      seatsAvailable: asInt(summary['available']) ??
+          asInt(seats['available']) ??
           asInt(pick(data, const [
             'seats_available',
             'available_seats',
             'remaining_seats',
             'seats_left',
           ])) ??
-          asInt(summary['available']) ??
           0,
-      // `seat_summary` يفصل المؤكَّد عن المعلَّق، وكلاهما مقعد محجوز
-      seatsBooked: asInt(seats['booked']) ??
+      // **المحجوز يُشتقّ ولا يُقرأ** — انظر [_bookedFromCapacity]. كان
+      // `seats.booked` أوّل المصادر، وهو صفر دائماً في `GET /rides/{id}`:
+      // فكان زرّ «عرض الحجوزات (0)» يظهر لسائق رحلته ممتلئة.
+      seatsBooked: _bookedFromCapacity(summary) ??
+          _bookedFromSummary(summary) ??
           asInt(pick(data, const [
             'seats_booked',
             'booked_seats',
             'reserved_seats',
           ])) ??
-          _bookedFromSummary(summary) ??
-          _bookedFrom(rawBookings),
+          _bookedFromNonEmpty(rawBookings) ??
+          asInt(seats['booked']) ??
+          0,
       pricePerSeat: asString(data['price_per_seat']) ?? '0',
       status: asString(data['status']) ?? '',
       distance: DistanceModel.fromAny(data['distance']),

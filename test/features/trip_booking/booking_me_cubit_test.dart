@@ -211,15 +211,112 @@ void main() {
     );
   });
 
+  group('BookingMeCubit — إلغاء المقاعد', () {
+    // مسار واحد للحالتين: cancel-seats يقبل إلغاء كل المقاعد ويردّ
+    // تفاصيل الاسترداد، بينما /cancel يُنهي الحجز بلا رقم.
+    CancelBookingModel wholeCancel() => CancelBookingModel.fromJson(const {
+          'status': 'success',
+          'message': 'All seats cancelled.',
+          'data': {
+            'booking_id': 42,
+            'seats_cancelled': 3,
+            'remaining_seats': 0,
+            'booking_status': 'cancelled',
+            'refund_policy': {
+              'refund_percentage': 70,
+              'refund_amount': 14000,
+            },
+          },
+        });
+
+    blocTest<BookingMeCubit, BookingMeState>(
+      'إلغاء كل المقاعد يمرّ بـ cancel-seats لا بـ /cancel',
+      build: () {
+        when(() => repo.cancelBooking(42, 3))
+            .thenAnswer((_) async => right(wholeCancel()));
+        return BookingMeCubit(repo);
+      },
+      act: (cubit) => cubit.cancelBooking(42, 3),
+      expect: () => [
+        isA<BookingMeloading>(),
+        isA<BookingMeCanceled>()
+            .having((s) => s.isWholeBooking, 'إلغاء كامل', isTrue),
+      ],
+      verify: (_) => verifyNever(() => repo.cancelWholeBooking(any())),
+    );
+
+    blocTest<BookingMeCubit, BookingMeState>(
+      'الإلغاء الكامل يُعرف من الردّ لا من نصّ رسالته',
+      build: () {
+        when(() => repo.cancelBooking(42, 2)).thenAnswer((_) async =>
+            right(CancelBookingModel.fromJson(const {
+              'status': 'success',
+              'message': 'Cancelled 2 seat(s). You still have 1 seat(s).',
+              'data': {
+                'booking_id': 42,
+                'seats_cancelled': 2,
+                'remaining_seats': 1,
+                'booking_status': 'confirmed',
+                'refund_policy': {
+                  'refund_percentage': 70,
+                  'refund_amount': 14000,
+                },
+              },
+            })));
+        return BookingMeCubit(repo);
+      },
+      act: (cubit) => cubit.cancelBooking(42, 2),
+      expect: () => [
+        isA<BookingMeloading>(),
+        isA<BookingMeCanceled>()
+            .having((s) => s.isWholeBooking, 'إلغاء كامل', isFalse),
+      ],
+    );
+
+    blocTest<BookingMeCubit, BookingMeState>(
+      'حال الحجز يُنقل إلى الحالة — الردّ وحده لا يكشفه',
+      build: () {
+        when(() => repo.cancelBooking(42, 1))
+            .thenAnswer((_) async => right(wholeCancel()));
+        return BookingMeCubit(repo);
+      },
+      act: (cubit) =>
+          cubit.cancelBooking(42, 1, wasConfirmed: false, cashRide: true),
+      expect: () => [
+        isA<BookingMeloading>(),
+        isA<BookingMeCanceled>()
+            .having((s) => s.wasConfirmed, 'كان مؤكَّداً', isFalse)
+            .having((s) => s.cashRide, 'رحلة نقدية', isTrue),
+      ],
+    );
+
+    blocTest<BookingMeCubit, BookingMeState>(
+      'عدد يتجاوز المحجوز: رسالة معرّبة لا نصّ إنجليزي',
+      build: () {
+        when(() => repo.cancelBooking(any(), any())).thenAnswer((_) async =>
+            left(const Filuar(
+                message: 'Cannot cancel 3 seat(s). You have 2 seat(s) booked.',
+                statusCode: 422)));
+        return BookingMeCubit(repo);
+      },
+      act: (cubit) => cubit.cancelBooking(42, 3),
+      expect: () => [
+        isA<BookingMeloading>(),
+        isA<BookingMeErorr>().having((s) => s.message, 'الرسالة',
+            'عدد المقاعد المطلوب إلغاؤها أكبر مما تملكه (422)'),
+      ],
+    );
+  });
+
   group('BookingMeCubit — التقييم والتعليق', () {
     blocTest<BookingMeCubit, BookingMeState>(
       'نجاح التقييم: يمرر متوسط التقييم الجديد',
       build: () {
-        when(() => repo.rateUser(4.0, 3)).thenAnswer((_) async => right(
+        when(() => repo.rateUser(4.0, 3, 5)).thenAnswer((_) async => right(
             RatingModle(message: 'ok', totalRating: 12, averageRating: 4.3)));
         return BookingMeCubit(repo);
       },
-      act: (cubit) => cubit.reateUser(4.0, 3),
+      act: (cubit) => cubit.reateUser(4.0, 3, 5),
       expect: () => [
         isA<BookingMeButtonloading>(),
         isA<BookingMeRated>().having((s) => s.rate, 'المتوسط', 4.3),
@@ -232,11 +329,11 @@ void main() {
     blocTest<BookingMeCubit, BookingMeState>(
       'تقييم ثانٍ لنفس الرحلة: خبرٌ لا خطأ',
       build: () {
-        when(() => repo.rateUser(any(), any())).thenAnswer((_) async =>
+        when(() => repo.rateUser(any(), any(), any())).thenAnswer((_) async =>
             left(const Filuar(message: 'You have already rated this ride.')));
         return BookingMeCubit(repo);
       },
-      act: (cubit) => cubit.reateUser(4.0, 3),
+      act: (cubit) => cubit.reateUser(4.0, 3, 5),
       expect: () => [
         isA<BookingMeButtonloading>(),
         isA<BookingMeAlreadyRated>().having((s) => s.message, 'الرسالة',
@@ -247,11 +344,11 @@ void main() {
     blocTest<BookingMeCubit, BookingMeState>(
       'فشل آخر في التقييم: رسالة معرّبة لا «فشل التقيم» لكل شيء',
       build: () {
-        when(() => repo.rateUser(any(), any())).thenAnswer((_) async =>
+        when(() => repo.rateUser(any(), any(), any())).thenAnswer((_) async =>
             left(const Filuar(message: 'Unauthenticated.')));
         return BookingMeCubit(repo);
       },
-      act: (cubit) => cubit.reateUser(4.0, 3),
+      act: (cubit) => cubit.reateUser(4.0, 3, 5),
       expect: () => [
         isA<BookingMeButtonloading>(),
         isA<BookingMeErorr>().having(
@@ -262,12 +359,12 @@ void main() {
     blocTest<BookingMeCubit, BookingMeState>(
       'تعليق ثانٍ لنفس الرحلة: السبب معرّب',
       build: () {
-        when(() => repo.addcommit(any(), any())).thenAnswer((_) async => left(
+        when(() => repo.addcommit(any(), any(), any())).thenAnswer((_) async => left(
             const Filuar(
                 message: 'You have already left a comment for this ride.')));
         return BookingMeCubit(repo);
       },
-      act: (cubit) => cubit.addComment('رحلة ممتازة', 3),
+      act: (cubit) => cubit.addComment('رحلة ممتازة', 3, 5),
       expect: () => [
         isA<BookingMeButtonloading>(),
         isA<BookingMeErorr>().having((s) => s.message, 'الرسالة',
@@ -278,7 +375,7 @@ void main() {
     blocTest<BookingMeCubit, BookingMeState>(
       'نجاح إضافة تعليق',
       build: () {
-        when(() => repo.addcommit('رحلة ممتازة', 3)).thenAnswer((_) async =>
+        when(() => repo.addcommit('رحلة ممتازة', 3, 5)).thenAnswer((_) async =>
             right(const CommentEntity(
                 iduser: 3,
                 text: 'رحلة ممتازة',
@@ -286,7 +383,7 @@ void main() {
                 createdAt: '2026-07-10')));
         return BookingMeCubit(repo);
       },
-      act: (cubit) => cubit.addComment('رحلة ممتازة', 3),
+      act: (cubit) => cubit.addComment('رحلة ممتازة', 3, 5),
       expect: () =>
           [isA<BookingMeButtonloading>(), isA<BookingMeCommented>()],
     );

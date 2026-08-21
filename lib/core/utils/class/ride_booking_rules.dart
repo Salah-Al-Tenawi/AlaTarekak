@@ -56,10 +56,14 @@ bool isRideOver(String status) {
 ///
 /// الأسبقية مقصودة: «ألغيت» أنفع للمستخدم من «انطلقت» على رحلة ألغيت قبل
 /// موعدها بيوم، و«انطلقت» أنفع من «ممتلئة» على رحلة مضى موعدها.
+/// [seatsAvailable] المقاعد الشاغرة كما يرسلها الخادم — `null` إن لم
+/// تصل. و[seatsWanted] ما يطلبه الراكب، ومقعدٌ واحد افتراضاً.
 BookingBlock? bookingBlockFor({
   required String status,
   required DateTime departure,
   DateTime? now,
+  int? seatsAvailable,
+  int seatsWanted = 1,
 }) {
   final normalized = status.trim().toLowerCase();
 
@@ -70,10 +74,20 @@ BookingBlock? bookingBlockFor({
     return BookingBlock.departed;
   }
 
-  // الامتلاء يُقرأ من حالة الرحلة التي يضبطها الخادم، لا من عدّاد
-  // المقاعد: العدّاد قد يصل صفراً لأن المسار سمّى الحقل باسم لا نقرؤه،
-  // فيُمنع الراكب من حجز رحلة فيها مقاعد فعلاً.
-  if (normalized == 'full') return BookingBlock.full;
+  // **المصدران معاً، ولا يُمنع إلا باتّفاقهما.**
+  //
+  // `full` ليست إذناً ولا منعاً عند الخادم: `canBeBooked()` يقرأ الحالة
+  // وحدها ويعني بها «ليست منتهية ولا ملغاة»، والمقاعد تُفحص فحصاً
+  // منفصلاً. فالحالة بوابة حياة الرحلة، والعدّاد بوابة المقعد.
+  //
+  // ومنعُها بالحالة وحدها كان يُضيّع مقعداً شاغراً على رحلة بقيت `full`،
+  // ومنعُها بالعدّاد وحده يُضيّع رحلةً وصل عدّادها صفراً لعطبٍ في الحقل
+  // — وهو عطب واقع: `booked` و`total` مكسوران في مسارات عدّة. فلا مَنع
+  // إلا حين يقول الاثنان الشيء نفسه.
+  if (normalized == 'full' &&
+      (seatsAvailable == null || seatsAvailable < seatsWanted)) {
+    return BookingBlock.full;
+  }
 
   return null;
 }

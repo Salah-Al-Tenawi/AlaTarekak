@@ -10,15 +10,22 @@ class RatingModle {
     required this.averageRating,
   });
 
+  /// **المتوسط يصل باسم `average` في هذا المسار**، لا `average_rating`.
+  ///
+  /// كان يُقرأ بالاسم الثاني وحده فيعود صفراً دائماً — والشاشة تشكر
+  /// المستخدم على تقييمه ثم تعرض متوسطاً صفرياً لمن قيّمه للتوّ.
+  /// والاسمان يُقرآن معاً لأن ردّ الملف الشخصي يستعمل الثاني.
   factory RatingModle.fromJson(Map<String, dynamic> json) {
-    final data = json[ApiKey.data] ?? {};
+    final data = json[ApiKey.data] is Map ? json[ApiKey.data] : const {};
+
+    final average = data['average'] ?? data[ApiKey.averageRating];
 
     return RatingModle(
       message: json[ApiKey.message] ?? "",
-      totalRating: data[ApiKey.totalRatings] ?? 0,
-      averageRating: (data[ApiKey.averageRating] is num)
-          ? (data[ApiKey.averageRating] as num).toDouble()
-          : 0.0,
+      totalRating: (data[ApiKey.totalRatings] is num)
+          ? (data[ApiKey.totalRatings] as num).toInt()
+          : 0,
+      averageRating: (average is num) ? average.toDouble() : 0.0,
     );
   }
 }

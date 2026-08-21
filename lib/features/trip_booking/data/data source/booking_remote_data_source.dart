@@ -66,18 +66,20 @@ class BookingRemoteDataSource {
     return response;
   }
 
-  Future<CommentModel> addcommit(String commit, int userId) async {
+  /// **`ride_id` شرطٌ في الجسم** — انظر نظيرتها في جانب السائق.
+  Future<CommentModel> addcommit(
+      String commit, int userId, int rideId) async {
     final response = await _api.post("${ApiEndPoint.profile}/$userId/comments",
         header: {ApiKey.authorization: "Bearer ${mytoken()}"},
-        data: {ApiKey.comment: commit});
+        data: {ApiKey.comment: commit, ApiKey.rideId: rideId});
 
     return CommentModel.fromJson(response);
   }
 
-  Future<RatingModle> rateUser(double rating, int userId) async {
+  Future<RatingModle> rateUser(double rating, int userId, int rideId) async {
     final response = await _api.post("${ApiEndPoint.profile}/$userId/rate",
         header: {ApiKey.authorization: "Bearer ${mytoken()}"},
-        data: {ApiKey.rating: rating});
+        data: {ApiKey.rating: rating, ApiKey.rideId: rideId});
 
     return RatingModle.fromJson(response);
   }

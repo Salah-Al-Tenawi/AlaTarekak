@@ -30,7 +30,9 @@ class MockDriverCubit extends MockCubit<BookingUserInTripState>
 /// حوارا بلاغ الغياب — **واحد لا اثنان**.
 ///
 /// الإجراء نفسه من الطرفين: أحدهما يبلّغ عن غياب الآخر، وللمُبلَّغ عنه
-/// ساعتان للاعتراض. وكان جانب السائق يستعمل حوار التطبيق المشترك بينما
+/// مهلة للاعتراض — بلا ذكر مدّتها: ثابت الخادم في وضع تجريب (دقيقتان)
+/// ورسائله تقول «ساعتان»، فلا تُثبَّت المدّة عندنا. وكان جانب السائق
+/// يستعمل حوار التطبيق المشترك بينما
 /// بقي جانب الراكب على `AlertDialog` مبنيّ يدوياً بعنوان «تأكيد» وزرَّي
 /// «لا»/«نعم» بمقاس ثابت — فبدا الإجراء الواحد إجراءين.
 void main() {
@@ -198,19 +200,22 @@ void main() {
   });
 
   group('النصّ يقول العواقب نفسها للطرفين', () {
-    testWidgets('مهلة الاعتراض ونقاط الثقة — جانب الراكب', (tester) async {
+    // النصّ صار بطاقة عواقب محسوبة: مهلة الاعتراض، وما يقع إن لم يعترض
+    // المُبلَّغ عنه، وما يقع إن اعترض. الأرقام من سياسة الخادم.
+    testWidgets('العواقب الثلاث — جانب الراكب', (tester) async {
       await pumpPassenger(tester);
 
-      expect(find.textContaining('ساعتان للاعتراض'), findsOneWidget);
-      expect(find.textContaining('نقاط ثقته'), findsOneWidget);
+      expect(find.textContaining('مهلة للاعتراض'), findsOneWidget);
+      expect(find.textContaining('15 نقطة'), findsOneWidget);
+      expect(find.textContaining('تُفتح شكوى'), findsOneWidget);
       expect(find.textContaining('لا تُرسله إلا بعد انتظاره'), findsOneWidget);
     });
 
     testWidgets('ونفسها — جانب السائق', (tester) async {
       await pumpDriver(tester);
 
-      expect(find.textContaining('ساعتان للاعتراض'), findsOneWidget);
-      expect(find.textContaining('نقاط ثقته'), findsOneWidget);
+      expect(find.textContaining('مهلة للاعتراض'), findsOneWidget);
+      expect(find.textContaining('تُفتح شكوى'), findsOneWidget);
       expect(find.textContaining('لا تُرسله إلا بعد انتظاره'), findsOneWidget);
     });
 

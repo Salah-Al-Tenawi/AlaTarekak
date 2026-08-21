@@ -10,10 +10,12 @@ import 'package:alatarekak/core/them/my_colors.dart';
 import 'package:alatarekak/core/them/text_style_app.dart';
 import 'package:alatarekak/core/utils/class/format_date_time.dart';
 import 'package:alatarekak/core/utils/class/format_money.dart';
+import 'package:alatarekak/core/utils/class/cancel_policy.dart';
 import 'package:alatarekak/core/utils/class/ride_time_rules.dart';
 import 'package:alatarekak/core/them/app_snack_bar.dart';
 import 'package:alatarekak/core/utils/functions/show_my_snackbar.dart';
 import 'package:alatarekak/core/utils/widgets/app_dialog.dart';
+import 'package:alatarekak/core/utils/widgets/consequence_card.dart';
 import 'package:alatarekak/core/utils/widgets/no_show_gate.dart';
 import 'package:alatarekak/core/utils/widgets/rate_user_sheet.dart';
 import 'package:alatarekak/core/utils/widgets/trip_card_parts.dart';
@@ -602,7 +604,8 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
 
       default:
         // ثلاث مراحل: قبل الانطلاق إلغاء الحجز، ومع الانطلاق تأكيد
-        // الوصول، وبعد دقيقة منه يُضاف بلاغ غياب السائق.
+        // الوصول، وبعد دقيقة منه يُضاف بلاغ غياب السائق. **والإلغاء
+        // يبقى متاحاً في كلّها** — انظر [_lateCancelAction].
         if (!departed) {
           return _Action(
             icon: Icons.close_rounded,
@@ -634,22 +637,59 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
         // البوابة تحكم الصفّ كلّه لا الزرّ وحده: ما دامت مغلقة فتأكيد
         // الوصول يأخذ العرض كاملاً، فلا يبقى خُمساه فراغاً مكان زرّ
         // مخفيّ. وهي تفتح نفسها بعد دقيقة والراكب أمام الورقة.
-        return NoShowGate(
-          departure: b.departureTime,
-          builder: (context, remaining) {
-            if (remaining != null) return confirmAction;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            NoShowGate(
+              departure: b.departureTime,
+              builder: (context, remaining) {
+                if (remaining != null) return confirmAction;
 
-            return Row(
-              children: [
-                Expanded(flex: 3, child: confirmAction),
-                SizedBox(width: 8.w),
-                Expanded(flex: 2, child: _noShowAction()),
-              ],
-            );
-          },
+                return Row(
+                  children: [
+                    Expanded(flex: 3, child: confirmAction),
+                    SizedBox(width: 8.w),
+                    Expanded(flex: 2, child: _noShowAction()),
+                  ],
+                );
+              },
+            ),
+            SizedBox(height: 8.h),
+            _lateCancelAction(),
+          ],
         );
     }
   }
+
+  /// إلغاء الحجز بعد الانطلاق — **يُحذَّر منه ولا يُمنع**.
+  ///
+  /// كان الزرّ يختفي مع الانطلاق، فيبقى الراكب الذي لم يركب أصلاً بحجزٍ
+  /// لا سبيل له إلى إنهائه. والخادم لا يرفض الإلغاء المتأخّر — فالمنع
+  /// كان حجباً لفعلٍ مسموح، لا حمايةً من رفضٍ آتٍ.
+  ///
+  /// وكلفته تُقال قبله لا بعده: بعد انقضاء 70% من المدّة لا يُسترد شيء
+  /// وتُخصم عشر نقاط ثقة — انظر سياسة الإلغاء.
+  Widget _lateCancelAction() => _Action(
+        icon: Icons.close_rounded,
+        label: 'إلغاء الحجز',
+        color: MyColors.textSecondary,
+        outlined: true,
+        onTap: () async {
+          final go = await showAppDialog(
+            context,
+            icon: Icons.warning_amber_rounded,
+            title: 'إلغاء بعد الانطلاق؟',
+            message: 'انطلقت الرحلة، فالإلغاء الآن لا يُرتّب استرداداً '
+                'وتُخصم 10 نقاط من ثقتك. إن كنت قد وصلت فأكّد وصولك، '
+                'وإن لم يحضر السائق فأبلغ عن غيابه — كلاهما أنفع لك.',
+            confirmLabel: 'إلغاء الحجز',
+            cancelLabel: 'تراجع',
+            destructive: true,
+          );
+          if (!(go ?? false) || !mounted) return;
+          await _askCancelSeats();
+        },
+      );
 
   /// زرّ «لم يحضر» بعد أن تُفتح بوابته.
   ///
@@ -685,9 +725,14 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
           context,
           icon: Icons.report_problem_outlined,
           title: 'السائق لم يحضر؟',
-          message: 'سيُسجَّل بلاغ بحقّ $driver، وله ساعتان للاعتراض '
-              'قبل أن يُحسم تلقائياً وتُخصم من نقاط ثقته. '
-              'لا تُرسله إلا بعد انتظاره فعلاً.',
+          message: 'بلاغٌ بحقّ $driver — لا تُرسله إلا بعد انتظاره فعلاً.',
+          content: ConsequenceCard(
+            title: 'ماذا يحدث بعد البلاغ',
+            lines: CancelPolicy.noShowReport(
+              againstPassenger: false,
+              cashRide: b.paymentMethod.trim().toLowerCase() == 'cash',
+            ),
+          ),
           confirmLabel: 'تسجيل البلاغ',
           cancelLabel: 'تراجع',
           destructive: true,
@@ -702,17 +747,30 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
   /// متأكد؟» بنصّ يكرّر ما قيل للتوّ. الورقة تعرض أثر الاختيار — كم
   /// مقعداً يبقى، ومتى يصير الإلغاء كاملاً — فيُغني عن السؤال الثاني.
   Future<void> _askCancelSeats() async {
+    final cashRide = b.paymentMethod.trim().toLowerCase() == 'cash';
     final seatsToCancel = await CancelSeatsSheet.show(
       context,
       bookedSeats: b.seats,
       pricePerSeat: b.pricePerSeat,
+      // النسبة من عمر الحجز لا من قربه للانطلاق — انظر [CancelPolicy]
+      elapsedPercent: CancelPolicy.elapsedPercent(
+        createdAt: b.bookingDate,
+        departure: b.departureTime,
+      ),
+      cashRide: cashRide,
     );
     if (seatsToCancel == null || !mounted) return;
 
-    // إلغاء كل المقاعد يمرّ عبر إلغاء الحجز الكامل، والجزئي عبر cancel-seats
-    _dispatch((cubit) => seatsToCancel >= b.seats
-        ? cubit.cancelWholeBooking(b.bookingId)
-        : cubit.cancelBooking(b.bookingId, seatsToCancel));
+    // **مسار واحد للحالتين**: `cancel-seats` يقبل إلغاء كل المقاعد
+    // ويردّ تفاصيل الاسترداد، بينما `/cancel` يُنهي الحجز بلا رقم —
+    // فكان من يلغي حجزه كاملاً لا يعرف كم أُعيد إليه.
+    final status = b.status.trim().toLowerCase();
+    _dispatch((cubit) => cubit.cancelBooking(
+          b.bookingId,
+          seatsToCancel,
+          wasConfirmed: status != 'pending',
+          cashRide: cashRide,
+        ));
   }
 
   /// تقييم السائق — ورقة واحدة مشتركة مع جانب السائق.
@@ -735,7 +793,8 @@ class _BookingDetailsContentState extends State<BookingDetailsContent> {
 
     // الورقة تُغلق ثم يُرسَل، كبقيّة إجراءاتها
     Navigator.of(context).maybePop();
-    cubit.reateUser(result.rating, userId, comment: result.comment);
+    cubit.reateUser(result.rating, userId, b.rideId,
+        comment: result.comment);
   }
 }
 

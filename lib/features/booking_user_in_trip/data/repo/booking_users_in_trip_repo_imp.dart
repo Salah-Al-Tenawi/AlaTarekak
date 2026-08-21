@@ -54,9 +54,9 @@ class BookingUsersInTripRepoImp extends BookingUserInTripRepo {
 
   @override
   Future<Either<Filuar, RatingModle>> rateUser(
-      double rating, int userId) async {
+      double rating, int userId, int rideId) async {
     try {
-      return right(await remoteData.rateUser(rating, userId));
+      return right(await remoteData.rateUser(rating, userId, rideId));
     } on ServerExpcptions catch (e) {
       return left(e.error);
     }
@@ -64,9 +64,9 @@ class BookingUsersInTripRepoImp extends BookingUserInTripRepo {
 
   @override
   Future<Either<Filuar, CommentEntity>> addcommit(
-      String comment, int userId) async {
+      String comment, int userId, int rideId) async {
     try {
-      return right(await remoteData.addcommit(comment, userId));
+      return right(await remoteData.addcommit(comment, userId, rideId));
     } on ServerExpcptions catch (e) {
       return left(e.error);
     }

@@ -67,6 +67,48 @@ void main() {
     await tester.pump();
   }
 
+  group('الإلغاء لا يُحجب بالوقت', () {
+    // بشهادة الباك إند: الخادم لا يرفض الإلغاء المتأخّر، فمنعُه في
+    // الواجهة حجبٌ لفعل مسموح. الزرّ باقٍ بعد الانطلاق ومعه تحذير
+    // بكلفته، والقرار للراكب.
+
+    testWidgets('بعد الانطلاق: الإلغاء حاضر مع التأكيد', (tester) async {
+      await pump(tester, fakeBooking(departsIn: const Duration(minutes: -30)));
+
+      expect(find.text('تأكيد الوصول'), findsOneWidget);
+      expect(find.text('إلغاء الحجز'), findsOneWidget,
+          reason: 'كان يختفي مع الانطلاق فيبقى الراكب بحجز لا مخرج منه');
+    });
+
+    testWidgets('وبعد ساعات كذلك', (tester) async {
+      await pump(tester, fakeBooking(departsIn: const Duration(hours: -5)));
+
+      expect(find.text('إلغاء الحجز'), findsOneWidget);
+    });
+
+    testWidgets('والكلفة تُقال قبل الإلغاء لا بعده', (tester) async {
+      await pump(tester, fakeBooking(departsIn: const Duration(hours: -2)));
+
+      await tester.tap(find.text('إلغاء الحجز'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('إلغاء بعد الانطلاق؟'), findsOneWidget);
+      expect(find.textContaining('لا يُرتّب استرداداً'), findsOneWidget);
+      expect(find.textContaining('10 نقاط'), findsOneWidget);
+    });
+
+    testWidgets('حجز منتهٍ لا إلغاء له', (tester) async {
+      await pump(
+        tester,
+        fakeBooking(
+            departsIn: const Duration(hours: -5), status: 'completed'),
+      );
+
+      expect(find.text('إلغاء الحجز'), findsNothing,
+          reason: 'رحلةٌ تمّت لا تُلغى — والزرّ يخصّ الحجز القائم وحده');
+    });
+  });
+
   group('قبل الانطلاق', () {
     testWidgets('إلغاء الحجز وحده — لا تأكيد ولا بلاغ', (tester) async {
       await pump(tester, fakeBooking(departsIn: const Duration(hours: 3)));

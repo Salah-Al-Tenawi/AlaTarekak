@@ -231,11 +231,15 @@ class HandelErorrMessage {
 
   static String commet(String message) => _match(message, {
         "already left a comment for this ride": alreadyCommentedRide,
+        "after completing a ride with them":
+            "لا يمكن التعليق إلا بعد إتمام رحلة معاً",
         "comment": "التعليق مطلوب (بحد أقصى 500 حرف)",
       });
 
   static String rateUser(String message) => _match(message, {
         "already rated this ride": alreadyRatedRide,
+        "after completing a ride with them":
+            "لا يمكن التقييم إلا بعد إتمام رحلة معاً",
         "rating": "يرجى اختيار تقييم من 1 إلى 5",
       });
 
@@ -466,9 +470,17 @@ class HandelErorrMessage {
 
   static String cancelBooking(String message) => _match(message, {
         "only cancel your own": "لا يمكنك إلغاء حجز لا يخصك",
+        "cannot be partially cancelled":
+            "لا يمكن إلغاء هذا الحجز في حالته الحالية",
+        // **الأدقّ أولاً**: هذه الرسالة تحوي «cannot cancel» كذلك،
+        // ومطابقةُ الأعمّ قبلها تُخرج نصّاً عن المقاعد على خطأ في التوقيت.
+        // والمهلة لم تعد في قائمة أخطاء `cancel-seats`، لكنها تبقى مطابَقة
+        // احتياطاً لمسار `/cancel` القديم.
         "less than 2 hours":
             "لا يمكن إلغاء الحجز قبل أقل من ساعتين من موعد الانطلاق",
-        "cannot be partially cancelled": "لا يمكن الإلغاء الجزئي لهذا الحجز",
+        // «Cannot cancel 3 seat(s). You have 2 seat(s) booked.»
+        "cannot cancel": "عدد المقاعد المطلوب إلغاؤها أكبر مما تملكه",
+        "seats to cancel field is required": "يرجى اختيار عدد المقاعد",
       });
 
   static String passangerConfirm(String message) => _match(message, {

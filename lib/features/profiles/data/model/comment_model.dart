@@ -15,12 +15,21 @@ class CommentModel extends CommentEntity {
     required this.created,
   }) : super(iduser: commenter.id, text: comment, authorName: commenter.name ,createdAt:created ,authorPhoto:commenter.profilePhoto );
 
+  /// يقرأ الشكلين: **عنصرَ قائمة** في ردّ الملف الشخصي، و**ردَّ الإنشاء**
+  /// المغلَّف بـ`data`.
+  ///
+  /// كان يقرأ الأوّل وحده، فيعود تعليق الإنشاء فارغاً كلّه — معرّفاً
+  /// صفراً ونصّاً خالياً وصاحباً بلا اسم.
   factory CommentModel.fromJson(Map<String, dynamic> json) {
+    final source = json[ApiKey.data] is Map<String, dynamic>
+        ? json[ApiKey.data] as Map<String, dynamic>
+        : json;
+
     return CommentModel(
-      id: json[ApiKey.id] ?? 0,
-      comment: json[ApiKey.comment] ?? '',
-      commenter: Commenter.fromJson(json[ApiKey.commenter] ?? {}),
-      created: json[ApiKey.createdAt] ?? '',
+      id: source[ApiKey.id] ?? 0,
+      comment: source[ApiKey.comment] ?? '',
+      commenter: Commenter.fromJson(source[ApiKey.commenter] ?? {}),
+      created: source[ApiKey.createdAt] ?? '',
     );
   }
 

@@ -29,6 +29,10 @@ Future<bool?> showAppDialog(
   /// إجراء لا رجعة فيه: يُلوَّن باللون التحذيري ولا يُجعل الافتراضي بصرياً.
   bool destructive = false,
   bool barrierDismissible = true,
+
+  /// محتوى يُعرض تحت الرسالة — بطاقة كلفة الإجراء مثلاً. النصّ وحده لا
+  /// يكفي حين يكون للقرار ثمنٌ يُقرأ في سطرين ملوّنين.
+  Widget? content,
 }) {
   return showDialog<bool>(
     context: context,
@@ -37,6 +41,7 @@ Future<bool?> showAppDialog(
       icon: icon,
       title: title,
       message: message,
+      content: content,
       accentColor: accentColor,
       confirmLabel: confirmLabel,
       cancelLabel: cancelLabel,
@@ -52,6 +57,9 @@ class AppDialogContent extends StatelessWidget {
   final String title;
   final String? message;
   final Color? accentColor;
+
+  /// محتوى تحت الرسالة — انظر [showAppDialog].
+  final Widget? content;
   final String? confirmLabel;
   final String cancelLabel;
   final bool destructive;
@@ -69,6 +77,7 @@ class AppDialogContent extends StatelessWidget {
     this.confirmLabel,
     this.cancelLabel = 'إلغاء',
     this.destructive = false,
+    this.content,
   });
 
   /// حدّ أعلى بالبكسل المنطقي لا `.w`: الغاية ألّا يتمدّد الحوار على
@@ -110,6 +119,10 @@ class AppDialogContent extends StatelessWidget {
                       height: 1.8,
                     ),
                   ),
+                ],
+                if (content != null) ...[
+                  SizedBox(height: 14.h),
+                  content!,
                 ],
                 SizedBox(height: 24.h),
                 _Actions(

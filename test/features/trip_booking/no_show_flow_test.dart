@@ -70,7 +70,7 @@ void main() {
 
       final state = cubit.state as BookingMeDriverNoShowReported;
       expect(state.outcome, NoShowOutcome.reported);
-      expect(state.message, contains('ساعتان'));
+      expect(state.message, contains('مهلة للاعتراض'));
     });
 
     test('يُحفظ محلياً فيُقفل الزرّ — لا مصدر حقيقة على الخادم', () async {

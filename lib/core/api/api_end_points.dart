@@ -142,6 +142,11 @@ class ApiKey {
   static const numberOfRides = "number_of_rides";
   static const drivingLicensePic = "driving_license_pic";
   static const rating = "rating";
+
+  /// **الرحلة التي يخصّها التقييم أو التعليق** — يشترطها الخادم في
+  /// جسمَي `POST /profile/{id}/rate` و`/comments`، وبها يمنع تكرارهما
+  /// على الرحلة الواحدة.
+  static const rideId = "ride_id";
   static const totalRatings = "total_ratings";
   static const averageRating = "average_rating";
   static const phoneNumber = "phone_number";

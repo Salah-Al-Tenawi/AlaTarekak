@@ -491,6 +491,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
           'bookings': trip.booking,
           'departure': trip.departure,
           'rideStatus': trip.status,
+          'paymentMethod': trip.paymentMethod,
         },
       ),
     );
@@ -581,6 +582,7 @@ class _BodyTripDetailsState extends State<BodyTripDetails> {
         final block = bookingBlockFor(
           status: trip.status,
           departure: trip.departure,
+          seatsAvailable: trip.seatsAvailable,
         );
 
         if (block != null) {
