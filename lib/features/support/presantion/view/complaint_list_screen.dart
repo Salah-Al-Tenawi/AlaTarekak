@@ -35,7 +35,9 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
               size: 20),
           onPressed: () => Get.back(),
         ),
-        title: Text('شكاواي', style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
+        // الاسم نفسه الذي في قائمة «حسابي»: من ضغط «الشكاوي الخاصة بي»
+        // لا يصحّ أن يصل شاشةً بعنوان آخر
+        title: Text('الشكاوي الخاصة بي', style: AppTextStyles.titleMedium.copyWith(color: MyColors.textOnDark)),
         centerTitle: true,
       ),
       body: BlocBuilder<ComplaintListCubit, ComplaintListState>(

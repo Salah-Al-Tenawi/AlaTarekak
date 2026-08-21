@@ -45,21 +45,41 @@ class StatusFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sidePadding = 12.w;
+
     return SizedBox(
       height: 46.h,
       // صفّ كامل البناء لا قائمة كسولة: الخيارات قليلة ثابتة، والبناء
       // الكسول كان يترك آخرها غير مبنيّ فلا يصله التمرير البرمجي ولا
       // قارئ الشاشة.
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-        child: Row(
-          children: [
-            for (final option in options) ...[
-              if (option != options.first) SizedBox(width: 6.w),
-              _FilterChip(option: option),
-            ],
-          ],
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding:
+              EdgeInsets.symmetric(horizontal: sidePadding, vertical: 4.h),
+          // **الصفّ يملأ عرض الشاشة ولو ضاقت رقاقاته.**
+          //
+          // بلا هذا الحدّ الأدنى يأخذ الصفّ عرضه الطبيعي وحده، فيضعه
+          // العارض عند حافته اليسرى مهما كان الاتجاه: على شاشة تابلت
+          // تتجمّع الرقاقات في النصف الأيسر وتُترك يمينُ الشاشة فارغاً —
+          // وهي أوّل ما تقع عليه العين في واجهة عربية.
+          //
+          // وبه يملأ الصفّ العرض، فيصفّ أبناءه من اليمين كما يقتضي
+          // الاتجاه. أما حين تفيض الرقاقات فلا أثر للحدّ أصلاً.
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: (constraints.maxWidth - sidePadding * 2)
+                  .clamp(0.0, double.infinity),
+            ),
+            child: Row(
+              children: [
+                for (final option in options) ...[
+                  if (option != options.first) SizedBox(width: 6.w),
+                  _FilterChip(option: option),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
     );

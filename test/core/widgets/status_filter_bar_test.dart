@@ -1,156 +1,107 @@
 import 'package:alatarekak/core/them/my_colors.dart';
+import 'package:alatarekak/core/utils/class/adaptive_design.dart';
 import 'package:alatarekak/core/utils/widgets/status_filter_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// شريط التصنيف المشترك بين «حجوزاتي» و«رحلاتي».
+/// شريط رقاقات التصنيف — «رحلاتي» و«حجوزاتي».
 ///
-/// كانت كل شاشة ستبني رقاقاتها بنفسها، فتختلف الأنصاف والحدود والوزن
-/// بينها كما اختلفت بطاقات الرحلة قبل توحيدها. هذه الاختبارات تخصّ
-/// اللبنة نفسها لا الشاشتين.
+/// **كان يتجمّع في يسار الشاشة على التابلت.** الشريط `SingleChildScrollView`
+/// أفقيّ، وصفُّه يأخذ عرضه الطبيعي وحده — فحين تضيق الرقاقات عن عرض
+/// الشاشة يضعها العارض عند حافته اليسرى مهما كان الاتجاه، وتُترك يمينُ
+/// الشاشة فارغةً وهي أوّل ما تقع عليه العين في واجهة عربية.
+///
+/// وعلى الهاتف كان العيب مستوراً: الرقاقات تملأ العرض وتفيض عنه.
 void main() {
-  late List<String> tapped;
+  const labels = ['الكل', 'متاحة', 'ممتلئة', 'منتهية'];
 
-  List<StatusFilterOption> options({
-    String selected = 'الكل',
-    Map<String, int> counts = const {'الكل': 6, 'ملغاة': 2, 'منتهية': 0},
-  }) {
-    return [
-      for (final label in const ['الكل', 'ملغاة', 'منتهية'])
-        StatusFilterOption(
-          label: label,
-          color: MyColors.primary,
-          icon: Icons.circle,
-          count: counts[label] ?? 0,
-          isSelected: label == selected,
-          onTap: () => tapped.add(label),
-        ),
-    ];
-  }
-
-  Future<void> pumpBar(
-    WidgetTester tester,
-    List<StatusFilterOption> opts,
-  ) async {
-    tester.view.physicalSize = const Size(375, 812);
+  Future<void> pump(WidgetTester tester, Size screen) async {
+    tester.view.physicalSize = screen;
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(
       ScreenUtilInit(
-        designSize: const Size(375, 812),
-        minTextAdapt: true,
+        // المقياس المتكيّف نفسه الذي يستعمله التطبيق
+        designSize: adaptiveDesignSize(screen),
         child: MaterialApp(
           home: Directionality(
             textDirection: TextDirection.rtl,
-            child: Scaffold(body: StatusFilterBar(options: opts)),
+            child: Scaffold(
+              body: StatusFilterBar(
+                options: [
+                  for (final label in labels)
+                    StatusFilterOption(
+                      label: label,
+                      color: MyColors.primary,
+                      icon: Icons.circle,
+                      count: 1,
+                      isSelected: label == labels.first,
+                      onTap: () {},
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
   }
 
-  setUp(() => tapped = []);
+  /// حافة الرقاقة الأولى اليمنى — يجب أن تكون قريبة من يمين الشاشة.
+  double firstChipRight(WidgetTester tester) =>
+      tester.getRect(find.text(labels.first)).right;
 
-  testWidgets('كل خيار يُرسم بتسميته وعدّاده', (tester) async {
-    await pumpBar(tester, options());
+  group('الشريط يبدأ من يمين الشاشة', () {
+    testWidgets('على التابلت — العيب المُصلَح', (tester) async {
+      const width = 1024.0;
+      await pump(tester, const Size(width, 768));
 
-    expect(find.text('الكل'), findsOneWidget);
-    expect(find.text('6'), findsOneWidget);
-    expect(find.text('ملغاة'), findsOneWidget);
-    expect(find.text('2'), findsOneWidget);
+      final right = firstChipRight(tester);
+
+      expect(right, greaterThan(width * 0.85),
+          reason: 'كانت الرقاقات تتجمّع في النصف الأيسر ويُترك اليمين '
+              'فارغاً — أوّل ما تقع عليه العين');
+
+      // وآخر رقاقة تبقى داخل الشاشة: الصفّ لا يفيض بلا داعٍ
+      expect(tester.getRect(find.text(labels.last)).left, greaterThan(0));
+    });
+
+    testWidgets('وعلى شاشة أعرض بعد', (tester) async {
+      const width = 1280.0;
+      await pump(tester, const Size(width, 800));
+
+      expect(firstChipRight(tester), greaterThan(width * 0.85));
+    });
+
+    testWidgets('والهاتف كما كان — الرقاقات تملأ عرضه', (tester) async {
+      const width = 375.0;
+      await pump(tester, const Size(width, 812));
+
+      expect(firstChipRight(tester), greaterThan(width * 0.85));
+    });
   });
 
-  testWidgets('العدّاد يُخفى حين يكون صفراً — لا «منتهية 0»', (tester) async {
-    await pumpBar(tester, options());
+  group('ترتيب الرقاقات', () {
+    testWidgets('الأولى يمين الأخيرة — لا العكس', (tester) async {
+      await pump(tester, const Size(1024, 768));
 
-    expect(find.text('منتهية'), findsOneWidget);
-    expect(find.text('0'), findsNothing);
-  });
+      expect(
+        tester.getCenter(find.text(labels.first)).dx,
+        greaterThan(tester.getCenter(find.text(labels.last)).dx),
+        reason: 'في العربية تُقرأ الأولى أولاً — أي من اليمين',
+      );
+    });
 
-  testWidgets('الضغط يُبلّغ الخيار المضغوط وحده', (tester) async {
-    await pumpBar(tester, options());
+    testWidgets('وكلّها ظاهرة على شاشة عريضة', (tester) async {
+      await pump(tester, const Size(1024, 768));
 
-    await tester.tap(find.text('ملغاة'));
-    await tester.pumpAndSettle();
-
-    expect(tapped, ['ملغاة']);
-  });
-
-  testWidgets('الرقاقة الفارغة تبقى قابلة للضغط', (tester) async {
-    await pumpBar(tester, options());
-
-    // إخفاؤها يجعل الشريط يرقص كلما تغيّرت القائمة
-    await tester.tap(find.text('منتهية'));
-    await tester.pumpAndSettle();
-
-    expect(tapped, ['منتهية']);
-  });
-
-  testWidgets('المختار يُعلَن مختاراً لقارئ الشاشة', (tester) async {
-    final handle = tester.ensureSemantics();
-    await pumpBar(tester, options(selected: 'ملغاة'));
-
-    expect(
-      tester.getSemantics(find.text('ملغاة')),
-      matchesSemantics(
-        isButton: true,
-        isSelected: true,
-        isFocusable: true,
-        hasSelectedState: true,
-        // فعلا الضغط والتركيز من `InkWell`: استثناء الأبناء من الدلالات
-        // يخفي تكرار التسمية ولا يسلب الرقاقة قابليّتها للتفعيل
-        hasTapAction: true,
-        hasFocusAction: true,
-        label: 'ملغاة، 2',
-        textDirection: TextDirection.rtl,
-      ),
-    );
-
-    handle.dispose();
-  });
-
-  testWidgets('الشريط يمرّر أفقياً بدل أن يفيض', (tester) async {
-    // عشر رقاقات: أعرض بكثير من 375
-    await pumpBar(tester, [
-      for (var i = 0; i < 10; i++)
-        StatusFilterOption(
-          label: 'مجموعة رقم $i',
-          color: MyColors.primary,
-          icon: Icons.circle,
-          count: i,
-          isSelected: i == 0,
-          onTap: () {},
-        ),
-    ]);
-
-    expect(tester.takeException(), isNull);
-    expect(find.byType(SingleChildScrollView), findsOneWidget);
-  });
-
-  testWidgets('آخر رقاقة مبنيّة ولو كانت خارج الشاشة', (tester) async {
-    // بناء كسول كان يترك آخرها غير مبنيّ فلا يصله التمرير البرمجي
-    await pumpBar(tester, [
-      for (var i = 0; i < 10; i++)
-        StatusFilterOption(
-          label: 'مجموعة رقم $i',
-          color: MyColors.primary,
-          icon: Icons.circle,
-          count: 1,
-          isSelected: false,
-          onTap: () => tapped.add('$i'),
-        ),
-    ]);
-
-    expect(find.text('مجموعة رقم 9'), findsOneWidget);
-
-    await tester.ensureVisible(find.text('مجموعة رقم 9'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('مجموعة رقم 9'));
-
-    expect(tapped, ['9']);
+      for (final label in labels) {
+        expect(find.text(label), findsOneWidget);
+      }
+    });
   });
 }

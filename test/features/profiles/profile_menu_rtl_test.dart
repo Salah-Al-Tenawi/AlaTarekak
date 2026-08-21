@@ -167,4 +167,15 @@ void main() {
       expect(arrowX, lessThan(badgeX), reason: 'والسهم بعدها');
     });
   });
+
+  group('أسماء الخيارات', () {
+    // اسم الشاشة واسم مدخلها واحد: من ضغط «الشكاوي الخاصة بي» لا يصحّ
+    // أن يصل شاشةً بعنوان آخر.
+    testWidgets('«الشكاوي الخاصة بي» لا «شكاواي»', (tester) async {
+      await pump(tester);
+
+      expect(find.text('الشكاوي الخاصة بي'), findsOneWidget);
+      expect(find.text('شكاواي'), findsNothing);
+    });
+  });
 }

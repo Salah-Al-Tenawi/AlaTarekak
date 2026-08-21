@@ -346,7 +346,9 @@ class _QuickStatsRow extends StatelessWidget {
               child: _StatCell(
                 icon: Icons.directions_car_rounded,
                 value: profile.totalTrips.toString(),
-                label: 'رحلات كسائق',
+                // ثلاث خلايا في صفّ واحد على شاشة هاتف: «رحلات كسائق»
+                // تضيق بها فتُقصّ أو تلتفّ. والرقم فوقها يقول «رحلات».
+                label: 'ك سائق',
                 iconColor: MyColors.primary,
               ),
             ),
@@ -355,7 +357,7 @@ class _QuickStatsRow extends StatelessWidget {
               child: _StatCell(
                 icon: Icons.event_seat_rounded,
                 value: profile.totalBookings.toString(),
-                label: 'رحلات كراكب',
+                label: 'ك راكب',
                 iconColor: MyColors.accent,
               ),
             ),
@@ -505,7 +507,7 @@ class _MenuCard extends StatelessWidget {
           _divider(),
           _MenuItem(
             icon: Icons.list_alt_rounded,
-            label: "شكاواي",
+            label: "الشكاوي الخاصة بي",
             onTap: () => Get.toNamed(RouteName.complaintList),
           ),
           _divider(),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart' hide Transition;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:alatarekak/core/utils/class/adaptive_design.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:get/get_navigation/src/routes/transitions_type.dart';
 import 'package:alatarekak/core/route/route_app.dart';
@@ -33,10 +34,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScreenUtilInit(
-      designSize: const Size(375, 812),
-      minTextAdapt: true,
-      child: ValueListenableBuilder<bool>(
+    // مقاس التصميم يُشتقّ من الشاشة لا يُثبَّت: تابلتٌ عرضه 800 كان
+    // يضاعف كل خطّ وحشوة مرّتين — انظر [adaptiveDesignSize].
+    return LayoutBuilder(
+      builder: (context, constraints) => ScreenUtilInit(
+        designSize: adaptiveDesignSize(constraints.biggest),
+        minTextAdapt: true,
+        child: ValueListenableBuilder<bool>(
         valueListenable: ThemeController.instance.isDark,
         builder: (context, isDark, _) {
           return GetMaterialApp(
@@ -62,7 +66,8 @@ class MyApp extends StatelessWidget {
             ],
             supportedLocales: const [Locale('ar'), Locale('en')],
           );
-        },
+          },
+        ),
       ),
     );
   }
